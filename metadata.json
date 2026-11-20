@@ -1,0 +1,7 @@
+{
+  "name": "WMS Pro - Warehouse Management Dashboard",
+  "description": "Sistem Manajemen Gudang & Inventori Terpadu",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
