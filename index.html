@@ -40,6 +40,101 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+        /* Kanban Board Auto-Minimize (> 2 project) -> Smooth Auto-Maximize saat cursor di atas card */
+        .kanban-card {
+            transition: border-color 0.22s ease, box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.22s ease;
+        }
+        .kanban-card-body {
+            padding: 0.875rem;
+            transition: padding 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .kanban-card-cat-badge {
+            display: inline-flex;
+            max-width: 160px;
+            opacity: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: max-width 0.24s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease, padding 0.24s ease, border-width 0.24s ease;
+        }
+        .kanban-card-mini-wrap {
+            display: grid;
+            grid-template-rows: 0fr;
+            opacity: 0;
+            margin-top: 0;
+            transition: grid-template-rows 0.24s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease, margin-top 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .kanban-card-mini-inner,
+        .kanban-card-extra-inner {
+            min-height: 0;
+            overflow: hidden;
+        }
+        .kanban-card-extra-wrap {
+            display: grid;
+            grid-template-rows: 1fr;
+            opacity: 1;
+            margin-top: 0.625rem;
+            transition: grid-template-rows 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease, margin-top 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .kanban-card-minimized .kanban-card-body {
+            padding: 0.6rem 0.75rem;
+        }
+        .kanban-card-minimized .kanban-card-cat-badge {
+            max-width: 0;
+            opacity: 0;
+            padding-left: 0;
+            padding-right: 0;
+            border-width: 0;
+        }
+        .kanban-card-minimized .kanban-card-title {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            font-size: 0.8125rem;
+            transition: font-size 0.22s ease;
+        }
+        .kanban-card-minimized .kanban-card-mini-wrap {
+            grid-template-rows: 1fr;
+            opacity: 1;
+            margin-top: 0.4rem;
+            pointer-events: auto;
+        }
+        .kanban-card-minimized .kanban-card-extra-wrap {
+            grid-template-rows: 0fr;
+            opacity: 0;
+            margin-top: 0;
+            pointer-events: none;
+        }
+        .kanban-card-minimized.is-kanban-expanded {
+            z-index: 20;
+            border-color: #818cf8;
+            box-shadow: 0 12px 26px -6px rgba(79, 70, 229, 0.18), 0 4px 10px -4px rgba(15, 23, 42, 0.08);
+        }
+        .kanban-card-minimized.is-kanban-expanded .kanban-card-body {
+            padding: 0.875rem;
+        }
+        .kanban-card-minimized.is-kanban-expanded .kanban-card-cat-badge {
+            max-width: 160px;
+            opacity: 1;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        .kanban-card-minimized.is-kanban-expanded .kanban-card-title {
+            -webkit-line-clamp: unset;
+            font-size: 0.875rem;
+        }
+        .kanban-card-minimized.is-kanban-expanded .kanban-card-mini-wrap {
+            grid-template-rows: 0fr;
+            opacity: 0;
+            margin-top: 0;
+            pointer-events: none;
+        }
+        .kanban-card-minimized.is-kanban-expanded .kanban-card-extra-wrap {
+            grid-template-rows: 1fr;
+            opacity: 1;
+            margin-top: 0.625rem;
+            pointer-events: auto;
+        }
         /* Pengaturan khusus cetak label */
         .tj105-sheet-page {
             display: grid;
@@ -1082,7 +1177,7 @@ function doPost(e) {
                             </div>
 
                             <form id="absen-entry-form" class="space-y-4">
-                                <!-- Pilih Staff + Quick Tap Staff Chips -->
+                                <!-- Pilih Staff -->
                                 <div class="relative">
                                     <div class="flex items-center justify-between mb-1.5">
                                         <label for="absen-staff-search" class="text-xs font-bold text-slate-700">Nama Staff <span class="text-rose-500">*</span></label>
@@ -1103,14 +1198,6 @@ function doPost(e) {
                                     <input type="hidden" id="absen-staff-selected">
                                     <div id="absen-staff-dropdown" class="hidden absolute z-30 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto divide-y divide-slate-100">
                                         <!-- Item hasil pencarian staff -->
-                                    </div>
-
-                                    <!-- Quick Tap Staff Picker -->
-                                    <div class="mt-2.5">
-                                        <div class="text-[11px] font-semibold text-slate-500 mb-1.5">Pilih Cepat Staff:</div>
-                                        <div id="absen-quick-staff-chips" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
-                                            <!-- Quick tap buttons rendered via JS -->
-                                        </div>
                                     </div>
                                 </div>
 
@@ -1476,13 +1563,12 @@ function doPost(e) {
                                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition tabular-nums">
                             </div>
 
-                            <!-- Nama Staff (Quick Chips + Search Dropdown) -->
+                            <!-- Nama Staff (Search Dropdown) -->
                             <div class="relative">
                                 <div class="flex items-center justify-between mb-1.5">
                                     <label for="overtime-staff-search" class="text-xs font-bold text-slate-700">Nama Staff <span class="text-rose-500">*</span></label>
                                     <span id="overtime-staff-role-badge" class="hidden text-[11px] font-bold px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800"></span>
                                 </div>
-                                <div id="overtime-quick-staff" class="flex flex-wrap gap-1.5 mb-2 max-h-32 overflow-y-auto pr-0.5"></div>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                         <i data-lucide="search" class="w-4 h-4"></i>
@@ -4840,14 +4926,13 @@ function doPost(e) {
                         class="w-full px-3.5 py-2.5 bg-amber-50/40 border border-amber-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
                 </div>
 
-                <!-- Foto Awal / Dokumentasi Job (Kamera — Opsional / Bisa di-skip) -->
+                <!-- Foto Awal / Dokumentasi Job -->
                 <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-slate-700 inline-flex items-center gap-1.5">
                             <i data-lucide="camera" class="w-4 h-4 text-indigo-600"></i>
                             <span>Foto Dokumentasi Job</span>
                         </span>
-                        <span class="text-[11px] text-slate-400 font-medium">Opsional • Bisa di-skip</span>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <button type="button" onclick="openProjectFormCamera()" class="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition">
@@ -5499,7 +5584,7 @@ function doPost(e) {
                     </div>
                     <div>
                         <h3 class="text-base font-bold">Selesaikan Job / Project</h3>
-                        <p class="text-[11px] text-emerald-100">Foto bukti selesai bersifat opsional (bisa di-skip)</p>
+                        <p class="text-[11px] text-emerald-100">Konfirmasi penyelesaian job / project</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeProjectDonePhotoModal()" class="p-1.5 text-white/80 hover:text-white rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -5512,8 +5597,7 @@ function doPost(e) {
 
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-700">Foto Bukti Penyelesaian (Opsional)</span>
-                        <span class="text-[11px] text-slate-400">Tidak wajib</span>
+                        <span class="text-xs font-bold text-slate-700">Foto Bukti Penyelesaian</span>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <button type="button" onclick="openProjectDoneCamera()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">
@@ -5536,7 +5620,7 @@ function doPost(e) {
 
                 <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-100">
                     <button type="button" onclick="skipProjectDonePhoto()" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
-                        Skip &amp; Tandai Done
+                        Done Tanpa Foto
                     </button>
                     <button type="button" onclick="confirmProjectDoneWithPhoto()" class="py-2.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
                         Simpan &amp; Done
@@ -5577,7 +5661,7 @@ function doPost(e) {
                         <input type="file" id="cam-photo-file-fallback" accept="image/*" class="hidden" onchange="handlePhotoCameraFileFallback(event)">
                     </label>
                     <div class="flex items-center gap-2">
-                        <button type="button" id="cam-photo-skip-btn" onclick="skipPhotoCameraModal()" class="hidden px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Lewati (Skip)</button>
+                        <button type="button" id="cam-photo-skip-btn" onclick="skipPhotoCameraModal()" class="hidden px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Lewati</button>
                         <button type="button" id="cam-photo-shutter-btn" onclick="capturePhotoFromCamera()" class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
                             <i data-lucide="aperture" class="w-4 h-4"></i>
                             <span>Jepret Foto</span>
@@ -6575,7 +6659,7 @@ function doPost(e) {
                 dispatch: () => { refreshDispatchExpedisiOptions(); renderDispatchQuickQtyButtons(); renderDispatchStatsAndList(); },
                 'dispatch-report': renderDispatchReport,
                 expedisi: renderExpedisiList,
-                absen: () => { populateAbsenReasonSelect(); renderAbsenQuickNotes(); renderAbsenQuickStaffChips(); renderAbsenList(); },
+                absen: () => { populateAbsenReasonSelect(); renderAbsenQuickNotes(); renderAbsenList(); },
                 'absen-report': renderAbsenReport,
                 overtime: () => { populateOvertimeReasonSelect(); renderOvertimeQuickHourButtons(); renderOvertimeQuickNotes(); renderOvertimeQuickChips(); renderOvertimeList(); },
                 'overtime-report': renderOvertimeReport,
@@ -9613,45 +9697,6 @@ function doPost(e) {
             noteEl.focus();
         }
 
-        function renderAbsenQuickStaffChips() {
-            const container = document.getElementById('absen-quick-staff-chips');
-            if (!container) return;
-            const date = document.getElementById('absen-date')?.value || getTodayISO();
-            const selectedRaw = document.getElementById('absen-staff-selected')?.value || '';
-            let selectedName = '';
-            try { if (selectedRaw) selectedName = JSON.parse(selectedRaw).name || ''; } catch (e) {}
-
-            const entriesByStaff = new Map();
-            absenEntries.filter(a => a.date === date).forEach(a => {
-                const key = String(a.staffName || '').toLowerCase();
-                if (!entriesByStaff.has(key)) entriesByStaff.set(key, []);
-                entriesByStaff.get(key).push(a);
-            });
-
-            const sortedUsers = getFilteredUsersByMenu('absen_staff');
-            if (sortedUsers.length === 0) {
-                container.innerHTML = `<span class="text-xs text-slate-400">Belum ada user sesuai filter posisi di Setting.</span>`;
-                return;
-            }
-
-            container.innerHTML = sortedUsers.map(u => {
-                const isSelected = selectedName && selectedName.toLowerCase() === u.username.toLowerCase();
-                const dayEntries = entriesByStaff.get(u.username.toLowerCase()) || [];
-                const safeUser = u.username.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-                const safeRole = u.role.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-                const grad = getAbsenAvatarGradient(u.username);
-                const firstTheme = dayEntries.length > 0 ? getAbsenReasonTheme(dayEntries[0].reason) : null;
-                return `
-                    <button type="button" onclick="selectAbsenStaff('${safeUser}', '${safeRole}')"
-                        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition whitespace-nowrap shrink-0 ${isSelected ? 'bg-teal-600 text-white border-teal-600 shadow-sm' : (firstTheme ? `${firstTheme.bg} ${firstTheme.text} ${firstTheme.border}` : 'bg-slate-50 hover:bg-teal-50 text-slate-700 border-slate-200 hover:border-teal-300')}">
-                        <span class="w-5 h-5 rounded-full bg-gradient-to-br ${grad} text-white text-[10px] font-extrabold flex items-center justify-center shrink-0">${escapeHtmlText(u.username.slice(0, 1).toUpperCase())}</span>
-                        <span>${escapeHtmlText(u.username)}</span>
-                        ${dayEntries.length > 0 ? `<span class="text-[10px] font-semibold opacity-80">· ${escapeHtmlText(dayEntries[0].reason)}</span>` : ''}
-                    </button>
-                `;
-            }).join('');
-        }
-
         function showAbsenStaffDropdown() {
             filterAbsenStaffDropdown();
             document.getElementById('absen-staff-dropdown').classList.remove('hidden');
@@ -9693,7 +9738,6 @@ function doPost(e) {
             badge.classList.remove('hidden');
             document.getElementById('clear-absen-staff-btn').classList.remove('hidden');
             document.getElementById('absen-staff-dropdown').classList.add('hidden');
-            renderAbsenQuickStaffChips();
         }
 
         function clearAbsenStaffSelection() {
@@ -9702,7 +9746,6 @@ function doPost(e) {
             document.getElementById('absen-staff-role-badge').classList.add('hidden');
             document.getElementById('clear-absen-staff-btn').classList.add('hidden');
             document.getElementById('absen-staff-dropdown')?.classList.add('hidden');
-            renderAbsenQuickStaffChips();
         }
 
         function editAbsenEntry(id) {
@@ -9983,7 +10026,6 @@ function doPost(e) {
             if (subEl) subEl.textContent = `${presentCount} dari ${totalStaff} staff hadir penuh`;
 
             renderAbsenKpiStrip(dayList);
-            renderAbsenQuickStaffChips();
 
             const query = (document.getElementById('absen-list-search')?.value || '').toLowerCase().trim();
             const filtered = dayList.filter(a => {
@@ -10364,20 +10406,6 @@ function doPost(e) {
             input.focus();
         }
 
-        function selectOvertimeStaffChip(name, role) {
-            const selectedRaw = document.getElementById('overtime-staff-selected')?.value;
-            if (selectedRaw) {
-                try {
-                    const cur = JSON.parse(selectedRaw);
-                    if (cur.name === name) {
-                        clearOvertimeStaffSelection();
-                        return;
-                    }
-                } catch (err) {}
-            }
-            selectOvertimeStaff(name, role);
-        }
-
         function selectOvertimeReasonChip(reason) {
             const select = document.getElementById('overtime-reason');
             if (!select) return;
@@ -10386,25 +10414,6 @@ function doPost(e) {
         }
 
         function renderOvertimeQuickChips() {
-            const staffChipsEl = document.getElementById('overtime-quick-staff');
-            if (staffChipsEl) {
-                let selectedName = '';
-                try {
-                    const raw = document.getElementById('overtime-staff-selected')?.value;
-                    if (raw) selectedName = JSON.parse(raw).name || '';
-                } catch (err) {}
-                const staffList = getFilteredUsersByMenu('overtime_staff');
-                if (staffList.length === 0) {
-                    staffChipsEl.innerHTML = `<span class="text-[11px] text-slate-400">Belum ada staff sesuai filter posisi di Setting.</span>`;
-                } else {
-                    staffChipsEl.innerHTML = staffList.map(u => {
-                        const active = selectedName === u.username;
-                        return `<button type="button" onclick="selectOvertimeStaffChip('${escapeHtmlText(u.username)}', '${escapeHtmlText(u.role)}')"
-                            class="px-2.5 py-1 rounded-lg text-xs font-bold border transition whitespace-nowrap ${active ? 'bg-orange-600 text-white border-orange-600 shadow-xs' : 'bg-amber-50/80 text-amber-800 border-amber-200/80 hover:bg-amber-100'}">${escapeHtmlText(u.username)}</button>`;
-                    }).join('');
-                }
-            }
-
             const reasonChipsEl = document.getElementById('overtime-quick-reason');
             const reasonSelect = document.getElementById('overtime-reason');
             if (reasonChipsEl && reasonSelect) {
@@ -11879,14 +11888,64 @@ function doPost(e) {
             lucide.createIcons();
         }
 
+        const kanbanCollapseTimers = new WeakMap();
+
+        function kanbanExpandCard(cardEl) {
+            if (!cardEl || !cardEl.classList || !cardEl.classList.contains('kanban-card-minimized')) return;
+            const prevTimer = kanbanCollapseTimers.get(cardEl);
+            if (prevTimer) {
+                clearTimeout(prevTimer);
+                kanbanCollapseTimers.delete(cardEl);
+            }
+            const board = document.getElementById('project-board-container');
+            if (board) {
+                board.querySelectorAll('.kanban-card-minimized.is-kanban-expanded').forEach(other => {
+                    if (other !== cardEl) {
+                        const t = kanbanCollapseTimers.get(other);
+                        if (t) {
+                            clearTimeout(t);
+                            kanbanCollapseTimers.delete(other);
+                        }
+                        other.classList.remove('is-kanban-expanded');
+                    }
+                });
+            }
+            cardEl.classList.add('is-kanban-expanded');
+        }
+
+        function kanbanScheduleCollapseCard(cardEl) {
+            if (!cardEl || !cardEl.classList || !cardEl.classList.contains('kanban-card-minimized')) return;
+            const prevTimer = kanbanCollapseTimers.get(cardEl);
+            if (prevTimer) clearTimeout(prevTimer);
+            const timer = setTimeout(() => {
+                kanbanCollapseTimers.delete(cardEl);
+                if (cardEl && cardEl.isConnected) {
+                    cardEl.classList.remove('is-kanban-expanded');
+                }
+            }, 90);
+            kanbanCollapseTimers.set(cardEl, timer);
+        }
+
+        function openProjectPhotoLightbox(id, kind) {
+            const raw = projectsData.find(x => x.id === id);
+            if (!raw) return;
+            const p = getNormalizedProject(raw);
+            const src = kind === 'done' ? p.donePhoto : p.startPhoto;
+            if (!src) return;
+            const label = kind === 'done' ? `Foto Done: ${p.name}` : `Foto Awal: ${p.name}`;
+            openImageLightbox(src, label);
+        }
+
         function renderProjectKanbanBoard(filteredJobs) {
             const board = document.getElementById('project-board-container');
             if (!board) return;
 
+            const safeJobs = Array.isArray(filteredJobs) ? filteredJobs : [];
+            const shouldAutoMinimize = safeJobs.length > 2;
             const statuses = ['Open', 'On Progress', 'Hold', 'Done'];
             board.innerHTML = statuses.map(status => {
-                const meta = PROJECT_STATUS_META[status];
-                const colJobs = filteredJobs.filter(j => j.status === status);
+                const meta = PROJECT_STATUS_META[status] || PROJECT_STATUS_META.Open;
+                const colJobs = safeJobs.filter(j => j.status === status);
                 const cardsHtml = colJobs.length === 0
                     ? `
                         <div class="p-5 rounded-xl border-2 border-dashed border-slate-200 bg-white/60 text-center space-y-2">
@@ -11898,7 +11957,7 @@ function doPost(e) {
                             </button>
                         </div>
                     `
-                    : colJobs.map(p => buildProjectKanbanCardHtml(p)).join('');
+                    : colJobs.map(p => buildProjectKanbanCardHtml(p, shouldAutoMinimize)).join('');
 
                 return `
                     <div class="rounded-2xl border ${meta.bgSoft} overflow-hidden flex flex-col min-h-[260px] transition"
@@ -11915,7 +11974,7 @@ function doPost(e) {
                                 </button>
                             </div>
                         </div>
-                        <div class="p-3 space-y-3 flex-1">
+                        <div class="p-3 ${shouldAutoMinimize ? 'space-y-2' : 'space-y-3'} flex-1">
                             ${cardsHtml}
                         </div>
                     </div>
@@ -11923,98 +11982,123 @@ function doPost(e) {
             }).join('');
         }
 
-        function buildProjectKanbanCardHtml(p) {
-            const stMeta = PROJECT_STATUS_META[p.status];
+        function buildProjectKanbanCardHtml(p, isMinimized = false) {
+            const stMeta = PROJECT_STATUS_META[p.status] || PROJECT_STATUS_META.Open;
             const priMeta = PROJECT_PRIORITY_META[p.priority] || PROJECT_PRIORITY_META.Normal;
             const dl = getProjectDeadlineInfo(p.dueDate, p.status);
             const picGrad = getPicGradient(p.pic);
             const initials = escapeHtmlText((p.pic || 'U').slice(0, 2).toUpperCase());
-            const doneChk = p.checklist.filter(c => c.done).length;
-            const totChk = p.checklist.length;
-            const safeId = escapeHtmlText(p.id);
+            const checklist = Array.isArray(p.checklist) ? p.checklist : [];
+            const doneChk = checklist.filter(c => c && c.done).length;
+            const totChk = checklist.length;
+            const safeId = escapeHtmlText(p.id || '');
+            const jsSafeId = String(p.id || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
             const quickBtns = ['Open', 'On Progress', 'Hold', 'Done'].map(st => {
                 const shortLbl = st === 'On Progress' ? 'Progress' : st;
                 const active = p.status === st;
-                const activeStyle = active ? `bg-gradient-to-r ${PROJECT_STATUS_META[st].headerGrad} text-white shadow-2xs` : 'bg-slate-100 hover:bg-slate-200 text-slate-600';
-                return `<button type="button" onclick="event.stopPropagation(); changeProjectStatus('${safeId}', '${st}')" class="px-2 py-1 rounded-lg text-[10px] font-bold transition ${activeStyle}">${shortLbl}</button>`;
+                const activeStyle = active ? `bg-gradient-to-r ${(PROJECT_STATUS_META[st] || PROJECT_STATUS_META.Open).headerGrad} text-white shadow-2xs` : 'bg-slate-100 hover:bg-slate-200 text-slate-600';
+                return `<button type="button" onclick="event.stopPropagation(); changeProjectStatus('${jsSafeId}', '${st}')" class="px-2 py-1 rounded-lg text-[10px] font-bold transition ${activeStyle}">${shortLbl}</button>`;
             }).join('');
 
             return `
-                <div draggable="true" ondragstart="onProjectDragStart(event, '${safeId}')" ondragend="onProjectDragEnd(event)"
-                    onclick="openProjectDetailModal('${safeId}')"
-                    class="bg-white rounded-xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-indigo-300 transition cursor-pointer overflow-hidden group">
+                <div draggable="true"
+                    onmouseenter="kanbanExpandCard(this)"
+                    onmouseleave="kanbanScheduleCollapseCard(this)"
+                    ondragstart="onProjectDragStart(event, '${jsSafeId}')"
+                    ondragend="onProjectDragEnd(event)"
+                    onclick="openProjectDetailModal('${jsSafeId}')"
+                    class="kanban-card relative bg-white rounded-xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-indigo-300 cursor-pointer overflow-hidden group ${isMinimized ? 'kanban-card-minimized' : ''}">
                     <div class="h-1.5 w-full ${priMeta.stripe}"></div>
-                    <div class="p-3.5 space-y-2.5">
+                    <div class="kanban-card-body flex flex-col">
                         <div class="flex flex-wrap items-center justify-between gap-1.5">
                             <div class="flex flex-wrap items-center gap-1.5">
                                 <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold border ${priMeta.badge}">${escapeHtmlText(p.priority)}</span>
-                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600">${escapeHtmlText(p.category)}</span>
+                                <span class="kanban-card-cat-badge px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600">${escapeHtmlText(p.category)}</span>
                             </div>
                             <span class="px-2 py-0.5 rounded-full text-[10px] ${dl.badgeClass}">${escapeHtmlText(dl.label)}</span>
                         </div>
 
-                        <div>
-                            <h4 class="text-sm font-extrabold text-slate-900 group-hover:text-indigo-600 transition leading-snug">${escapeHtmlText(p.name)}</h4>
-                            <div class="flex items-center gap-2 mt-1 text-[11px] text-slate-500 font-medium">
-                                <span class="inline-flex items-center gap-1 font-mono"><i data-lucide="calendar" class="w-3 h-3"></i>${formatDateIndo(p.dueDate)}</span>
-                                ${totChk > 0 ? `<span class="inline-flex items-center gap-1 text-indigo-600 font-bold"><i data-lucide="list-checks" class="w-3 h-3"></i>${doneChk}/${totChk}</span>` : ''}
+                        <div class="mt-1.5">
+                            <h4 class="kanban-card-title text-sm font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors leading-snug">${escapeHtmlText(p.name)}</h4>
+                        </div>
+
+                        <!-- Ringkasan mini saat auto-minimize -->
+                        <div class="kanban-card-mini-wrap">
+                            <div class="kanban-card-mini-inner">
+                                <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-100 text-[11px]">
+                                    <div class="inline-flex items-center gap-1.5 min-w-0">
+                                        <span class="w-5 h-5 rounded-full bg-gradient-to-br ${picGrad} text-white text-[9px] font-black flex items-center justify-center shrink-0">${initials}</span>
+                                        <span class="font-bold text-slate-600 truncate">${escapeHtmlText(p.pic)}</span>
+                                    </div>
+                                    <span class="px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 font-extrabold shrink-0">${p.progress}%</span>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Progress bar -->
-                        <div>
-                            <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1">
-                                <span>Progress</span>
-                                <span class="text-slate-800 font-extrabold">${p.progress}%</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r ${stMeta.barGrad} rounded-full transition-all duration-300" style="width: ${p.progress}%"></div>
-                            </div>
-                        </div>
+                        <!-- Detail lengkap (auto-minimize ketika > 2 project, auto-maximize saat cursor berada di card) -->
+                        <div class="kanban-card-extra-wrap">
+                            <div class="kanban-card-extra-inner flex flex-col gap-2.5">
+                                <div class="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+                                    <span class="inline-flex items-center gap-1 font-mono"><i data-lucide="calendar" class="w-3 h-3"></i>${formatDateIndo(p.dueDate)}</span>
+                                    ${totChk > 0 ? `<span class="inline-flex items-center gap-1 text-indigo-600 font-bold"><i data-lucide="list-checks" class="w-3 h-3"></i>${doneChk}/${totChk}</span>` : ''}
+                                </div>
 
-                        ${p.notes ? `
-                            <div class="px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200/80 text-[11px] text-amber-800 font-medium flex items-start gap-1.5">
-                                <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5"></i>
-                                <span class="line-clamp-2">${escapeHtmlText(p.notes)}</span>
-                            </div>
-                        ` : ''}
+                                <!-- Progress bar -->
+                                <div>
+                                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1">
+                                        <span>Progress</span>
+                                        <span class="text-slate-800 font-extrabold">${p.progress}%</span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r ${stMeta.barGrad} rounded-full transition-all duration-300" style="width: ${p.progress}%"></div>
+                                    </div>
+                                </div>
 
-                        ${(p.startPhoto || p.donePhoto) ? `
-                            <div class="flex items-center gap-2 pt-0.5" onclick="event.stopPropagation()">
-                                ${p.startPhoto ? `
-                                    <button type="button" onclick="openImageLightbox('${p.startPhoto}', 'Foto Awal: ${escapeHtmlText(p.name).replace(/'/g, "\\'")}')" class="relative w-11 h-11 rounded-lg overflow-hidden border border-slate-200 hover:border-indigo-400 transition shrink-0" title="Lihat Foto Awal">
-                                        <img src="${p.startPhoto}" alt="Foto Awal" class="w-full h-full object-cover">
-                                        <span class="absolute bottom-0 inset-x-0 bg-slate-900/65 text-[8px] font-bold text-white text-center leading-tight py-0.5">Awal</span>
-                                    </button>
+                                ${p.notes ? `
+                                    <div class="px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200/80 text-[11px] text-amber-800 font-medium flex items-start gap-1.5">
+                                        <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5"></i>
+                                        <span class="line-clamp-2">${escapeHtmlText(p.notes)}</span>
+                                    </div>
                                 ` : ''}
-                                ${p.donePhoto ? `
-                                    <button type="button" onclick="openImageLightbox('${p.donePhoto}', 'Foto Done: ${escapeHtmlText(p.name).replace(/'/g, "\\'")}')" class="relative w-11 h-11 rounded-lg overflow-hidden border border-emerald-200 hover:border-emerald-500 transition shrink-0" title="Lihat Foto Selesai">
-                                        <img src="${p.donePhoto}" alt="Foto Selesai" class="w-full h-full object-cover">
-                                        <span class="absolute bottom-0 inset-x-0 bg-emerald-700/80 text-[8px] font-bold text-white text-center leading-tight py-0.5">Done</span>
-                                    </button>
+
+                                ${(p.startPhoto || p.donePhoto) ? `
+                                    <div class="flex items-center gap-2 pt-0.5" onclick="event.stopPropagation()">
+                                        ${p.startPhoto ? `
+                                            <button type="button" onclick="openProjectPhotoLightbox('${jsSafeId}', 'start')" class="relative w-11 h-11 rounded-lg overflow-hidden border border-slate-200 hover:border-indigo-400 transition shrink-0" title="Lihat Foto Awal">
+                                                <img src="${p.startPhoto}" alt="Foto Awal" class="w-full h-full object-cover">
+                                                <span class="absolute bottom-0 inset-x-0 bg-slate-900/65 text-[8px] font-bold text-white text-center leading-tight py-0.5">Awal</span>
+                                            </button>
+                                        ` : ''}
+                                        ${p.donePhoto ? `
+                                            <button type="button" onclick="openProjectPhotoLightbox('${jsSafeId}', 'done')" class="relative w-11 h-11 rounded-lg overflow-hidden border border-emerald-200 hover:border-emerald-500 transition shrink-0" title="Lihat Foto Selesai">
+                                                <img src="${p.donePhoto}" alt="Foto Selesai" class="w-full h-full object-cover">
+                                                <span class="absolute bottom-0 inset-x-0 bg-emerald-700/80 text-[8px] font-bold text-white text-center leading-tight py-0.5">Done</span>
+                                            </button>
+                                        ` : ''}
+                                    </div>
                                 ` : ''}
-                            </div>
-                        ` : ''}
 
-                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                            <div class="inline-flex items-center gap-1.5 min-w-0">
-                                <span class="w-6 h-6 rounded-full bg-gradient-to-br ${picGrad} text-white text-[10px] font-black flex items-center justify-center shrink-0">${initials}</span>
-                                <span class="text-xs font-bold text-slate-700 truncate">${escapeHtmlText(p.pic)}</span>
-                            </div>
-                            <div class="flex items-center gap-0.5 shrink-0" onclick="event.stopPropagation()">
-                                <button type="button" onclick="openProjectModal('${safeId}')" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit Job">
-                                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-                                </button>
-                                <button type="button" onclick="deleteProject('${safeId}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Job">
-                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                                </button>
-                            </div>
-                        </div>
+                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                                    <div class="inline-flex items-center gap-1.5 min-w-0">
+                                        <span class="w-6 h-6 rounded-full bg-gradient-to-br ${picGrad} text-white text-[10px] font-black flex items-center justify-center shrink-0">${initials}</span>
+                                        <span class="text-xs font-bold text-slate-700 truncate">${escapeHtmlText(p.pic)}</span>
+                                    </div>
+                                    <div class="flex items-center gap-0.5 shrink-0" onclick="event.stopPropagation()">
+                                        <button type="button" onclick="openProjectModal('${jsSafeId}')" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit Job">
+                                            <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                        <button type="button" onclick="deleteProject('${jsSafeId}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Job">
+                                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    </div>
+                                </div>
 
-                        <!-- Quick Status Switcher -->
-                        <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1" onclick="event.stopPropagation()">
-                            ${quickBtns}
+                                <!-- Quick Status Switcher -->
+                                <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1" onclick="event.stopPropagation()">
+                                    ${quickBtns}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -12031,14 +12115,15 @@ function doPost(e) {
             }
 
             tbody.innerHTML = filtered.map(p => {
-                const stMeta = PROJECT_STATUS_META[p.status];
+                const stMeta = PROJECT_STATUS_META[p.status] || PROJECT_STATUS_META.Open;
                 const priMeta = PROJECT_PRIORITY_META[p.priority] || PROJECT_PRIORITY_META.Normal;
                 const dl = getProjectDeadlineInfo(p.dueDate, p.status);
                 const picGrad = getPicGradient(p.pic);
                 const initials = escapeHtmlText((p.pic || 'U').slice(0, 2).toUpperCase());
-                const doneChk = p.checklist.filter(c => c.done).length;
-                const totChk = p.checklist.length;
-                const safeId = escapeHtmlText(p.id);
+                const checklist = Array.isArray(p.checklist) ? p.checklist : [];
+                const doneChk = checklist.filter(c => c && c.done).length;
+                const totChk = checklist.length;
+                const jsSafeId = String(p.id || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                 const notesHtml = p.notes
                     ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-800 text-xs font-medium"><i data-lucide="alert-circle" class="w-3.5 h-3.5 text-amber-600 shrink-0"></i><span>${escapeHtmlText(p.notes)}</span></span>`
                     : `<span class="text-xs text-slate-400">-</span>`;
@@ -12046,7 +12131,7 @@ function doPost(e) {
                 return `
                     <tr class="hover:bg-indigo-50/30 transition">
                         <td class="py-3.5 px-5">
-                            <button type="button" onclick="openProjectDetailModal('${safeId}')" class="text-left group">
+                            <button type="button" onclick="openProjectDetailModal('${jsSafeId}')" class="text-left group">
                                 <div class="font-extrabold text-slate-900 group-hover:text-indigo-600 transition">${escapeHtmlText(p.name)}</div>
                                 <div class="flex flex-wrap items-center gap-1.5 mt-1">
                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${priMeta.badge}">${escapeHtmlText(p.priority)}</span>
@@ -12076,7 +12161,7 @@ function doPost(e) {
                             </div>
                         </td>
                         <td class="py-3.5 px-4 whitespace-nowrap">
-                            <select onchange="changeProjectStatus('${safeId}', this.value)"
+                            <select onchange="changeProjectStatus('${jsSafeId}', this.value)"
                                 class="px-2.5 py-1.5 rounded-xl text-xs font-extrabold border cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 ${stMeta.badge}">
                                 <option value="Open" ${p.status === 'Open' ? 'selected' : ''}>Open</option>
                                 <option value="On Progress" ${p.status === 'On Progress' ? 'selected' : ''}>On Progress</option>
@@ -12086,13 +12171,13 @@ function doPost(e) {
                         </td>
                         <td class="py-3.5 px-4">${notesHtml}</td>
                         <td class="py-3.5 px-5 text-right whitespace-nowrap">
-                            <button type="button" onclick="openProjectDetailModal('${safeId}')" class="p-1.5 text-slate-500 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition" title="Monitor Detail & Checklist">
+                            <button type="button" onclick="openProjectDetailModal('${jsSafeId}')" class="p-1.5 text-slate-500 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition" title="Monitor Detail & Checklist">
                                 <i data-lucide="list-checks" class="w-4 h-4"></i>
                             </button>
-                            <button type="button" onclick="openProjectModal('${safeId}')" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit Job">
+                            <button type="button" onclick="openProjectModal('${jsSafeId}')" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit Job">
                                 <i data-lucide="pencil" class="w-4 h-4"></i>
                             </button>
-                            <button type="button" onclick="deleteProject('${safeId}')" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Job">
+                            <button type="button" onclick="deleteProject('${jsSafeId}')" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Job">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </td>
@@ -12104,31 +12189,36 @@ function doPost(e) {
         // Drag & Drop Kanban handlers
         function onProjectDragStart(e, id) {
             projectDragId = id;
-            if (e.dataTransfer) {
+            if (e && e.dataTransfer) {
                 e.dataTransfer.effectAllowed = 'move';
                 e.dataTransfer.setData('text/plain', id);
             }
-            if (e.currentTarget) e.currentTarget.classList.add('opacity-50', 'scale-[0.98]');
+            if (e && e.currentTarget) {
+                e.currentTarget.classList.remove('is-kanban-expanded');
+                e.currentTarget.classList.add('opacity-50', 'scale-[0.98]');
+            }
         }
 
         function onProjectDragEnd(e) {
-            if (e.currentTarget) e.currentTarget.classList.remove('opacity-50', 'scale-[0.98]');
+            if (e && e.currentTarget) e.currentTarget.classList.remove('opacity-50', 'scale-[0.98]');
             projectDragId = null;
         }
 
         function onProjectDragOver(e) {
             e.preventDefault();
-            if (e.currentTarget) e.currentTarget.classList.add('ring-2', 'ring-indigo-400');
+            if (e && e.currentTarget) e.currentTarget.classList.add('ring-2', 'ring-indigo-400');
         }
 
         function onProjectDragLeave(e) {
-            if (e.currentTarget) e.currentTarget.classList.remove('ring-2', 'ring-indigo-400');
+            if (e && e.currentTarget && (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget))) {
+                e.currentTarget.classList.remove('ring-2', 'ring-indigo-400');
+            }
         }
 
         function onProjectDrop(e, targetStatus) {
             e.preventDefault();
-            if (e.currentTarget) e.currentTarget.classList.remove('ring-2', 'ring-indigo-400');
-            const id = (e.dataTransfer && e.dataTransfer.getData('text/plain')) || projectDragId;
+            if (e && e.currentTarget) e.currentTarget.classList.remove('ring-2', 'ring-indigo-400');
+            const id = (e && e.dataTransfer && e.dataTransfer.getData('text/plain')) || projectDragId;
             if (id) changeProjectStatus(id, targetStatus);
         }
 
@@ -12216,11 +12306,10 @@ function doPost(e) {
 
         function openProjectDoneCamera() {
             openPhotoCameraModal({
-                title: 'Foto Bukti Selesai Project (Opsional)',
+                title: 'Foto Bukti Selesai Project',
                 facingMode: 'environment',
-                allowSkip: true,
-                onCapture: dataUrl => setProjectDoneDraftPhotoPreview(dataUrl),
-                onSkip: () => skipProjectDonePhoto()
+                allowSkip: false,
+                onCapture: dataUrl => setProjectDoneDraftPhotoPreview(dataUrl)
             });
         }
 
@@ -12267,7 +12356,7 @@ function doPost(e) {
 
         function openProjectFormCamera() {
             openPhotoCameraModal({
-                title: 'Foto Dokumentasi Job (Opsional)',
+                title: 'Foto Dokumentasi Job',
                 facingMode: 'environment',
                 allowSkip: true,
                 onCapture: dataUrl => setProjectFormPhotoPreview(dataUrl)
@@ -14834,11 +14923,11 @@ function doPost(e) {
                 id: 'overtime',
                 number: '04',
                 title: 'Menu Overtime',
-                subtitle: 'Filter Nama Staff (quick tap & cari), alasan lembur, quick tap jam lembur (termasuk 8j), dan keterangan cepat.',
+                subtitle: 'Filter Nama Staff, alasan lembur, quick tap jam lembur (termasuk 8j), dan keterangan cepat.',
                 icon: 'clock',
                 grad: 'from-amber-500 via-orange-500 to-rose-500',
                 picMenuKey: 'overtime_staff',
-                picFieldLabel: 'Nama Staff (Quick Tap & Pencarian)',
+                picFieldLabel: 'Nama Staff (Pencarian)',
                 optionKeys: ['overtimeReasons', 'overtimeQuickHours', 'overtimeQuickNotes']
             },
             {
@@ -14892,8 +14981,6 @@ function doPost(e) {
                 renderSalahBarangQuickPickerChips();
             } else if (menuKey === 'dispatch_packer') {
                 initDispatchView();
-            } else if (menuKey === 'absen_staff') {
-                renderAbsenQuickStaffChips();
             } else if (menuKey === 'overtime_staff') {
                 renderOvertimeQuickChips();
             } else if (menuKey === 'project_pic') {
