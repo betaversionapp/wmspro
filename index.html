@@ -549,6 +549,36 @@
                             </div>
                         </div>
 
+                        <div id="setup-auto-connect-card" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                    <i data-lucide="smartphone" class="w-4 h-4 text-teal-600"></i>
+                                    <span>Otomatis untuk Device Baru</span>
+                                </h3>
+                                <span id="setup-global-sync-badge" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600">Belum Aktif</span>
+                            </div>
+                            <p id="setup-auto-connect-desc" class="text-xs text-slate-500 leading-relaxed mb-3">
+                                Cukup pasang URL Apps Script 1 kali di sini. Setiap perangkat baru (Desktop &amp; HP) yang membuka aplikasi akan otomatis terhubung ke Google Sheet tanpa setup ulang.
+                            </p>
+                            <div id="setup-device-qr-wrap" class="hidden flex flex-col items-center justify-center p-3 mb-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <div id="setup-device-qr-svg" class="bg-white p-2 rounded-lg border border-slate-200"></div>
+                                <span class="text-[11px] font-medium text-slate-500 mt-2 text-center">Scan QR di HP untuk langsung buka &amp; terhubung otomatis</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" id="setup-copy-link-btn" onclick="copyAutoConnectDeviceLink()" disabled
+                                    class="flex-1 px-3 py-2 bg-teal-50 hover:bg-teal-100 disabled:opacity-40 disabled:cursor-not-allowed text-teal-700 border border-teal-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                                    <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                                    <span>Salin Link Device Baru</span>
+                                </button>
+                                <button type="button" id="setup-clear-global-btn" onclick="clearGlobalSheetConfig()" disabled
+                                    class="px-3 py-2 bg-rose-50 hover:bg-rose-100 disabled:opacity-40 disabled:cursor-not-allowed text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5"
+                                    title="Putus koneksi Apps Script global di semua perangkat">
+                                    <i data-lucide="unlink" class="w-3.5 h-3.5"></i>
+                                    <span>Putus</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="bg-slate-900 text-slate-200 rounded-2xl p-6 shadow-sm">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Kode Apps Script (Wajib Dipasang di Sheet)</span>
@@ -6556,13 +6586,227 @@ function doPost(e) {
             if (!setupConfig.appsScriptUrl && DEFAULT_APPS_SCRIPT_URL) setupConfig.appsScriptUrl = DEFAULT_APPS_SCRIPT_URL;
             setupConfig.isConnected = Boolean(getScriptUrl());
 
+            syncSetupFormInputs();
+            updateSetupConnectionUI();
+        }
+
+        function isValidAppsScriptUrl(raw) {
+            if (typeof raw !== 'string') return false;
+            const trimmed = raw.trim();
+            if (!trimmed || trimmed.length > 500) return false;
+            try {
+                const parsed = new URL(trimmed);
+                if (parsed.protocol !== 'https:') return false;
+                const host = parsed.hostname.toLowerCase();
+                if (host !== 'script.google.com' && host !== 'script.googleusercontent.com') return false;
+                if (host === 'script.google.com' && !parsed.pathname.startsWith('/macros/')) return false;
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        function syncSetupFormInputs() {
             const urlInput = document.getElementById('setup-script-url');
             const nameInput = document.getElementById('setup-sheet-name');
             const idInput = document.getElementById('setup-sheet-id');
             if (urlInput) urlInput.value = setupConfig.appsScriptUrl || '';
             if (nameInput) nameInput.value = setupConfig.sheetName || '';
             if (idInput) idInput.value = setupConfig.spreadsheetId || '';
+        }
+
+        function applySharedSheetConfig(cfg, persistLocal = true) {
+            if (!cfg || typeof cfg !== 'object') return false;
+            const url = String(cfg.appsScriptUrl || '').trim();
+            if (url && !isValidAppsScriptUrl(url)) return false;
+            setupConfig.appsScriptUrl = url;
+            if (typeof cfg.sheetName === 'string' && cfg.sheetName.trim()) {
+                setupConfig.sheetName = cfg.sheetName.trim();
+            } else if (!url) {
+                setupConfig.sheetName = '';
+            }
+            if (typeof cfg.spreadsheetId === 'string' && cfg.spreadsheetId.trim()) {
+                setupConfig.spreadsheetId = cfg.spreadsheetId.trim();
+            } else if (!url) {
+                setupConfig.spreadsheetId = '';
+            }
+            if (cfg.lastUpdated) setupConfig.lastUpdated = String(cfg.lastUpdated);
+            setupConfig.isConnected = Boolean(getScriptUrl());
+            if (persistLocal) saveAppStateToLocal();
+            syncSetupFormInputs();
             updateSetupConnectionUI();
+            return Boolean(setupConfig.appsScriptUrl);
+        }
+
+        async function saveSheetConfigToServer(cfg, clear = false) {
+            try {
+                const payload = clear
+                    ? { clear: true }
+                    : {
+                        appsScriptUrl: String(cfg?.appsScriptUrl || '').trim(),
+                        sheetName: String(cfg?.sheetName || '').trim(),
+                        spreadsheetId: String(cfg?.spreadsheetId || '').trim(),
+                        lastUpdated: String(cfg?.lastUpdated || new Date().toLocaleString('id-ID'))
+                    };
+                const res = await fetch('/api/sheet-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'WMSPro'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                return Boolean(res.ok && data && data.ok);
+            } catch {
+                return false;
+            }
+        }
+
+        function consumeUrlSheetConfigParam() {
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                let gsUrl = (params.get('gs') || '').trim();
+                let sn = (params.get('sn') || '').trim();
+                let sid = (params.get('sid') || '').trim();
+
+                if (!gsUrl && window.location.hash && window.location.hash.includes('gs=')) {
+                    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+                    gsUrl = (hashParams.get('gs') || '').trim();
+                    if (!sn) sn = (hashParams.get('sn') || '').trim();
+                    if (!sid) sid = (hashParams.get('sid') || '').trim();
+                }
+
+                if (!gsUrl || !isValidAppsScriptUrl(gsUrl)) return false;
+
+                applySharedSheetConfig({
+                    appsScriptUrl: gsUrl,
+                    sheetName: sn || setupConfig.sheetName,
+                    spreadsheetId: sid || setupConfig.spreadsheetId,
+                    lastUpdated: new Date().toLocaleString('id-ID')
+                }, true);
+
+                // Bersihkan parameter dari address bar agar link tetap rapi
+                params.delete('gs');
+                params.delete('sn');
+                params.delete('sid');
+                const cleanQuery = params.toString();
+                const cleanUrl = window.location.pathname + (cleanQuery ? '?' + cleanQuery : '');
+                if (window.history && typeof window.history.replaceState === 'function') {
+                    window.history.replaceState({}, document.title || '', cleanUrl);
+                }
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        async function syncSheetConfigWithServer() {
+            const localUrl = getScriptUrl();
+            try {
+                const res = await fetch('/api/sheet-config', { cache: 'no-store' });
+                if (!res.ok) return false;
+                const data = await res.json();
+                const serverCfg = data && data.config ? data.config : null;
+                const serverUrl = String(serverCfg?.appsScriptUrl || '').trim();
+
+                if (serverUrl && isValidAppsScriptUrl(serverUrl)) {
+                    // Selalu sinkronkan URL global dari server agar device baru langsung terhubung otomatis
+                    if (localUrl !== serverUrl || !setupConfig.appsScriptUrl) {
+                        applySharedSheetConfig(serverCfg, true);
+                    } else {
+                        if (serverCfg.sheetName && !setupConfig.sheetName) setupConfig.sheetName = serverCfg.sheetName;
+                        if (serverCfg.spreadsheetId && !setupConfig.spreadsheetId) setupConfig.spreadsheetId = serverCfg.spreadsheetId;
+                        syncSetupFormInputs();
+                        updateSetupConnectionUI();
+                    }
+                    return true;
+                }
+
+                // Jika server belum punya konfigurasi tetapi device ini sudah terpasang sebelumnya, bagikan otomatis ke server
+                if (localUrl && isValidAppsScriptUrl(localUrl)) {
+                    await saveSheetConfigToServer({
+                        appsScriptUrl: localUrl,
+                        sheetName: setupConfig.sheetName,
+                        spreadsheetId: setupConfig.spreadsheetId,
+                        lastUpdated: setupConfig.lastUpdated
+                    }, false);
+                    return true;
+                }
+            } catch {
+                // Abaikan jika server sedang offline
+            }
+            return Boolean(getScriptUrl());
+        }
+
+        function buildAutoConnectDeviceLink() {
+            const url = getScriptUrl();
+            if (!url || !isValidAppsScriptUrl(url)) return '';
+            const base = `${window.location.origin}${window.location.pathname}`;
+            const params = new URLSearchParams();
+            params.set('gs', url);
+            if (setupConfig.sheetName) params.set('sn', setupConfig.sheetName);
+            return `${base}?${params.toString()}`;
+        }
+
+        function renderDeviceAutoConnectCard() {
+            const badge = document.getElementById('setup-global-sync-badge');
+            const qrWrap = document.getElementById('setup-device-qr-wrap');
+            const qrSvg = document.getElementById('setup-device-qr-svg');
+            const copyBtn = document.getElementById('setup-copy-link-btn');
+            const clearBtn = document.getElementById('setup-clear-global-btn');
+            const url = getScriptUrl();
+            const isConnected = Boolean(url && isValidAppsScriptUrl(url));
+
+            if (badge) {
+                badge.textContent = isConnected ? 'Aktif Global (Desktop & HP)' : 'Belum Aktif';
+                badge.className = isConnected
+                    ? 'px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600';
+            }
+            if (copyBtn) copyBtn.disabled = !isConnected;
+            if (clearBtn) clearBtn.disabled = !isConnected;
+            if (qrWrap && qrSvg) {
+                if (isConnected && typeof renderQrCodeSvg === 'function') {
+                    const autoLink = buildAutoConnectDeviceLink();
+                    qrSvg.innerHTML = renderQrCodeSvg(autoLink, '124px');
+                    qrWrap.classList.remove('hidden');
+                } else {
+                    qrSvg.innerHTML = '';
+                    qrWrap.classList.add('hidden');
+                }
+            }
+        }
+
+        async function copyAutoConnectDeviceLink() {
+            const link = buildAutoConnectDeviceLink();
+            if (!link) {
+                showToast('Pasang & simpan URL Apps Script terlebih dahulu.', 'warning');
+                return;
+            }
+            try {
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    await navigator.clipboard.writeText(link);
+                } else {
+                    const ta = document.createElement('textarea');
+                    ta.value = link;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                }
+                showToast('Link auto-connect device baru (Desktop & HP) berhasil disalin!', 'success');
+            } catch {
+                showToast('Gagal menyalin link. Coba scan QR code di layar.', 'warning');
+            }
+        }
+
+        async function clearGlobalSheetConfig() {
+            const cleared = await saveSheetConfigToServer({}, true);
+            applySharedSheetConfig({ appsScriptUrl: '', sheetName: '', spreadsheetId: '', lastUpdated: '-' }, true);
+            showToast(cleared
+                ? 'Koneksi Apps Script global diputus untuk semua perangkat.'
+                : 'Koneksi Apps Script lokal diputus.', 'info');
         }
 
         // ---------- Format tanggal / jam dari Google Sheet ----------
@@ -8558,11 +8802,16 @@ function doPost(e) {
                 u => u.username.toLowerCase() === usernameVal.toLowerCase() && String(u.password) === passwordVal
             );
             let matchedUser = findUser();
-            if (!matchedUser && getScriptUrl()) {
-                // Mungkin user baru / password diganti di perangkat lain: ambil data terbaru lalu cek lagi
-                showToast('Memeriksa data user terbaru dari Google Sheet...', 'info');
-                await pullAllDataFromGoogleSheet(true);
-                matchedUser = findUser();
+            if (!matchedUser) {
+                if (!getScriptUrl()) {
+                    await syncSheetConfigWithServer();
+                }
+                if (getScriptUrl()) {
+                    // Mungkin user baru / password diganti di perangkat lain: ambil data terbaru lalu cek lagi
+                    showToast('Memeriksa data user terbaru dari Google Sheet...', 'info');
+                    await pullAllDataFromGoogleSheet(true);
+                    matchedUser = findUser();
+                }
             }
 
             if (!matchedUser) {
@@ -8795,18 +9044,27 @@ function doPost(e) {
                     `;
                 }
             }
+            renderDeviceAutoConnectCard();
         }
 
-        document.getElementById('setup-form')?.addEventListener('submit', function(e) {
+        document.getElementById('setup-form')?.addEventListener('submit', async function(e) {
             e.preventDefault();
+            const nextUrl = document.getElementById('setup-script-url').value.trim();
+            if (!isValidAppsScriptUrl(nextUrl)) {
+                showToast('URL Apps Script tidak valid. Harus berupa https://script.google.com/macros/s/.../exec', 'error');
+                return;
+            }
             setupConfig.sheetName = document.getElementById('setup-sheet-name').value.trim();
-            setupConfig.appsScriptUrl = document.getElementById('setup-script-url').value.trim();
+            setupConfig.appsScriptUrl = nextUrl;
             setupConfig.spreadsheetId = document.getElementById('setup-sheet-id').value.trim();
             setupConfig.isConnected = Boolean(setupConfig.appsScriptUrl);
             setupConfig.lastUpdated = new Date().toLocaleString('id-ID');
             saveAppStateToLocal();
             updateSetupConnectionUI();
-            showToast('Konfigurasi Google Apps Script berhasil disimpan!', 'success');
+            const savedGlobal = await saveSheetConfigToServer(setupConfig, false);
+            showToast(savedGlobal
+                ? 'Konfigurasi Apps Script disimpan & otomatis aktif di semua perangkat (Desktop & HP)!'
+                : 'Konfigurasi Google Apps Script berhasil disimpan di perangkat ini.', 'success');
             pullAllDataFromGoogleSheet(false);
         });
 
@@ -8816,18 +9074,28 @@ function doPost(e) {
                 showToast('Isi URL Web App Google Apps Script terlebih dahulu.', 'warning');
                 return;
             }
+            if (!isValidAppsScriptUrl(url)) {
+                showToast('Format URL tidak valid. Gunakan URL deployment https://script.google.com/macros/s/.../exec', 'error');
+                return;
+            }
             showToast('Menguji koneksi ke Google Apps Script...', 'info');
             try {
                 const res = await fetch(url, { cache: 'no-store' });
                 const data = await res.json();
                 if (data.status !== 'connected') throw new Error(data.message || 'Respons tidak dikenali');
                 setupConfig.appsScriptUrl = url;
-                setupConfig.sheetName = document.getElementById('setup-sheet-name').value.trim() || setupConfig.sheetName;
+                setupConfig.sheetName = document.getElementById('setup-sheet-name').value.trim() || setupConfig.sheetName || data.spreadsheet || '';
                 setupConfig.isConnected = true;
                 setupConfig.lastUpdated = new Date().toLocaleString('id-ID');
+                syncSetupFormInputs();
                 saveAppStateToLocal();
                 updateSetupConnectionUI();
-                showToast(`Koneksi berhasil! Spreadsheet: ${data.spreadsheet || 'Aktif'} (${(data.sheets || []).length} tab)`, 'success');
+                const savedGlobal = await saveSheetConfigToServer(setupConfig, false);
+                showToast(
+                    `Koneksi berhasil! Spreadsheet: ${data.spreadsheet || 'Aktif'} (${(data.sheets || []).length} tab)` +
+                    (savedGlobal ? ' — otomatis aktif di semua device baru.' : ''),
+                    'success'
+                );
             } catch (err) {
                 showToast('Koneksi gagal. Pastikan URL berakhiran /exec, akses deployment "Anyone", dan kode Apps Script versi terbaru sudah di-deploy.', 'error');
             }
@@ -17920,9 +18188,15 @@ function doPost(e) {
         // ==========================================
         document.addEventListener('DOMContentLoaded', async function() {
             loadAppStateFromLocal();
+            const gotFromLink = consumeUrlSheetConfigParam();
             initAutoHideDropdowns();
             lucide.createIcons();
             renderSyncChip();
+            // Ambil konfigurasi Apps Script global dari server agar device baru (Desktop & HP) otomatis terhubung
+            await syncSheetConfigWithServer();
+            if (gotFromLink) {
+                await saveSheetConfigToServer(setupConfig, false);
+            }
             // Kirim dulu antrean yang tertunda, lalu tarik data terbaru dari Google Sheet
             await flushSyncQueue();
             await pullAllDataFromGoogleSheet(true);
