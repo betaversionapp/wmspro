@@ -6,6 +6,10 @@ const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.static(path.join(__dirname)));
 
+app.get('/vendor/xlsx.full.min.js', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'node_modules/xlsx/dist/xlsx.full.min.js'));
+});
+
 app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });

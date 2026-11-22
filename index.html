@@ -12,6 +12,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- HTML5-QRCode / Barcode Camera Scanner Fallback -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- SheetJS Excel (.xlsx/.xls) Parser & Generator -->
+    <script src="/vendor/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -1840,18 +1842,22 @@ function doPost(e) {
                             </button>
                         </div>
 
-                        <input type="file" id="import-barang-file" accept=".csv,.txt" class="hidden" onchange="handleImportBarangFile(event)">
-                        <button type="button" onclick="downloadMasterBarangCsvTemplate()" class="inline-flex items-center gap-1.5 px-3 py-2.5 bg-white border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 text-slate-700 rounded-xl text-xs font-semibold shadow-sm transition" title="Unduh Template CSV Master Barang">
+                        <input type="file" id="import-barang-file" accept=".xlsx,.xls,.csv,.txt" class="hidden" onchange="handleImportBarangFile(event)">
+                        <button type="button" onclick="downloadMasterBarangExcelTemplate()" class="inline-flex items-center gap-1.5 px-3 py-2.5 bg-white border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 text-slate-700 rounded-xl text-xs font-semibold shadow-sm transition" title="Unduh Template Excel (.xlsx) dengan format Text agar angka 0 di depan muncul">
                             <i data-lucide="file-spreadsheet" class="w-4 h-4 text-indigo-600"></i>
-                            <span class="hidden sm:inline">Template</span>
+                            <span class="hidden sm:inline">Template Excel</span>
                         </button>
                         <button type="button" onclick="openImportBarangModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-white border border-slate-200 hover:bg-purple-50 hover:border-purple-300 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition">
                             <i data-lucide="upload" class="w-4 h-4 text-purple-600"></i>
-                            <span>Import CSV</span>
+                            <span>Import Excel</span>
                         </button>
                         <button type="button" onclick="exportMasterBarangExcel()" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-white border border-slate-200 hover:bg-emerald-50 hover:border-emerald-300 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition">
                             <i data-lucide="download" class="w-4 h-4 text-emerald-600"></i>
                             <span>Export Excel</span>
+                        </button>
+                        <button type="button" id="barang-bulk-delete-btn" onclick="openDeleteMasterBarangModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:border-rose-300 text-rose-700 rounded-xl text-xs sm:text-sm font-bold shadow-sm transition">
+                            <i data-lucide="trash-2" class="w-4 h-4 text-rose-600"></i>
+                            <span id="barang-bulk-delete-label">Hapus Data</span>
                         </button>
                         <button type="button" onclick="openBarangModal()" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-purple-600/25 transition">
                             <i data-lucide="plus" class="w-4 h-4"></i>
@@ -1994,6 +2000,11 @@ function doPost(e) {
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-gradient-to-r from-slate-50 via-purple-50/50 to-fuchsia-50/40 border-b border-slate-200/80 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                                    <th class="py-3.5 pl-4 pr-2 w-10">
+                                        <input type="checkbox" id="barang-select-all-cb" onchange="toggleSelectAllMasterBarang(this.checked)"
+                                            title="Pilih semua baris tampil"
+                                            class="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer">
+                                    </th>
                                     <th class="py-3.5 px-5">
                                         <button type="button" onclick="toggleMasterBarangSkuSort()" class="inline-flex items-center gap-1.5 text-purple-700 hover:text-purple-900 font-bold uppercase tracking-wider focus:outline-none group cursor-pointer" title="Klik untuk ubah urutan SKU Code (A–Z / Z–A)">
                                             <span>SKU Code</span>
@@ -5265,6 +5276,61 @@ function doPost(e) {
                     <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition">Simpan Barang</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL HAPUS DATA MASTER BARANG             -->
+    <!-- ========================================== -->
+    <div id="master-barang-delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden fade-in">
+            <div class="px-6 py-4 bg-gradient-to-r from-rose-600 to-pink-600 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center">
+                        <i data-lucide="trash-2" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold">Hapus Data Master Barang</h3>
+                        <p class="text-[11px] text-rose-100">Pilih cakupan data barang yang akan dihapus</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeDeleteMasterBarangModal()" class="p-1.5 text-white/80 hover:text-white hover:bg-white/15 rounded-lg transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 space-y-1">
+                    <div class="font-bold">Perhatian</div>
+                    <div>Data SKU yang dihapus akan hilang dari Master Barang lokal dan sinkronisasi Google Sheet.</div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label id="barang-del-opt-selected-wrap" class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:border-rose-300 cursor-pointer transition">
+                        <input type="radio" name="barang-delete-scope" value="selected" class="mt-0.5 text-rose-600 focus:ring-rose-500">
+                        <div class="text-xs">
+                            <div class="font-bold text-slate-900">Hapus Data Terpilih (<span id="barang-del-selected-count">0</span> SKU)</div>
+                            <div class="text-slate-500">Hanya menghapus baris/kartu yang dicentang.</div>
+                        </div>
+                    </label>
+                    <label id="barang-del-opt-filtered-wrap" class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:border-rose-300 cursor-pointer transition">
+                        <input type="radio" name="barang-delete-scope" value="filtered" class="mt-0.5 text-rose-600 focus:ring-rose-500">
+                        <div class="text-xs">
+                            <div class="font-bold text-slate-900">Hapus Data Sesuai Filter (<span id="barang-del-filtered-count">0</span> SKU)</div>
+                            <div class="text-slate-500">Menghapus seluruh SKU yang tampil pada pencarian/filter saat ini.</div>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:border-rose-300 cursor-pointer transition">
+                        <input type="radio" name="barang-delete-scope" value="all" class="mt-0.5 text-rose-600 focus:ring-rose-500">
+                        <div class="text-xs">
+                            <div class="font-bold text-rose-700">Hapus Semua Data Master Barang (<span id="barang-del-all-count">0</span> SKU)</div>
+                            <div class="text-slate-500">Mengosongkan seluruh database Master Barang.</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                    <button type="button" onclick="closeDeleteMasterBarangModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Batal</button>
+                    <button type="button" onclick="confirmDeleteMasterBarangBulk()" class="px-5 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white rounded-xl text-xs font-bold shadow-sm transition">Hapus Permanen</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -10862,6 +10928,8 @@ function doPost(e) {
         let masterBarangSkuSortDir = 'asc';
         let barangViewMode = 'table'; // 'table' | 'grid'
         let barangHealthFilter = 'ALL'; // 'ALL' | 'HEALTHY' | 'WARNING' | 'RACK_MISSING' | 'NEAR_EXP' | 'EXPIRED'
+        const selectedMasterBarangSkus = new Set();
+        let lastFilteredMasterBarangSkus = [];
 
         const BARANG_BRAND_GRADIENTS = [
             'from-purple-500 to-indigo-600',
@@ -10922,11 +10990,72 @@ function doPost(e) {
             renderMasterBarangTable();
         }
 
+        function buildMasterBarangWorkbook(headers, rows, includeGuideSheet = false) {
+            const wsData = [headers, ...rows];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const totalTextRows = Math.max(wsData.length + 50, includeGuideSheet ? 1000 : wsData.length);
+            const textCols = [0, 2, 4, 5]; // SKU Code, Barcode, No Rack, Expired Date diformat Text '@' agar angka 0 di depan tetap muncul
+
+            for (let r = 0; r < totalTextRows; r++) {
+                textCols.forEach(c => {
+                    const addr = XLSX.utils.encode_cell({ r, c });
+                    if (!ws[addr]) {
+                        if (r > 0 && includeGuideSheet) {
+                            ws[addr] = { t: 's', v: '', z: '@' };
+                        }
+                        return;
+                    }
+                    ws[addr].t = 's';
+                    ws[addr].v = String(ws[addr].v ?? '');
+                    ws[addr].z = '@';
+                });
+            }
+            const refRange = XLSX.utils.decode_range(ws['!ref'] || 'A1:F1');
+            refRange.e.r = Math.max(refRange.e.r, totalTextRows - 1);
+            refRange.e.c = Math.max(refRange.e.c, 5);
+            ws['!ref'] = XLSX.utils.encode_range(refRange);
+            ws['!cols'] = [
+                { wch: 20 },
+                { wch: 34 },
+                { wch: 22 },
+                { wch: 18 },
+                { wch: 14 },
+                { wch: 16 }
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'MasterBarang');
+            if (includeGuideSheet) {
+                const guideWs = XLSX.utils.aoa_to_sheet([
+                    ['Panduan Import Excel Master Barang'],
+                    ['1. Kolom SKU Code dan Barcode sudah diformat Text (@) sehingga kode barang yang diawali angka 0 (misal 000101 / 0899...) tetap tampil dan tidak hilang.'],
+                    ['2. Jangan ubah format kolom SKU Code & Barcode menjadi General/Number saat mengetik kode baru.'],
+                    ['3. Format Expired Date yang disarankan: YYYY-MM-DD (contoh: 2027-12-31) atau kosongkan jika tidak ada.']
+                ]);
+                guideWs['!cols'] = [{ wch: 110 }];
+                XLSX.utils.book_append_sheet(wb, guideWs, 'Panduan');
+            }
+            return wb;
+        }
+
+        function downloadMasterBarangExcelTemplate() {
+            const headers = ['SKU Code', 'Product Name', 'Barcode', 'Brand', 'No Rack', 'Expired Date'];
+            const sampleRows = [
+                ['000101', 'Contoh Produk Kode Awal Nol', '0899100110001', 'MASAMI', 'L1-01', '2027-12-31'],
+                ['002508', 'Contoh Produk Kedua', '0089912345678', 'ESQA', 'L1-02', '']
+            ];
+            if (typeof XLSX !== 'undefined') {
+                const wb = buildMasterBarangWorkbook(headers, sampleRows, true);
+                XLSX.writeFile(wb, 'Template_Master_Barang.xlsx');
+                showToast('Template Excel (.xlsx) Master Barang diunduh (format Text untuk angka 0 di depan)!', 'success');
+            } else {
+                downloadCsvFile('Template_Master_Barang.csv', headers, sampleRows.map(r => [`="${r[0]}"`, r[1], `="${r[2]}"`, r[3], r[4], r[5]]));
+                showToast('Template CSV Master Barang diunduh!', 'success');
+            }
+        }
+
         function downloadMasterBarangCsvTemplate() {
-            downloadCsvFile('Template_Master_Barang.csv', ['SKU Code', 'Product Name', 'Barcode', 'Brand', 'No Rack', 'Expired Date'], [
-                ['SKU-001', 'Contoh Produk Gudang', '8991001100011', 'MASAMI', 'L1-01', '2027-12-31']
-            ]);
-            showToast('Template CSV Master Barang diunduh!', 'success');
+            downloadMasterBarangExcelTemplate();
         }
 
         function toggleMasterBarangSkuSort() {
@@ -11107,8 +11236,15 @@ function doPost(e) {
                 }
             }
 
+            lastFilteredMasterBarangSkus = filtered.map(b => b.sku);
+            const activeSkuSet = new Set(masterBarangData.map(b => b.sku));
+            Array.from(selectedMasterBarangSkus).forEach(s => {
+                if (!activeSkuSet.has(s)) selectedMasterBarangSkus.delete(s);
+            });
+            updateMasterBarangSelectionUI();
+
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400">Tidak ada data barang yang sesuai filter.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400">Tidak ada data barang yang sesuai filter.</td></tr>`;
                 if (gridWrap) {
                     gridWrap.innerHTML = `<div class="col-span-full bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center text-slate-400 text-sm">Tidak ada data barang yang sesuai filter.</div>`;
                 }
@@ -11118,6 +11254,8 @@ function doPost(e) {
 
             tbody.innerHTML = filtered.map(b => {
                 const safeSkuAttr = escapeHtmlText(b.sku).replace(/'/g, '&#39;');
+                const jsSafeSku = String(b.sku || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                const isChecked = selectedMasterBarangSkus.has(b.sku);
                 const rackMissing = isMasterBarangRackMissing(b.noRack);
                 const diffDays = getMasterBarangExpiryDiffDays(b.expiredDate);
                 const isExpired = diffDays !== null && diffDays < 0;
@@ -11144,7 +11282,11 @@ function doPost(e) {
                     : `<span class="text-xs text-slate-400">-</span>`;
 
                 return `
-                <tr class="hover:bg-purple-50/35 transition">
+                <tr class="hover:bg-purple-50/35 transition ${isChecked ? 'bg-rose-50/40' : ''}">
+                    <td class="py-3.5 pl-4 pr-2 w-10">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelectMasterBarangRow('${jsSafeSku}', this.checked)"
+                            class="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer">
+                    </td>
                     <td class="py-3.5 px-5">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-100/80 text-purple-800 border border-purple-200/80 font-mono text-xs font-extrabold">${escapeHtmlText(b.sku)}</span>
                     </td>
@@ -11184,6 +11326,8 @@ function doPost(e) {
             if (gridWrap) {
                 gridWrap.innerHTML = filtered.map(b => {
                     const safeSkuAttr = escapeHtmlText(b.sku).replace(/'/g, '&#39;');
+                    const jsSafeSku = String(b.sku || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                    const isChecked = selectedMasterBarangSkus.has(b.sku);
                     const rackMissing = isMasterBarangRackMissing(b.noRack);
                     const diffDays = getMasterBarangExpiryDiffDays(b.expiredDate);
                     const isExpired = diffDays !== null && diffDays < 0;
@@ -11206,12 +11350,16 @@ function doPost(e) {
                                 : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">Aman</span>`;
 
                     return `
-                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-purple-300 transition overflow-hidden flex flex-col">
+                        <div class="bg-white rounded-2xl border ${isChecked ? 'border-rose-400 ring-2 ring-rose-200' : 'border-slate-200/90'} shadow-xs hover:shadow-md hover:border-purple-300 transition overflow-hidden flex flex-col">
                             <div class="h-1.5 w-full bg-gradient-to-r ${stripeClass}"></div>
                             <div class="p-4 flex-1 flex flex-col justify-between gap-3">
                                 <div class="space-y-2">
                                     <div class="flex items-center justify-between gap-2">
-                                        <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-800 font-mono text-xs font-extrabold">${escapeHtmlText(b.sku)}</span>
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelectMasterBarangRow('${jsSafeSku}', this.checked)"
+                                                class="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer">
+                                            <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-800 font-mono text-xs font-extrabold">${escapeHtmlText(b.sku)}</span>
+                                        </div>
                                         ${statusBadge}
                                     </div>
                                     <div class="flex items-start gap-2.5">
@@ -11331,7 +11479,42 @@ function doPost(e) {
             renderMasterBarangTable();
         });
 
+        function updateMasterBarangSelectionUI() {
+            const btnLabel = document.getElementById('barang-bulk-delete-label');
+            const selCount = selectedMasterBarangSkus.size;
+            if (btnLabel) {
+                btnLabel.textContent = selCount > 0 ? `Hapus Terpilih (${selCount})` : 'Hapus Data';
+            }
+            const selectAllCb = document.getElementById('barang-select-all-cb');
+            if (selectAllCb) {
+                if (lastFilteredMasterBarangSkus.length === 0) {
+                    selectAllCb.checked = false;
+                    selectAllCb.indeterminate = false;
+                } else {
+                    const checkedVisible = lastFilteredMasterBarangSkus.filter(s => selectedMasterBarangSkus.has(s)).length;
+                    selectAllCb.checked = checkedVisible === lastFilteredMasterBarangSkus.length;
+                    selectAllCb.indeterminate = checkedVisible > 0 && checkedVisible < lastFilteredMasterBarangSkus.length;
+                }
+            }
+        }
+
+        function toggleSelectMasterBarangRow(sku, checked) {
+            if (!sku) return;
+            if (checked) selectedMasterBarangSkus.add(sku);
+            else selectedMasterBarangSkus.delete(sku);
+            updateMasterBarangSelectionUI();
+        }
+
+        function toggleSelectAllMasterBarang(checked) {
+            lastFilteredMasterBarangSkus.forEach(s => {
+                if (checked) selectedMasterBarangSkus.add(s);
+                else selectedMasterBarangSkus.delete(s);
+            });
+            renderMasterBarangTable();
+        }
+
         function deleteMasterBarang(sku) {
+            selectedMasterBarangSkus.delete(sku);
             masterBarangData = masterBarangData.filter(b => b.sku !== sku);
             saveAppStateToLocal();
             sheetDelete('MasterBarang', sku);
@@ -11339,48 +11522,266 @@ function doPost(e) {
             showToast(`SKU ${sku} dihapus.`, 'info');
         }
 
+        function openDeleteMasterBarangModal() {
+            if (masterBarangData.length === 0) {
+                showToast('Data Master Barang masih kosong.', 'info');
+                return;
+            }
+            const selCnt = selectedMasterBarangSkus.size;
+            const filtCnt = lastFilteredMasterBarangSkus.length;
+            const allCnt = masterBarangData.length;
+
+            const selCountEl = document.getElementById('barang-del-selected-count');
+            const filtCountEl = document.getElementById('barang-del-filtered-count');
+            const allCountEl = document.getElementById('barang-del-all-count');
+            if (selCountEl) selCountEl.textContent = selCnt;
+            if (filtCountEl) filtCountEl.textContent = filtCnt;
+            if (allCountEl) allCountEl.textContent = allCnt;
+
+            const selWrap = document.getElementById('barang-del-opt-selected-wrap');
+            const filtWrap = document.getElementById('barang-del-opt-filtered-wrap');
+            if (selWrap) selWrap.classList.toggle('hidden', selCnt === 0);
+            if (filtWrap) filtWrap.classList.toggle('hidden', filtCnt === 0 || filtCnt === allCnt);
+
+            const defaultScope = selCnt > 0 ? 'selected' : (filtCnt > 0 && filtCnt < allCnt ? 'filtered' : 'all');
+            const radio = document.querySelector(`input[name="barang-delete-scope"][value="${defaultScope}"]`);
+            if (radio) radio.checked = true;
+
+            const modal = document.getElementById('master-barang-delete-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+            lucide.createIcons();
+        }
+
+        function closeDeleteMasterBarangModal() {
+            const modal = document.getElementById('master-barang-delete-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function confirmDeleteMasterBarangBulk() {
+            const checkedRadio = document.querySelector('input[name="barang-delete-scope"]:checked');
+            const scope = checkedRadio ? checkedRadio.value : 'all';
+
+            let targetSkus = [];
+            if (scope === 'selected') {
+                targetSkus = Array.from(selectedMasterBarangSkus);
+            } else if (scope === 'filtered') {
+                targetSkus = [...lastFilteredMasterBarangSkus];
+            } else {
+                targetSkus = masterBarangData.map(b => b.sku);
+            }
+
+            if (targetSkus.length === 0) {
+                showToast('Tidak ada data yang dipilih untuk dihapus.', 'warning');
+                return;
+            }
+
+            const delSet = new Set(targetSkus);
+            masterBarangData = masterBarangData.filter(b => !delSet.has(b.sku));
+            targetSkus.forEach(s => {
+                selectedMasterBarangSkus.delete(s);
+                sheetDelete('MasterBarang', s);
+            });
+
+            saveAppStateToLocal();
+            closeDeleteMasterBarangModal();
+            renderMasterBarangTable();
+            showToast(`${targetSkus.length} data Master Barang berhasil dihapus.`, 'success');
+        }
+
         function exportMasterBarangExcel() {
-            downloadCsvFile(`Master_Barang_${getTodayISO()}.csv`, ['SKU Code', 'Product Name', 'Barcode', 'Brand', 'No Rack', 'Expired Date'],
-                masterBarangData.map(b => [b.sku, b.name, b.barcode, b.brand, b.noRack, b.expiredDate || '-']));
-            showToast('Master Barang diekspor ke CSV!', 'success');
+            const headers = ['SKU Code', 'Product Name', 'Barcode', 'Brand', 'No Rack', 'Expired Date'];
+            const rows = masterBarangData.map(b => [b.sku, b.name, b.barcode, b.brand, b.noRack, b.expiredDate || '-']);
+            if (typeof XLSX !== 'undefined') {
+                const wb = buildMasterBarangWorkbook(headers, rows, false);
+                XLSX.writeFile(wb, `Master_Barang_${getTodayISO()}.xlsx`);
+                showToast('Master Barang diekspor ke Excel (.xlsx)!', 'success');
+            } else {
+                downloadCsvFile(`Master_Barang_${getTodayISO()}.csv`, headers, rows);
+                showToast('Master Barang diekspor ke CSV!', 'success');
+            }
         }
 
         function openImportBarangModal() {
             document.getElementById('import-barang-file')?.click();
         }
 
+        function cleanImportedCodeValue(rawVal) {
+            let s = String(rawVal ?? '').trim();
+            // Bersihkan wrapper teks Excel seperti ="00123" atau '00123
+            const eqMatch = s.match(/^="(.*)"$/);
+            if (eqMatch) s = eqMatch[1].trim();
+            if (s.startsWith("'")) s = s.slice(1).trim();
+            return s;
+        }
+
+        function normalizeImportedExpiryDate(rawVal, cellObj = null) {
+            if (cellObj && cellObj.t === 'n' && typeof cellObj.v === 'number' && cellObj.v > 20000 && cellObj.v < 90000 && typeof XLSX !== 'undefined' && XLSX.SSF?.parse_date_code) {
+                const dt = XLSX.SSF.parse_date_code(cellObj.v);
+                if (dt && dt.y && dt.m && dt.d) {
+                    return `${String(dt.y).padStart(4, '0')}-${String(dt.m).padStart(2, '0')}-${String(dt.d).padStart(2, '0')}`;
+                }
+            }
+            const s = cleanImportedCodeValue(rawVal);
+            if (!s || s === '-') return '';
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+            const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+            if (dmy) {
+                return `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`;
+            }
+            return s;
+        }
+
+        function extractSheetCellTextPreservingZeros(cell) {
+            if (!cell) return '';
+            if (cell.t === 's') return cleanImportedCodeValue(cell.v);
+            if (cell.t === 'n') {
+                const formatted = cell.w != null ? String(cell.w).trim() : '';
+                if (formatted && !/[eE][+-]?\d+/.test(formatted)) {
+                    return cleanImportedCodeValue(formatted);
+                }
+                if (typeof cell.v === 'number' && Number.isFinite(cell.v)) {
+                    return Number.isInteger(cell.v)
+                        ? cell.v.toLocaleString('fullwide', { useGrouping: false })
+                        : String(cell.v);
+                }
+            }
+            if (typeof XLSX !== 'undefined' && XLSX.utils?.format_cell) {
+                return cleanImportedCodeValue(XLSX.utils.format_cell(cell));
+            }
+            return cleanImportedCodeValue(cell.v);
+        }
+
+        function parseCsvLinesPreserveText(text) {
+            const lines = String(text || '').split(/\r?\n/).filter(l => l.trim().length > 0);
+            if (lines.length === 0) return [];
+            const header = lines[0];
+            const semiCount = (header.match(/;/g) || []).length;
+            const tabCount = (header.match(/\t/g) || []).length;
+            const commaCount = (header.match(/,/g) || []).length;
+            const sep = tabCount >= semiCount && tabCount >= commaCount && tabCount > 0 ? '\t' : (semiCount > commaCount ? ';' : ',');
+
+            return lines.map(line => {
+                const cols = [];
+                let cur = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+                    if (ch === '"') {
+                        if (inQuotes && line[i + 1] === '"') {
+                            cur += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (ch === sep && !inQuotes) {
+                        cols.push(cleanImportedCodeValue(cur));
+                        cur = '';
+                    } else {
+                        cur += ch;
+                    }
+                }
+                cols.push(cleanImportedCodeValue(cur));
+                return cols;
+            });
+        }
+
+        function applyImportedMasterBarangRows(rowsMatrix, cellMatrix = null) {
+            if (!rowsMatrix || rowsMatrix.length <= 1) return 0;
+            const headerRow = rowsMatrix[0].map(h => String(h || '').toLowerCase().trim());
+            const findCol = (patterns, fallbackIdx) => {
+                const idx = headerRow.findIndex(h => patterns.some(p => h.includes(p)));
+                return idx !== -1 ? idx : fallbackIdx;
+            };
+            const skuCol = findCol(['sku', 'kode barang', 'kode'], 0);
+            const nameCol = findCol(['product name', 'nama barang', 'nama produk', 'nama'], 1);
+            const barcodeCol = findCol(['barcode'], 2);
+            const brandCol = findCol(['brand', 'merk'], 3);
+            const rackCol = findCol(['rack', 'rak'], 4);
+            const expCol = findCol(['expired', 'exp'], 5);
+
+            let added = 0;
+            const importedItems = [];
+            for (let r = 1; r < rowsMatrix.length; r++) {
+                const cols = rowsMatrix[r] || [];
+                const skuRaw = cleanImportedCodeValue(cols[skuCol]);
+                const nameRaw = cleanImportedCodeValue(cols[nameCol]);
+                if (!skuRaw || !nameRaw) continue;
+
+                const expCell = cellMatrix?.[r]?.[expCol] || null;
+                const item = {
+                    sku: skuRaw.toUpperCase(),
+                    name: nameRaw,
+                    barcode: cleanImportedCodeValue(cols[barcodeCol]) || '-',
+                    brand: cleanImportedCodeValue(cols[brandCol]) || '-',
+                    noRack: (cleanImportedCodeValue(cols[rackCol]) || '-').toUpperCase(),
+                    expiredDate: normalizeImportedExpiryDate(cols[expCol], expCell)
+                };
+                const existingIdx = masterBarangData.findIndex(b => b.sku === item.sku);
+                if (existingIdx > -1) masterBarangData[existingIdx] = item;
+                else masterBarangData.push(item);
+                importedItems.push(item);
+                added++;
+            }
+
+            saveAppStateToLocal();
+            if (importedItems.length > 0) sheetUpsertMany('MasterBarang', importedItems);
+            renderMasterBarangTable();
+            return added;
+        }
+
         function handleImportBarangFile(event) {
             const file = event.target.files?.[0];
             if (!file) return;
+            const fileName = String(file.name || '').toLowerCase();
+            const isExcel = /\.(xlsx|xls|xlsm|ods)$/.test(fileName);
+
             const reader = new FileReader();
             reader.onload = function(e) {
-                const lines = String(e.target.result || '').split(/\r?\n/).filter(Boolean);
-                let added = 0;
-                const importedItems = [];
-                lines.slice(1).forEach(line => {
-                    const cols = line.split(',').map(c => c.replace(/^"|"$/g, '').trim());
-                    if (cols[0] && cols[1]) {
-                        const item = {
-                            sku: cols[0].toUpperCase(),
-                            name: cols[1],
-                            barcode: cols[2] || '-',
-                            brand: cols[3] || '-',
-                            noRack: (cols[4] || '-').toUpperCase(),
-                            expiredDate: (cols[5] && cols[5] !== '-') ? cols[5] : ''
-                        };
-                        const existingIdx = masterBarangData.findIndex(b => b.sku === item.sku);
-                        if (existingIdx > -1) masterBarangData[existingIdx] = item; else masterBarangData.push(item);
-                        importedItems.push(item);
-                        added++;
+                try {
+                    let added = 0;
+                    if (isExcel && typeof XLSX !== 'undefined') {
+                        const wb = XLSX.read(e.target.result, { type: 'array', raw: false, cellText: true, cellDates: false });
+                        const firstSheetName = wb.SheetNames[0];
+                        const ws = wb.Sheets[firstSheetName];
+                        if (ws && ws['!ref']) {
+                            const range = XLSX.utils.decode_range(ws['!ref']);
+                            const rowsMatrix = [];
+                            const cellMatrix = [];
+                            for (let r = range.s.r; r <= range.e.r; r++) {
+                                const rowArr = [];
+                                const cellArr = [];
+                                for (let c = range.s.c; c <= range.e.c; c++) {
+                                    const cell = ws[XLSX.utils.encode_cell({ r, c })] || null;
+                                    cellArr.push(cell);
+                                    rowArr.push(extractSheetCellTextPreservingZeros(cell));
+                                }
+                                if (rowArr.some(v => v !== '')) {
+                                    rowsMatrix.push(rowArr);
+                                    cellMatrix.push(cellArr);
+                                }
+                            }
+                            added = applyImportedMasterBarangRows(rowsMatrix, cellMatrix);
+                        }
+                    } else {
+                        const rowsMatrix = parseCsvLinesPreserveText(String(e.target.result || ''));
+                        added = applyImportedMasterBarangRows(rowsMatrix, null);
                     }
-                });
-                saveAppStateToLocal();
-                sheetUpsertMany('MasterBarang', importedItems);
-                renderMasterBarangTable();
-                event.target.value = '';
-                showToast(`${added} SKU berhasil diimpor!`, 'success');
+                    event.target.value = '';
+                    if (added > 0) showToast(`${added} SKU berhasil diimpor (kode awal 0 terjaga)!`, 'success');
+                    else showToast('Tidak ada baris valid yang dapat diimpor. Pastikan kolom SKU Code & Product Name terisi.', 'warning');
+                } catch (err) {
+                    event.target.value = '';
+                    showToast('Gagal membaca file Excel/CSV. Pastikan format file valid.', 'error');
+                }
             };
-            reader.readAsText(file);
+            if (isExcel && typeof XLSX !== 'undefined') reader.readAsArrayBuffer(file);
+            else reader.readAsText(file);
         }
 
         function escapeHtmlText(str) {
@@ -13200,8 +13601,9 @@ function doPost(e) {
 
             if (isPortrait) {
                 const skuFont = skuStr.length <= 10 ? 33 : skuStr.length <= 14 ? 26 : skuStr.length <= 18 ? 21 : 16;
-                const nameFont = nameStr.length <= 26 ? 17.5 : nameStr.length <= 42 ? 14.5 : 12;
+                const nameFont = nameStr.length <= 24 ? 19 : nameStr.length <= 42 ? 15.5 : 13;
                 const qtyFont = qtyStr.length <= 3 ? 44 : qtyStr.length <= 5 ? 36 : 28;
+                const brandInitFont = brandStr.length <= 8 ? 17 : brandStr.length <= 14 ? 13.5 : 10.5;
                 const qrMm = (29 * s).toFixed(2) + 'mm';
 
                 return `
@@ -13212,10 +13614,9 @@ function doPost(e) {
                             <div style="height: 17%; border-bottom: 0.45mm solid #0f172a; display: flex; align-items: center; justify-content: center; padding: 0 ${mm(3)}; text-align: center;">
                                 <span style="font-size: ${pt(skuFont)}; font-weight: 900; line-height: 1; letter-spacing: 0.02em; white-space: nowrap;">${escapeHtmlText(skuStr)}</span>
                             </div>
-                            <!-- Row 2: Nama Produk -->
-                            <div style="height: 20%; border-bottom: 0.45mm solid #0f172a; display: flex; flex-direction: column; justify-content: center; padding: ${mm(2)} ${mm(3.5)}; gap: ${mm(1.2)};">
-                                <div style="font-size: ${pt(10)}; font-weight: 900; color: #0f172a; letter-spacing: 0.03em; white-space: nowrap;">NAMA PRODUK :</div>
-                                <div style="font-size: ${pt(nameFont)}; font-weight: 900; line-height: 1.15; text-transform: uppercase; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${escapeHtmlText(nameStr)}</div>
+                            <!-- Row 2: Nama Produk (tanpa tulisan NAMA PRODUK) -->
+                            <div class="carton-a6-name-box" style="height: 20%; border-bottom: 0.45mm solid #0f172a; display: flex; align-items: center; padding: ${mm(2)} ${mm(3.5)}; overflow: hidden;">
+                                <div class="carton-a6-name-fit" style="width: 100%; font-size: ${pt(nameFont)}; font-weight: 900; line-height: 1.15; text-transform: uppercase; word-break: normal; overflow-wrap: break-word;">${escapeHtmlText(nameStr)}</div>
                             </div>
                             <!-- Row 3: QTY + QR Code -->
                             <div style="height: 31%; border-bottom: 0.45mm solid #0f172a; display: grid; grid-template-columns: 0.95fr 1.15fr;">
@@ -13230,9 +13631,9 @@ function doPost(e) {
                             </div>
                             <!-- Row 4: Brand & No. Rak -->
                             <div style="height: 16%; border-bottom: 0.45mm solid #0f172a; display: grid; grid-template-columns: 1.35fr 1fr;">
-                                <div style="border-right: 0.45mm solid #0f172a; padding: ${mm(1.5)} ${mm(3.5)}; display: flex; flex-direction: column; justify-content: center; gap: ${mm(0.8)}; overflow: hidden;">
-                                    <div style="font-size: ${pt(9.5)}; font-weight: 900; color: #0f172a; white-space: nowrap;">BRAND :</div>
-                                    <div style="font-size: ${pt(brandStr.length > 12 ? 12.5 : 15.5)}; font-weight: 900; text-transform: uppercase; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtmlText(brandStr)}</div>
+                                <div class="carton-a6-brand-box" style="border-right: 0.45mm solid #0f172a; padding: ${mm(1.5)} ${mm(3)}; display: flex; flex-direction: column; justify-content: center; gap: ${mm(0.6)}; overflow: hidden;">
+                                    <div class="carton-a6-brand-label" style="font-size: ${pt(9.5)}; font-weight: 900; color: #0f172a; white-space: nowrap; flex-shrink: 0;">BRAND :</div>
+                                    <div class="carton-a6-brand-fit" style="width: 100%; font-size: ${pt(brandInitFont)}; font-weight: 900; text-transform: uppercase; line-height: 1.12; word-break: normal; overflow-wrap: break-word;">${escapeHtmlText(brandStr)}</div>
                                 </div>
                                 <div style="padding: ${mm(1.5)} ${mm(2.5)}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: ${mm(0.8)};">
                                     <div style="font-size: ${pt(9.5)}; font-weight: 900; color: #0f172a; white-space: nowrap;">NO. RAK</div>
@@ -13257,8 +13658,9 @@ function doPost(e) {
 
             // Layout Landscape (sesuai referensi gambar kertas A6 148 × 105 mm)
             const skuFont = skuStr.length <= 10 ? 42 : skuStr.length <= 14 ? 34 : skuStr.length <= 18 ? 27 : 21;
-            const nameFont = nameStr.length <= 28 ? 18 : nameStr.length <= 45 ? 15 : 12.5;
+            const nameFont = nameStr.length <= 28 ? 20 : nameStr.length <= 48 ? 16 : 13;
             const qtyFont = qtyStr.length <= 3 ? 46 : qtyStr.length <= 5 ? 38 : 30;
+            const brandInitFont = brandStr.length <= 9 ? 17 : brandStr.length <= 15 ? 13 : 10;
             const qrMm = (23.5 * s).toFixed(2) + 'mm';
 
             return `
@@ -13269,10 +13671,9 @@ function doPost(e) {
                         <div style="height: 27%; border-bottom: 0.45mm solid #0f172a; display: flex; align-items: center; justify-content: center; padding: 0 ${mm(3)}; text-align: center;">
                             <span style="font-size: ${pt(skuFont)}; font-weight: 900; line-height: 1; letter-spacing: 0.02em; white-space: nowrap;">${escapeHtmlText(skuStr)}</span>
                         </div>
-                        <!-- Row 2: Nama Produk -->
-                        <div style="height: 19%; border-bottom: 0.45mm solid #0f172a; display: flex; align-items: center; padding: 0 ${mm(3.5)}; gap: ${mm(3)};">
-                            <span style="font-size: ${pt(10.5)}; font-weight: 900; color: #0f172a; white-space: nowrap; flex-shrink: 0;">NAMA PRODUK :</span>
-                            <span style="font-size: ${pt(nameFont)}; font-weight: 900; line-height: 1.15; text-transform: uppercase; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapeHtmlText(nameStr)}</span>
+                        <!-- Row 2: Nama Produk (tanpa tulisan NAMA PRODUK) -->
+                        <div class="carton-a6-name-box" style="height: 19%; border-bottom: 0.45mm solid #0f172a; display: flex; align-items: center; padding: ${mm(1.5)} ${mm(3.5)}; overflow: hidden;">
+                            <span class="carton-a6-name-fit" style="width: 100%; font-size: ${pt(nameFont)}; font-weight: 900; line-height: 1.15; text-transform: uppercase; word-break: normal; overflow-wrap: break-word;">${escapeHtmlText(nameStr)}</span>
                         </div>
                         <!-- Row 3: QTY + QR Code -->
                         <div style="height: 32%; border-bottom: 0.45mm solid #0f172a; display: grid; grid-template-columns: 1.35fr 1fr;">
@@ -13287,9 +13688,9 @@ function doPost(e) {
                         </div>
                         <!-- Row 4: Brand | No. Rak | Exp Date & PIC -->
                         <div style="flex: 1; display: grid; grid-template-columns: 1.35fr 0.72fr 1.18fr;">
-                            <div style="border-right: 0.45mm solid #0f172a; display: flex; align-items: center; padding: 0 ${mm(3.5)}; gap: ${mm(2.5)}; overflow: hidden;">
-                                <span style="font-size: ${pt(10)}; font-weight: 900; white-space: nowrap; flex-shrink: 0;">BRAND :</span>
-                                <span style="font-size: ${pt(brandStr.length > 11 ? 13 : 16.5)}; font-weight: 900; text-transform: uppercase; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtmlText(brandStr)}</span>
+                            <div class="carton-a6-brand-box" style="border-right: 0.45mm solid #0f172a; display: flex; align-items: center; padding: ${mm(1.5)} ${mm(3)}; gap: ${mm(2)}; overflow: hidden;">
+                                <span class="carton-a6-brand-label" style="font-size: ${pt(10)}; font-weight: 900; white-space: nowrap; flex-shrink: 0;">BRAND :</span>
+                                <span class="carton-a6-brand-fit" style="flex: 1; min-width: 0; font-size: ${pt(brandInitFont)}; font-weight: 900; text-transform: uppercase; line-height: 1.12; word-break: normal; overflow-wrap: break-word;">${escapeHtmlText(brandStr)}</span>
                             </div>
                             <div style="border-right: 0.45mm solid #0f172a; display: flex; flex-direction: column;">
                                 <div style="flex: 1; border-bottom: 0.45mm solid #0f172a; display: flex; align-items: center; justify-content: center; font-size: ${pt(9.5)}; font-weight: 900; white-space: nowrap;">NO. RAK</div>
@@ -13309,6 +13710,92 @@ function doPost(e) {
                     </div>
                 </div>
             `;
+        }
+
+        function fitElementInsideBox(boxEl, textEl, minPt, maxPt, extraReservedH = 0) {
+            if (!boxEl || !textEl || boxEl.clientWidth === 0 || boxEl.clientHeight === 0 || textEl.clientWidth === 0) return null;
+            const cs = getComputedStyle(boxEl);
+            const padY = parseFloat(cs.paddingTop || 0) + parseFloat(cs.paddingBottom || 0);
+            const maxW = textEl.clientWidth + 1;
+            const maxH = Math.floor(boxEl.clientHeight - padY - extraReservedH) + 1;
+            if (maxW <= 4 || maxH <= 4) return null;
+
+            const targetPt = Math.min(maxPt, parseFloat(textEl.style.fontSize) || maxPt);
+            const effectiveMinPt = Math.min(minPt, targetPt);
+            textEl.style.overflowWrap = 'break-word';
+            textEl.style.fontSize = targetPt + 'pt';
+
+            // Jika pada ukuran normal versi sebelumnya sudah muat rapi dalam kotak, pertahankan ukuran tersebut
+            if (textEl.scrollWidth <= maxW && textEl.scrollHeight <= maxH) {
+                return { fontSize: textEl.style.fontSize, overflowWrap: textEl.style.overflowWrap };
+            }
+
+            let lo = Math.round(effectiveMinPt * 2);
+            let hi = Math.round(targetPt * 2);
+            let best = lo;
+
+            while (lo <= hi) {
+                const mid = Math.floor((lo + hi) / 2);
+                const ptVal = mid / 2;
+                textEl.style.fontSize = ptVal + 'pt';
+                if (textEl.scrollWidth <= maxW && textEl.scrollHeight <= maxH) {
+                    best = mid;
+                    lo = mid + 1;
+                } else {
+                    hi = mid - 1;
+                }
+            }
+
+            let finalPt = best / 2;
+            textEl.style.fontSize = finalPt + 'pt';
+            if (textEl.scrollWidth > maxW || textEl.scrollHeight > maxH) {
+                textEl.style.overflowWrap = 'anywhere';
+                while (finalPt > 4.5 && (textEl.scrollWidth > maxW || textEl.scrollHeight > maxH)) {
+                    finalPt = Math.max(4.5, finalPt - 0.5);
+                    textEl.style.fontSize = finalPt + 'pt';
+                }
+            }
+            return { fontSize: textEl.style.fontSize, overflowWrap: textEl.style.overflowWrap };
+        }
+
+        function fitCartonA6LabelFields(w, h, orient) {
+            const sheetArea = document.getElementById('print-label-sheet-area');
+            if (!sheetArea) return;
+            const isPortrait = orient === 'portrait' || h > w;
+            const baseW = isPortrait ? 105 : 148;
+            const baseH = isPortrait ? 148 : 105;
+            const s = Math.max(0.42, Math.min(w / baseW, h / baseH));
+
+            // 1. Pertahankan ukuran font brand versi sebelumnya dan kecilkan hanya jika teks melebihi garis kotak
+            const firstBrandBox = sheetArea.querySelector('.carton-a6-brand-box');
+            const firstBrandText = sheetArea.querySelector('.carton-a6-brand-fit');
+            const firstBrandLabel = sheetArea.querySelector('.carton-a6-brand-label');
+            if (firstBrandBox && firstBrandText) {
+                const csBox = getComputedStyle(firstBrandBox);
+                const isColumn = csBox.flexDirection === 'column';
+                const gapPx = parseFloat(csBox.rowGap || csBox.gap || 0) || 0;
+                const reservedH = (isColumn && firstBrandLabel) ? ((firstBrandLabel.offsetHeight || firstBrandLabel.getBoundingClientRect().height) + gapPx) : 0;
+                const fitBrand = fitElementInsideBox(firstBrandBox, firstBrandText, 5.5 * s, 20 * s, reservedH);
+                if (fitBrand) {
+                    sheetArea.querySelectorAll('.carton-a6-brand-fit').forEach(el => {
+                        el.style.fontSize = fitBrand.fontSize;
+                        el.style.overflowWrap = fitBrand.overflowWrap;
+                    });
+                }
+            }
+
+            // 2. Pertahankan ukuran font nama barang versi sebelumnya dan kecilkan hanya jika melebihi kotak
+            const firstNameBox = sheetArea.querySelector('.carton-a6-name-box');
+            const firstNameText = sheetArea.querySelector('.carton-a6-name-fit');
+            if (firstNameBox && firstNameText) {
+                const fitName = fitElementInsideBox(firstNameBox, firstNameText, 6.5 * s, 22 * s, 0);
+                if (fitName) {
+                    sheetArea.querySelectorAll('.carton-a6-name-fit').forEach(el => {
+                        el.style.fontSize = fitName.fontSize;
+                        el.style.overflowWrap = fitName.overflowWrap;
+                    });
+                }
+            }
         }
 
         function computeCustomA6FallbackPt(text, isLand) {
@@ -13550,6 +14037,7 @@ function doPost(e) {
                     `);
                 }
                 area.innerHTML = cards.join('');
+                fitCartonA6LabelFields(w, h, orient);
             } else {
                 const text = document.getElementById('custom-label-text')?.value || 'LABEL CUSTOM';
                 const orient = document.getElementById('custom-label-orientation')?.value || 'landscape';
