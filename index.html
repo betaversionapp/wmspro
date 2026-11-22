@@ -2475,8 +2475,9 @@ function doPost(e) {
                                         <span id="label-info-brand" class="font-bold text-slate-800">-</span>
                                     </div>
                                     <div>
-                                        <span class="text-slate-400 block">No. Rak:</span>
-                                        <span id="label-info-rack" class="font-mono font-bold text-indigo-700">-</span>
+                                        <label for="label-rack-input" class="text-slate-400 block mb-0.5">No. Rak <span class="text-teal-700 font-semibold">(Bisa Diedit)</span>:</label>
+                                        <input type="text" id="label-rack-input" oninput="renderPrintLabelPreview()" placeholder="Contoh: L1-18"
+                                            class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-mono font-bold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
                                     </div>
                                     <div>
                                         <label for="label-exp-input" class="text-slate-400 block mb-0.5">Exp Date <span class="text-teal-700 font-semibold">(Bisa Diedit)</span>:</label>
@@ -5861,6 +5862,43 @@ function doPost(e) {
     </div>
 
     <!-- ========================================== -->
+    <!-- MODAL KONFIRMASI KELUAR APLIKASI (BACK)    -->
+    <!-- ========================================== -->
+    <div id="exit-app-confirm-modal" class="fixed inset-0 z-[80] hidden items-center justify-center p-4 bg-slate-900/65 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden fade-in border border-slate-200/80">
+            <div class="px-6 py-4 bg-gradient-to-r from-rose-600 to-orange-500 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold leading-tight">Keluar dari Aplikasi?</h3>
+                        <p class="text-[11px] text-rose-100">Konfirmasi tombol kembali (Back)</p>
+                    </div>
+                </div>
+                <button type="button" onclick="cancelExitAppNo()" class="p-1.5 text-white/80 hover:text-white rounded-lg" aria-label="Tutup">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-5">
+                <p class="text-sm text-slate-700 leading-relaxed font-medium">
+                    Apakah Anda yakin ingin keluar dari aplikasi ini?
+                </p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" id="exit-app-no-btn" onclick="cancelExitAppNo()"
+                        class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-sm transition border border-slate-200">
+                        No / Tidak
+                    </button>
+                    <button type="button" id="exit-app-yes-btn" onclick="confirmExitAppYes()"
+                        class="py-2.5 px-4 bg-gradient-to-r from-rose-600 to-orange-500 hover:from-rose-700 hover:to-orange-600 text-white font-bold rounded-xl text-sm shadow-sm transition">
+                        Yes / Keluar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- LOGIKA JAVASCRIPT APLIKASI                 -->
     <!-- ========================================== -->
     <script>
@@ -8903,7 +8941,182 @@ function doPost(e) {
             navigateTo(menuId);
         }
 
-        function navigateTo(route) {
+        let wmsRouteHistory = ['home'];
+        let isExitingApp = false;
+        let backExitGuardInitialized = false;
+
+        function ensureBackExitGuardState() {
+            try {
+                if (!window.history || typeof window.history.pushState !== 'function') return;
+                if (!window.history.state || window.history.state.wmsGuard !== 'app') {
+                    window.history.pushState({ wmsGuard: 'app' }, '');
+                }
+            } catch {
+                // Abaikan jika browser membatasi history API
+            }
+        }
+
+        function closeTopmostOpenModal() {
+            const modalEntries = [
+                { id: 'image-lightbox-modal', close: () => typeof closeImageLightbox === 'function' && closeImageLightbox() },
+                { id: 'camera-photo-modal', close: () => typeof closePhotoCameraModal === 'function' && closePhotoCameraModal() },
+                { id: 'barcode-camera-modal', close: () => typeof closeBarcodeCameraModal === 'function' && closeBarcodeCameraModal() },
+                { id: 'project-done-photo-modal', close: () => typeof closeProjectDonePhotoModal === 'function' && closeProjectDonePhotoModal() },
+                { id: 'master-barang-delete-modal', close: () => typeof closeDeleteMasterBarangModal === 'function' && closeDeleteMasterBarangModal() },
+                { id: 'barang-print-barcode-modal', close: () => typeof closeBarangPrintBarcodeModal === 'function' && closeBarangPrintBarcodeModal() },
+                { id: 'barang-modal', close: () => typeof closeBarangModal === 'function' && closeBarangModal() },
+                { id: 'project-detail-modal', close: () => typeof closeProjectDetailModal === 'function' && closeProjectDetailModal() },
+                { id: 'project-modal', close: () => typeof closeProjectModal === 'function' && closeProjectModal() },
+                { id: 'qc-proses-modal', close: () => typeof closeQcProsesModal === 'function' && closeQcProsesModal() },
+                { id: 'qc-transfer-modal', close: () => typeof closeQcTransferModal === 'function' && closeQcTransferModal() },
+                { id: 'inventory-stock-modal', close: () => typeof closeInventoryStockModal === 'function' && closeInventoryStockModal() },
+                { id: 'kpi-staff-detail-modal', close: () => typeof closeKpiStaffDetailModal === 'function' && closeKpiStaffDetailModal() },
+                { id: 'user-modal', close: () => typeof closeUserModal === 'function' && closeUserModal() },
+                { id: 'role-manager-modal', close: () => typeof closeRoleManagerModal === 'function' && closeRoleManagerModal() },
+                { id: 'menu-manager-modal', close: () => typeof closeMenuManagerModal === 'function' && closeMenuManagerModal() },
+                { id: 'reason-manager-modal', close: () => typeof closeReasonManagerModal === 'function' && closeReasonManagerModal() },
+                { id: 'overtime-reason-manager-modal', close: () => typeof closeOvertimeReasonManagerModal === 'function' && closeOvertimeReasonManagerModal() }
+            ];
+            for (const entry of modalEntries) {
+                const el = document.getElementById(entry.id);
+                if (el && !el.classList.contains('hidden')) {
+                    entry.close();
+                    if (!el.classList.contains('hidden')) {
+                        el.classList.add('hidden');
+                        el.classList.remove('flex');
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function openExitAppModal() {
+            const modal = document.getElementById('exit-app-confirm-modal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+            const noBtn = document.getElementById('exit-app-no-btn');
+            if (noBtn && typeof noBtn.focus === 'function') noBtn.focus();
+        }
+
+        function cancelExitAppNo() {
+            const modal = document.getElementById('exit-app-confirm-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            ensureBackExitGuardState();
+        }
+
+        function confirmExitAppYes() {
+            const modal = document.getElementById('exit-app-confirm-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            saveAppStateToLocal();
+            isExitingApp = true;
+
+            if (currentUser) {
+                currentUser = null;
+                document.getElementById('app-shell')?.classList.add('hidden');
+                document.getElementById('login-view')?.classList.remove('hidden');
+                const passEl = document.getElementById('login-password');
+                if (passEl) passEl.value = '';
+            }
+            wmsRouteHistory = ['home'];
+            currentRoute = 'home';
+
+            try {
+                if (window.history && typeof window.history.go === 'function') {
+                    window.history.go(-2);
+                }
+            } catch {
+                // Abaikan jika browser membatasi
+            }
+            try {
+                if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches && typeof window.close === 'function') {
+                    window.close();
+                }
+            } catch {
+                // Abaikan jika tab tidak bisa ditutup otomatis
+            }
+
+            setTimeout(() => {
+                if (isExitingApp) {
+                    isExitingApp = false;
+                    ensureBackExitGuardState();
+                    showToast('Anda telah keluar dari aplikasi.', 'info');
+                }
+            }, 350);
+        }
+
+        function handleAppBackButton() {
+            if (isExitingApp) return;
+            ensureBackExitGuardState();
+
+            const exitModal = document.getElementById('exit-app-confirm-modal');
+            if (exitModal && !exitModal.classList.contains('hidden')) {
+                cancelExitAppNo();
+                return;
+            }
+
+            if (closeTopmostOpenModal()) {
+                return;
+            }
+
+            if (currentUser && currentRoute && currentRoute !== 'home') {
+                if (wmsRouteHistory.length > 0 && wmsRouteHistory[wmsRouteHistory.length - 1] === currentRoute) {
+                    wmsRouteHistory.pop();
+                }
+                const prevRoute = wmsRouteHistory.length > 0 ? wmsRouteHistory[wmsRouteHistory.length - 1] : 'home';
+                navigateTo(prevRoute || 'home', { fromPopstate: true });
+                return;
+            }
+
+            openExitAppModal();
+        }
+
+        function initBackExitGuard() {
+            if (backExitGuardInitialized) return;
+            backExitGuardInitialized = true;
+            try {
+                if (window.history && typeof window.history.replaceState === 'function') {
+                    window.history.replaceState({ wmsGuard: 'base' }, '');
+                    window.history.pushState({ wmsGuard: 'app' }, '');
+                }
+            } catch {
+                // Abaikan jika browser membatasi history API
+            }
+
+            window.addEventListener('popstate', () => {
+                if (isExitingApp) return;
+                handleAppBackButton();
+            });
+
+            // Pastikan state guard aktif setelah interaksi pertama pengguna di browser/HP
+            const armGuardOnInteract = () => {
+                if (!isExitingApp) ensureBackExitGuardState();
+            };
+            document.addEventListener('pointerdown', armGuardOnInteract, { passive: true });
+            document.addEventListener('keydown', armGuardOnInteract, { passive: true });
+        }
+
+        function navigateTo(route, opts = {}) {
+            if (!opts.fromPopstate) {
+                if (route === 'home') {
+                    wmsRouteHistory = ['home'];
+                } else {
+                    if (wmsRouteHistory.length === 0) wmsRouteHistory.push('home');
+                    if (wmsRouteHistory[wmsRouteHistory.length - 1] !== route) {
+                        wmsRouteHistory.push(route);
+                        if (wmsRouteHistory.length > 25) wmsRouteHistory.shift();
+                    }
+                }
+                ensureBackExitGuardState();
+            }
             currentRoute = route;
             if (typeof hideAllSearchDropdowns === 'function') hideAllSearchDropdowns();
             hideAllViews();
@@ -13484,7 +13697,8 @@ function doPost(e) {
             document.getElementById('label-info-name').textContent = prod.name;
             document.getElementById('label-info-barcode').textContent = prod.barcode;
             document.getElementById('label-info-brand').textContent = prod.brand;
-            document.getElementById('label-info-rack').textContent = prod.noRack;
+            const rackInput = document.getElementById('label-rack-input');
+            if (rackInput) rackInput.value = (prod.noRack && prod.noRack !== '-') ? prod.noRack : '';
             document.getElementById('label-exp-input').value = prod.expiredDate || '';
             renderPrintLabelPreview();
         }
@@ -13498,7 +13712,10 @@ function doPost(e) {
             document.getElementById('label-info-name').textContent = '-';
             document.getElementById('label-info-barcode').textContent = '-';
             document.getElementById('label-info-brand').textContent = '-';
-            document.getElementById('label-info-rack').textContent = '-';
+            const rackInput = document.getElementById('label-rack-input');
+            if (rackInput) rackInput.value = '';
+            const expInput = document.getElementById('label-exp-input');
+            if (expInput) expInput.value = '';
             renderPrintLabelPreview();
         }
 
@@ -14287,12 +14504,18 @@ function doPost(e) {
                 }
                 area.className = 'flex flex-col gap-4 items-center';
 
-                const p = selectedLabelCartonProduct || {
+                const rackInputEl = document.getElementById('label-rack-input');
+                const editedRack = rackInputEl ? rackInputEl.value.trim() : '';
+                const baseProduct = selectedLabelCartonProduct || {
                     sku: '8167611000',
                     name: 'Pilih Produk Master Barang',
                     barcode: '8991001100011',
                     brand: '-',
                     noRack: '-'
+                };
+                const p = {
+                    ...baseProduct,
+                    noRack: rackInputEl ? (editedRack || '-') : (baseProduct.noRack || '-')
                 };
                 const innerCard = buildCartonA6CardHtml(p, qty, exp, pic, w, h, orient);
                 const cards = [];
@@ -18189,6 +18412,7 @@ function doPost(e) {
         document.addEventListener('DOMContentLoaded', async function() {
             loadAppStateFromLocal();
             const gotFromLink = consumeUrlSheetConfigParam();
+            initBackExitGuard();
             initAutoHideDropdowns();
             lucide.createIcons();
             renderSyncChip();
