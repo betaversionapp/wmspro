@@ -423,6 +423,11 @@
                             <i data-lucide="layers" class="w-4 h-4"></i>
                             <span>Pengaturan per Modul</span>
                         </button>
+                        <button type="button" id="setting-tab-btn-local_reset" onclick="setSettingTab('local_reset')"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+                            <i data-lucide="eraser" class="w-4 h-4 text-rose-600"></i>
+                            <span>Hapus Data Lokal</span>
+                        </button>
                         <button type="button" id="setting-tab-btn-sheet" onclick="setSettingTab('sheet')"
                             class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
                             <i data-lucide="database" class="w-4 h-4"></i>
@@ -442,7 +447,7 @@
                                 </div>
                                 <div>
                                     <h3 class="text-base font-extrabold text-slate-900">Pengaturan Daftar Isian per Modul</h3>
-                                    <p class="text-xs text-slate-500">Atur filter posisi nama staff/PIC, daftar expedisi, reason, alasan, keterangan cepat, dan quick tap tiap modul dalam satu tampilan.</p>
+                                    <p class="text-xs text-slate-500">Atur filter posisi nama staff/PIC, daftar expedisi, shop offline, reason, alasan, keterangan cepat, dan quick tap tiap modul.</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
@@ -462,6 +467,42 @@
 
                     <div id="setting-modules-sections-container" class="space-y-5">
                         <!-- Rendered section per section via JS -->
+                    </div>
+                </div>
+
+                <!-- PANEL 2: PENGATURAN TERPUSAT HAPUS DATA TRANSAKSI LOKAL (KECUALI USER) -->
+                <div id="setting-panel-local_reset" class="hidden space-y-4">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6 space-y-4">
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                            <div class="flex items-start sm:items-center gap-3.5">
+                                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-rose-500 to-orange-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                                    <i data-lucide="hard-drive-download" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Hapus Data Transaksi Lokal (Terpusat)</h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">
+                                        Membersihkan data transaksi yang tersimpan di penyimpanan lokal perangkat ini per menu.
+                                        <strong class="text-emerald-700">Data User &amp; data transaksi di database Google Sheet TIDAK akan terhapus.</strong>
+                                    </p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="openLocalResetConfirmModal('ALL')"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition whitespace-nowrap shrink-0">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                <span>Hapus Semua Transaksi Lokal (Kecuali User)</span>
+                            </button>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-2.5 text-xs text-amber-900">
+                            <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+                            <div>
+                                <strong>Perlindungan Data:</strong> Penghapusan ini bersifat lokal pada browser/perangkat ini saja. Akun login &amp; daftar <strong>User</strong> dikecualikan, dan tidak ada perintah hapus yang dikirim ke Google Sheet.
+                            </div>
+                        </div>
+
+                        <div id="setting-local-reset-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                            <!-- Di-render via JS -->
+                        </div>
                     </div>
                 </div>
 
@@ -821,8 +862,178 @@ function doPost(e) {
                     </div>
                 </div>
 
-                <!-- 2-Column Workspace -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                <!-- Tab Switcher Offline & Online -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-1.5 flex flex-wrap gap-1.5">
+                    <button type="button" id="dispatch-tab-btn-offline" onclick="setDispatchTab('offline')"
+                        class="flex-1 min-w-[180px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white shadow-sm whitespace-nowrap">
+                        <i data-lucide="store" class="w-4 h-4"></i>
+                        <span>Tab Offline · Rute Pengiriman Shop</span>
+                    </button>
+                    <button type="button" id="dispatch-tab-btn-online" onclick="setDispatchTab('online')"
+                        class="flex-1 min-w-[180px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-50 whitespace-nowrap">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                        <span>Tab Online · Entri Resi Kurir</span>
+                    </button>
+                </div>
+
+                <!-- PANEL OFFLINE: INPUT RUTE PENGIRIMAN TOKO / SHOP -->
+                <div id="dispatch-panel-offline" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                    <!-- Kolom Kiri: Form Rute Pengiriman Offline -->
+                    <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6">
+                        <div class="flex items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shrink-0">
+                                    <i data-lucide="store" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-extrabold text-slate-900">Input Rute Pengiriman Offline</h3>
+                                    <p class="text-xs text-slate-500">Pilih shop, jumlah koli &amp; foto barang</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="openDispatchShopSetting()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-bold transition shrink-0" title="Kelola daftar Shop di Setting">
+                                <i data-lucide="settings" class="w-3 h-3"></i>
+                                <span>Kelola Shop</span>
+                            </button>
+                        </div>
+
+                        <form id="dispatch-offline-form" class="space-y-4">
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label for="dispatch-offline-date" class="text-xs font-bold text-slate-700">Tanggal <span class="text-rose-500">*</span></label>
+                                    <button type="button" onclick="setDispatchOfflineTodayDate()" class="text-[11px] font-bold text-orange-600 hover:underline">Hari Ini</button>
+                                </div>
+                                <input type="date" id="dispatch-offline-date" required
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition tabular-nums">
+                            </div>
+
+                            <!-- a. Nama Shop (Sorted A-Z, managed in Setting) -->
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label for="dispatch-offline-shop" class="text-xs font-bold text-slate-700">a. Nama Shop <span class="text-rose-500">*</span></label>
+                                    <span class="text-[11px] text-slate-400">Urut A – Z</span>
+                                </div>
+                                <div id="dispatch-offline-shop-chips" class="flex flex-wrap gap-1.5 mb-2"></div>
+                                <select id="dispatch-offline-shop" required onchange="renderDispatchOfflineShopChips()"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition">
+                                    <option value="">— Pilih Shop —</option>
+                                </select>
+                            </div>
+
+                            <!-- b. Jumlah Koli -->
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label for="dispatch-offline-koli" class="text-xs font-bold text-slate-700">b. Jumlah Koli <span class="text-rose-500">*</span></label>
+                                    <span class="text-[11px] text-slate-400">bisa tambah cepat</span>
+                                </div>
+                                <input type="number" id="dispatch-offline-koli" min="1" placeholder="0" required
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-extrabold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition tabular-nums">
+                                <div class="flex flex-wrap gap-1.5 mt-2">
+                                    <button type="button" onclick="addDispatchOfflineQuickKoli(1)" class="px-2.5 py-1 rounded-lg border bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200 text-xs font-bold transition tabular-nums">+1</button>
+                                    <button type="button" onclick="addDispatchOfflineQuickKoli(5)" class="px-2.5 py-1 rounded-lg border bg-orange-50 hover:bg-orange-100 text-orange-800 border-orange-200 text-xs font-bold transition tabular-nums">+5</button>
+                                    <button type="button" onclick="addDispatchOfflineQuickKoli(10)" class="px-2.5 py-1 rounded-lg border bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-200 text-xs font-bold transition tabular-nums">+10</button>
+                                    <button type="button" onclick="addDispatchOfflineQuickKoli(20)" class="px-2.5 py-1 rounded-lg border bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border-indigo-200 text-xs font-bold transition tabular-nums">+20</button>
+                                </div>
+                            </div>
+
+                            <!-- c. Foto Barang -->
+                            <div class="p-3.5 rounded-xl bg-orange-50/60 border border-orange-200 space-y-2.5">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-xs font-bold text-orange-900">c. Foto Barang <span class="text-rose-500">*</span></span>
+                                    <span class="text-[11px] text-orange-700/80">Kamera / Upload File</span>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <button type="button" onclick="openDispatchOfflineCamera()"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl text-xs font-bold shadow-sm transition whitespace-nowrap">
+                                        <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                                        <span>Ambil Foto Kamera</span>
+                                    </button>
+                                    <label class="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer transition whitespace-nowrap">
+                                        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                                        <span>Pilih File</span>
+                                        <input type="file" id="dispatch-offline-photo-file" accept="image/*" capture="environment" class="hidden" onchange="handleDispatchOfflinePhotoUpload(event)">
+                                    </label>
+                                </div>
+                                <div id="dispatch-offline-photo-preview-wrap" class="hidden relative w-36 h-28 rounded-xl overflow-hidden border border-orange-200 bg-white shadow-xs">
+                                    <img id="dispatch-offline-photo-preview" src="" alt="Preview Foto Barang" class="w-full h-full object-cover cursor-pointer" onclick="openImageLightbox(this.src, 'Foto Barang Dispatch Offline')">
+                                    <button type="button" onclick="clearDispatchOfflinePhoto()" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-sm hover:bg-rose-700" title="Hapus Foto">
+                                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="dispatch-offline-note" class="block text-xs font-bold text-slate-700 mb-1">Catatan <span class="text-slate-400 font-normal">(opsional)</span></label>
+                                <input type="text" id="dispatch-offline-note" placeholder="Contoh: Pengiriman batch pagi / prioritas..."
+                                    class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            </div>
+
+                            <button type="submit" class="w-full py-3.5 px-5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-bold rounded-xl shadow-md shadow-orange-600/20 transition flex items-center justify-center gap-2 text-sm">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                                <span>Simpan Rute Pengiriman</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Kolom Kanan: Report & Status Pengiriman Offline (Update otomatis dari Menu Driver) -->
+                    <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                            <div>
+                                <h3 class="text-base font-extrabold text-slate-900">Report Status Pengiriman Offline</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Status otomatis diperbarui dari proses Pickup &amp; Unloading di menu Driver</p>
+                            </div>
+                            <button type="button" onclick="exportDispatchOfflineCsv()"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                <span>Export CSV</span>
+                            </button>
+                        </div>
+
+                        <!-- Filter Status & Ringkasan -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <button type="button" onclick="setDispatchOfflineStatusFilter('ALL')" id="dsp-off-stat-btn-ALL"
+                                class="text-left p-2.5 rounded-xl border-2 border-slate-900 bg-slate-900 text-white transition">
+                                <div class="text-[10px] font-bold uppercase opacity-80">Semua Rute</div>
+                                <div id="dsp-off-cnt-all" class="text-lg font-black tabular-nums">0</div>
+                            </button>
+                            <button type="button" onclick="setDispatchOfflineStatusFilter('pending_pickup')" id="dsp-off-stat-btn-pending_pickup"
+                                class="text-left p-2.5 rounded-xl border border-amber-200 bg-amber-50/70 text-amber-900 hover:border-amber-400 transition">
+                                <div class="text-[10px] font-bold uppercase text-amber-700">Menunggu Pickup</div>
+                                <div id="dsp-off-cnt-pending" class="text-lg font-black tabular-nums">0</div>
+                            </button>
+                            <button type="button" onclick="setDispatchOfflineStatusFilter('pickup_done')" id="dsp-off-stat-btn-pickup_done"
+                                class="text-left p-2.5 rounded-xl border border-sky-200 bg-sky-50/70 text-sky-900 hover:border-sky-400 transition">
+                                <div class="text-[10px] font-bold uppercase text-sky-700">Proses Kirim</div>
+                                <div id="dsp-off-cnt-pickup" class="text-lg font-black tabular-nums">0</div>
+                            </button>
+                            <button type="button" onclick="setDispatchOfflineStatusFilter('closed')" id="dsp-off-stat-btn-closed"
+                                class="text-left p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 text-emerald-900 hover:border-emerald-400 transition">
+                                <div class="text-[10px] font-bold uppercase text-emerald-700">Close</div>
+                                <div id="dsp-off-cnt-closed" class="text-lg font-black tabular-nums">0</div>
+                            </button>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="relative flex-1 min-w-[180px]">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <i data-lucide="search" class="w-4 h-4"></i>
+                                </div>
+                                <input type="text" id="dispatch-offline-search" oninput="renderDispatchOfflineList()" placeholder="Cari nama shop, driver, atau catatan..."
+                                    class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition">
+                            </div>
+                            <input type="date" id="dispatch-offline-filter-date" onchange="renderDispatchOfflineList()"
+                                class="px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700">
+                            <button type="button" onclick="document.getElementById('dispatch-offline-filter-date').value=''; renderDispatchOfflineList();"
+                                class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold">Semua Tgl</button>
+                        </div>
+
+                        <div id="dispatch-offline-list" class="space-y-3 max-h-[540px] overflow-y-auto pr-1">
+                            <!-- Di-render via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL ONLINE: SAMA PERSIS DENGAN MENU DISPATCH SEBELUMNYA -->
+                <div id="dispatch-panel-online" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
                     <!-- Kolom Kiri: Form Entri Resi -->
                     <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6">
                         <div class="flex items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
@@ -1885,10 +2096,6 @@ function doPost(e) {
                             <i data-lucide="download" class="w-4 h-4 text-emerald-600"></i>
                             <span>Export Excel</span>
                         </button>
-                        <button type="button" id="barang-bulk-delete-btn" onclick="openDeleteMasterBarangModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:border-rose-300 text-rose-700 rounded-xl text-xs sm:text-sm font-bold shadow-sm transition">
-                            <i data-lucide="trash-2" class="w-4 h-4 text-rose-600"></i>
-                            <span id="barang-bulk-delete-label">Hapus Data</span>
-                        </button>
                         <button type="button" onclick="openBarangModal()" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-purple-600/25 transition">
                             <i data-lucide="plus" class="w-4 h-4"></i>
                             <span>Tambah Barang</span>
@@ -2030,11 +2237,6 @@ function doPost(e) {
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-gradient-to-r from-slate-50 via-purple-50/50 to-fuchsia-50/40 border-b border-slate-200/80 text-xs font-bold text-slate-600 uppercase tracking-wider">
-                                    <th class="py-3.5 pl-4 pr-2 w-10">
-                                        <input type="checkbox" id="barang-select-all-cb" onchange="toggleSelectAllMasterBarang(this.checked)"
-                                            title="Pilih semua baris tampil"
-                                            class="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer">
-                                    </th>
                                     <th class="py-3.5 px-5">
                                         <button type="button" onclick="toggleMasterBarangSkuSort()" class="inline-flex items-center gap-1.5 text-purple-700 hover:text-purple-900 font-bold uppercase tracking-wider focus:outline-none group cursor-pointer" title="Klik untuk ubah urutan SKU Code (A–Z / Z–A)">
                                             <span>SKU Code</span>
@@ -4124,13 +4326,13 @@ function doPost(e) {
                                 </div>
                                 <div>
                                     <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Operasional &amp; Monitoring Driver</h2>
-                                    <p class="text-xs sm:text-sm text-sky-100 mt-1">Catat lokasi selfie GPS Google Maps, laporan KM &amp; biaya perjalanan, serta kondisi armada kendaraan.</p>
+                                    <p class="text-xs sm:text-sm text-sky-100 mt-1">Proses kirim barang (Pickup &amp; Unloading GPS otomatis), laporan KM &amp; biaya perjalanan, serta kondisi armada kendaraan.</p>
                                 </div>
                             </div>
                             <div class="grid grid-cols-3 gap-2.5 shrink-0">
                                 <div class="bg-white/15 backdrop-blur-sm border border-white/20 rounded-xl px-3.5 py-2.5">
-                                    <div class="text-[11px] font-semibold text-sky-100">Check-in Lokasi</div>
-                                    <div id="driver-hero-checkin-cnt" class="text-lg font-extrabold tabular-nums">0</div>
+                                    <div class="text-[11px] font-semibold text-sky-100">Proses Kirim</div>
+                                    <div id="driver-hero-delivery-cnt" class="text-lg font-extrabold tabular-nums">0</div>
                                 </div>
                                 <div class="bg-white/15 backdrop-blur-sm border border-white/20 rounded-xl px-3.5 py-2.5">
                                     <div class="text-[11px] font-semibold text-sky-100">Total Biaya</div>
@@ -4146,10 +4348,10 @@ function doPost(e) {
 
                     <!-- 3-Tab Switcher -->
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-1.5 flex flex-wrap gap-1.5">
-                        <button type="button" id="driver-tab-btn-checkin" onclick="setDriverTab('checkin')"
+                        <button type="button" id="driver-tab-btn-delivery" onclick="setDriverTab('delivery')"
                             class="flex-1 min-w-[180px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-sm whitespace-nowrap">
-                            <i data-lucide="map-pin" class="w-4 h-4"></i>
-                            <span>1. Lokasi &amp; Selfie GPS</span>
+                            <i data-lucide="package-check" class="w-4 h-4"></i>
+                            <span>1. Proses Kirim Barang</span>
                         </button>
                         <button type="button" id="driver-tab-btn-expense" onclick="setDriverTab('expense')"
                             class="flex-1 min-w-[180px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-50 whitespace-nowrap">
@@ -4163,123 +4365,98 @@ function doPost(e) {
                         </button>
                     </div>
 
-                    <!-- TAB 1: PENCATATAN LOKASI KEBERADAAN DRIVER (SELFIE + WAKTU + GPS GOOGLE MAPS) -->
-                    <div id="driver-panel-checkin" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6">
-                            <div class="flex items-center gap-3 pb-4 mb-4 border-b border-slate-100">
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white flex items-center justify-center shadow-sm shrink-0">
-                                    <i data-lucide="camera" class="w-5 h-5"></i>
+                    <!-- TAB 1: PROSES KIRIM BARANG (TAB PICKUP & TAB UNLOADING) -->
+                    <div id="driver-panel-delivery" class="space-y-4">
+                        <!-- Kontrol Driver, Armada & Ringkasan Status -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                                <div>
+                                    <label for="drv-delivery-driver" class="block text-xs font-bold text-slate-700 mb-1">Nama Driver Aktif</label>
+                                    <select id="drv-delivery-driver" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"></select>
                                 </div>
                                 <div>
-                                    <h3 class="text-base font-extrabold text-slate-900">Check-in Lokasi Driver</h3>
-                                    <p class="text-xs text-slate-500">Foto selfie + waktu otomatis + titik koordinat Google Maps</p>
+                                    <label for="drv-delivery-vehicle" class="block text-xs font-bold text-slate-700 mb-1">Armada / No. Pol</label>
+                                    <select id="drv-delivery-vehicle" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"></select>
+                                </div>
+                                <div class="sm:col-span-2 flex flex-wrap items-center gap-2">
+                                    <div class="relative flex-1 min-w-[180px]">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <i data-lucide="search" class="w-4 h-4"></i>
+                                        </div>
+                                        <input type="text" id="drv-delivery-search" oninput="renderDriverDeliveryLists()" placeholder="Cari nama shop atau catatan..."
+                                            class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition">
+                                    </div>
+                                    <button type="button" onclick="pullAllDataFromGoogleSheet(false)"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-xl text-xs font-bold transition whitespace-nowrap">
+                                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                                        <span>Muat Data</span>
+                                    </button>
                                 </div>
                             </div>
 
-                            <form id="driver-checkin-form" class="space-y-4">
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label for="drv-checkin-driver" class="block text-xs font-bold text-slate-700 mb-1.5">Nama Driver <span class="text-rose-500">*</span></label>
-                                        <select id="drv-checkin-driver" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"></select>
-                                    </div>
-                                    <div>
-                                        <label for="drv-checkin-vehicle" class="block text-xs font-bold text-slate-700 mb-1.5">Armada / No. Pol</label>
-                                        <select id="drv-checkin-vehicle" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"></select>
-                                    </div>
+                            <!-- 2 Sub-Tab: Tab Pickup & Tab Unloading -->
+                            <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
+                                <div class="inline-flex flex-wrap gap-1.5 bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
+                                    <button type="button" id="driver-subtab-btn-pickup" onclick="setDriverDeliverySubTab('pickup')"
+                                        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-extrabold transition bg-white text-sky-700 shadow-sm whitespace-nowrap">
+                                        <i data-lucide="package-plus" class="w-4 h-4"></i>
+                                        <span>Tab Pickup</span>
+                                        <span id="driver-pickup-tab-count" class="px-2 py-0.5 rounded-full text-[11px] font-black bg-amber-100 text-amber-800 tabular-nums">0</span>
+                                    </button>
+                                    <button type="button" id="driver-subtab-btn-unloading" onclick="setDriverDeliverySubTab('unloading')"
+                                        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+                                        <i data-lucide="package-check" class="w-4 h-4"></i>
+                                        <span>Tab Unloading</span>
+                                        <span id="driver-unloading-tab-count" class="px-2 py-0.5 rounded-full text-[11px] font-black bg-sky-100 text-sky-800 tabular-nums">0</span>
+                                    </button>
                                 </div>
 
-                                <div>
-                                    <label for="drv-checkin-location" class="block text-xs font-bold text-slate-700 mb-1.5">Lokasi / Tujuan Tiba <span class="text-rose-500">*</span></label>
-                                    <input type="text" id="drv-checkin-location" required placeholder="Contoh: Gudang Customer / Hub JNE Bekasi..."
-                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition">
-                                    <div id="drv-checkin-quick-locations" class="flex flex-wrap gap-1.5 mt-2"></div>
+                                <div class="flex items-center gap-2 text-xs text-slate-500">
+                                    <span class="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold tabular-nums">
+                                        Close: <span id="driver-closed-count">0</span>
+                                    </span>
                                 </div>
-
-                                <!-- Live Timestamp + GPS Koordinat Google Maps -->
-                                <div class="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200 space-y-3">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="text-xs font-extrabold text-sky-900 inline-flex items-center gap-1.5">
-                                            <i data-lucide="navigation" class="w-4 h-4 text-sky-600"></i>
-                                            <span>Titik Koordinat Google Maps &amp; Waktu</span>
-                                        </span>
-                                        <span id="drv-checkin-live-clock" class="px-2 py-0.5 rounded-md bg-white border border-sky-200 font-mono text-[11px] font-bold text-sky-700 tabular-nums">--:--:--</span>
-                                    </div>
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <button type="button" onclick="captureDriverGpsCoords()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-sm transition whitespace-nowrap shrink-0">
-                                            <i data-lucide="crosshair" class="w-3.5 h-3.5"></i>
-                                            <span>Ambil Koordinat GPS</span>
-                                        </button>
-                                        <span id="drv-gps-status-badge" class="text-[11px] font-semibold text-slate-500">Belum diambil</span>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label for="drv-checkin-lat" class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Latitude</label>
-                                            <input type="text" id="drv-checkin-lat" placeholder="-6.200000" oninput="updateDriverMapsPreviewLink()"
-                                                class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
-                                        </div>
-                                        <div>
-                                            <label for="drv-checkin-lng" class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Longitude</label>
-                                            <input type="text" id="drv-checkin-lng" placeholder="106.816666" oninput="updateDriverMapsPreviewLink()"
-                                                class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
-                                        </div>
-                                    </div>
-                                    <a id="drv-maps-preview-link" href="#" target="_blank" rel="noopener noreferrer"
-                                        class="hidden inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:underline">
-                                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                                        <span>Buka Titik di Google Maps</span>
-                                    </a>
-                                </div>
-
-                                <!-- Foto Selfie Kamera -->
-                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="text-xs font-bold text-slate-700">Foto Selfie di Lokasi <span class="text-rose-500">*</span></span>
-                                        <span class="text-[11px] text-slate-400">Kamera / Upload</span>
-                                    </div>
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <button type="button" onclick="openDriverSelfieCamera()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition whitespace-nowrap shrink-0">
-                                            <i data-lucide="camera" class="w-3.5 h-3.5"></i>
-                                            <span>Buka Kamera Selfie</span>
-                                        </button>
-                                        <label class="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer transition whitespace-nowrap shrink-0">
-                                            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-                                            <span>Pilih Foto</span>
-                                            <input type="file" id="drv-checkin-photo-file" accept="image/*" capture="user" class="hidden" onchange="handleDriverPhotoFileUpload(event, 'checkin')">
-                                        </label>
-                                    </div>
-                                    <div id="drv-checkin-photo-preview-wrap" class="hidden relative w-36 h-36 rounded-xl overflow-hidden border border-slate-200 bg-white shadow-xs">
-                                        <img id="drv-checkin-photo-preview" src="" alt="Preview Selfie Driver" class="w-full h-full object-cover cursor-pointer" onclick="openImageLightbox(this.src, 'Foto Selfie Driver')">
-                                        <button type="button" onclick="clearDriverDraftPhoto('checkin')" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-sm hover:bg-rose-700" title="Hapus Foto">
-                                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label for="drv-checkin-note" class="block text-xs font-bold text-slate-700 mb-1">Catatan <span class="text-slate-400 font-normal">(opsional)</span></label>
-                                    <input type="text" id="drv-checkin-note" placeholder="Contoh: Barang sudah diterima penerima..."
-                                        class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
-                                </div>
-
-                                <button type="submit" class="w-full py-3.5 px-5 bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md shadow-sky-600/20 transition flex items-center justify-center gap-2 text-sm">
-                                    <i data-lucide="map-pin-check" class="w-4 h-4"></i>
-                                    <span>Simpan Lokasi &amp; Selfie</span>
-                                </button>
-                            </form>
+                            </div>
                         </div>
 
-                        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                        <!-- SUBTAB 1: PICKUP (Daftar Shop dari Dispatch Offline -> Proses Kirim) -->
+                        <div id="driver-subpanel-pickup" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-amber-50/70 to-orange-50/40">
                                 <div>
-                                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Riwayat Lokasi Keberadaan Driver</h3>
-                                    <p class="text-xs text-slate-500">Rekam jejak foto selfie, waktu tiba, dan titik Google Maps</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <input type="date" id="drv-checkin-filter-date" onchange="renderDriverCheckinList()" class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700">
-                                    <button type="button" onclick="document.getElementById('drv-checkin-filter-date').value=''; renderDriverCheckinList();" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold">Semua</button>
+                                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Daftar Shop Siap Pickup (Dari Dispatch Offline)</h3>
+                                    <p class="text-xs text-slate-500">Klik <strong>Proses Kirim</strong>, foto barang loading &amp; dokumen, titik GPS serta waktu pickup otomatis tersimpan.</p>
                                 </div>
                             </div>
-                            <div id="drv-checkin-list-container" class="p-4 sm:p-5 space-y-3 max-h-[680px] overflow-y-auto"></div>
+                            <div id="driver-pickup-list-container" class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                <!-- Di-render via JS -->
+                            </div>
+                        </div>
+
+                        <!-- SUBTAB 2: UNLOADING (Barang sedang dikirim -> Proses Unloading -> Close) -->
+                        <div id="driver-subpanel-unloading" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-sky-50/80 to-indigo-50/40">
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Daftar Pengiriman Tiba / Proses Unloading</h3>
+                                    <p class="text-xs text-slate-500">Pilih shop saat tiba di lokasi, unggah foto unloading &amp; dokumen TTD penerima — status otomatis <strong>Close</strong>.</p>
+                                </div>
+                            </div>
+                            <div id="driver-unloading-list-container" class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                <!-- Di-render via JS -->
+                            </div>
+                        </div>
+
+                        <!-- RIWAYAT SELESAI (CLOSE) -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Riwayat Pengiriman Selesai (Close)</h3>
+                                    <p class="text-xs text-slate-500">Rekam lengkap pickup, unloading, titik GPS, dan dokumentasi foto</p>
+                                </div>
+                                <span id="driver-closed-badge" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-xs font-extrabold tabular-nums">0 Close</span>
+                            </div>
+                            <div id="driver-closed-list-container" class="p-4 sm:p-5 space-y-3 max-h-[460px] overflow-y-auto">
+                                <!-- Di-render via JS -->
+                            </div>
                         </div>
                     </div>
 
@@ -5311,57 +5488,249 @@ function doPost(e) {
     </div>
 
     <!-- ========================================== -->
-    <!-- MODAL HAPUS DATA MASTER BARANG             -->
+    <!-- MODAL EDIT OPSI / SHOP DI MENU SETTING     -->
     <!-- ========================================== -->
-    <div id="master-barang-delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div id="setting-option-edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden fade-in">
+            <div class="px-5 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white flex items-center justify-between">
+                <div>
+                    <h3 id="setting-opt-edit-title" class="text-base font-bold">Edit Pilihan</h3>
+                    <p class="text-[11px] text-indigo-100">Perbarui nama isian pada daftar</p>
+                </div>
+                <button type="button" onclick="closeSettingOptionEditModal()" class="p-1.5 text-white/80 hover:text-white rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="setting-option-edit-form" class="p-5 space-y-4">
+                <input type="hidden" id="setting-opt-edit-group">
+                <input type="hidden" id="setting-opt-edit-index">
+                <div>
+                    <label for="setting-opt-edit-value" class="block text-xs font-bold text-slate-700 mb-1.5">Nama / Nilai Baru <span class="text-rose-500">*</span></label>
+                    <input type="text" id="setting-opt-edit-value" required
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                </div>
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeSettingOptionEditModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL KONFIRMASI HAPUS DATA LOKAL SETTING  -->
+    <!-- ========================================== -->
+    <div id="setting-local-reset-confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden fade-in">
-            <div class="px-6 py-4 bg-gradient-to-r from-rose-600 to-pink-600 text-white flex items-center justify-between">
+            <div class="px-6 py-4 bg-gradient-to-r from-rose-600 to-orange-600 text-white flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center">
-                        <i data-lucide="trash-2" class="w-5 h-5 text-white"></i>
+                        <i data-lucide="eraser" class="w-5 h-5 text-white"></i>
                     </div>
                     <div>
-                        <h3 class="text-base font-bold">Hapus Data Master Barang</h3>
-                        <p class="text-[11px] text-rose-100">Pilih cakupan data barang yang akan dihapus</p>
+                        <h3 class="text-base font-bold">Hapus Data Transaksi Lokal</h3>
+                        <p class="text-[11px] text-rose-100">Tidak menghapus User maupun database Sheet</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeDeleteMasterBarangModal()" class="p-1.5 text-white/80 hover:text-white hover:bg-white/15 rounded-lg transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button type="button" onclick="closeLocalResetConfirmModal()" class="p-1.5 text-white/80 hover:text-white rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <div class="p-6 space-y-4">
-                <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 space-y-1">
-                    <div class="font-bold">Perhatian</div>
-                    <div>Data SKU yang dihapus akan hilang dari Master Barang lokal dan sinkronisasi Google Sheet.</div>
+                <input type="hidden" id="setting-local-reset-target">
+                <p id="setting-local-reset-confirm-msg" class="text-sm font-semibold text-slate-800">-</p>
+                <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900">
+                    <strong>Aman untuk Database:</strong> Data di Google Sheet dan daftar akun <strong>User</strong> tidak disentuh.
                 </div>
-
-                <div class="space-y-2.5">
-                    <label id="barang-del-opt-selected-wrap" class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:border-rose-300 cursor-pointer transition">
-                        <input type="radio" name="barang-delete-scope" value="selected" class="mt-0.5 text-rose-600 focus:ring-rose-500">
-                        <div class="text-xs">
-                            <div class="font-bold text-slate-900">Hapus Data Terpilih (<span id="barang-del-selected-count">0</span> SKU)</div>
-                            <div class="text-slate-500">Hanya menghapus baris/kartu yang dicentang.</div>
-                        </div>
-                    </label>
-                    <label id="barang-del-opt-filtered-wrap" class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:border-rose-300 cursor-pointer transition">
-                        <input type="radio" name="barang-delete-scope" value="filtered" class="mt-0.5 text-rose-600 focus:ring-rose-500">
-                        <div class="text-xs">
-                            <div class="font-bold text-slate-900">Hapus Data Sesuai Filter (<span id="barang-del-filtered-count">0</span> SKU)</div>
-                            <div class="text-slate-500">Menghapus seluruh SKU yang tampil pada pencarian/filter saat ini.</div>
-                        </div>
-                    </label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:border-rose-300 cursor-pointer transition">
-                        <input type="radio" name="barang-delete-scope" value="all" class="mt-0.5 text-rose-600 focus:ring-rose-500">
-                        <div class="text-xs">
-                            <div class="font-bold text-rose-700">Hapus Semua Data Master Barang (<span id="barang-del-all-count">0</span> SKU)</div>
-                            <div class="text-slate-500">Mengosongkan seluruh database Master Barang.</div>
-                        </div>
-                    </label>
-                </div>
-
-                <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
-                    <button type="button" onclick="closeDeleteMasterBarangModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Batal</button>
-                    <button type="button" onclick="confirmDeleteMasterBarangBulk()" class="px-5 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white rounded-xl text-xs font-bold shadow-sm transition">Hapus Permanen</button>
+                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeLocalResetConfirmModal()" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">Batal</button>
+                    <button type="button" onclick="confirmLocalDataReset()" class="py-2.5 px-4 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white rounded-xl text-xs font-bold shadow-sm">Ya, Hapus Data Lokal</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL KONFIRMASI PICKUP / PROSES KIRIM     -->
+    <!-- ========================================== -->
+    <div id="driver-pickup-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/65 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden fade-in">
+            <div class="px-6 py-4 bg-gradient-to-r from-sky-600 to-blue-600 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center">
+                        <i data-lucide="truck" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold">Konfirmasi Proses Kirim (Pickup)</h3>
+                        <p class="text-[11px] text-sky-100">Foto loading barang &amp; dokumen + GPS otomatis</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeDriverPickupModal()" class="p-1.5 text-white/80 hover:text-white rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="driver-pickup-form" class="p-5 sm:p-6 space-y-4 overflow-y-auto">
+                <input type="hidden" id="drv-pickup-id">
+                <div class="p-3.5 rounded-xl bg-sky-50 border border-sky-200 space-y-1">
+                    <div class="flex items-center justify-between gap-2">
+                        <span id="drv-pickup-shop-name" class="text-base font-extrabold text-slate-900">-</span>
+                        <span id="drv-pickup-koli-badge" class="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-extrabold tabular-nums">0 Koli</span>
+                    </div>
+                    <div id="drv-pickup-dispatch-meta" class="text-xs text-slate-600">-</div>
+                </div>
+
+                <!-- Auto GPS & Waktu Pickup -->
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-extrabold text-slate-800 inline-flex items-center gap-1.5">
+                            <i data-lucide="navigation" class="w-4 h-4 text-sky-600"></i>
+                            <span>GPS &amp; Waktu Pickup Otomatis</span>
+                        </span>
+                        <span id="drv-pickup-time-badge" class="px-2 py-0.5 rounded bg-white border border-slate-200 font-mono text-[11px] font-bold text-sky-700 tabular-nums">-</span>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span id="drv-pickup-gps-text" class="text-[11px] font-mono font-bold text-slate-600">Mengambil GPS...</span>
+                        <button type="button" onclick="refreshDriverDeliveryGps('pickup')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-bold">
+                            <i data-lucide="crosshair" class="w-3 h-3"></i> Refresh GPS
+                        </button>
+                    </div>
+                    <a id="drv-pickup-maps-link" href="#" target="_blank" rel="noopener noreferrer" class="hidden inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:underline">
+                        <i data-lucide="external-link" class="w-3 h-3"></i><span>Lihat Titik di Google Maps</span>
+                    </a>
+                </div>
+
+                <!-- Foto 1: Barang yang diloading -->
+                <div class="p-3.5 rounded-xl bg-orange-50/50 border border-orange-200 space-y-2">
+                    <div class="text-xs font-bold text-orange-900">1. Foto Barang yang Di-loading <span class="text-rose-500">*</span></div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="openDeliveryModalCamera('pickup_loading')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold">
+                            <i data-lucide="camera" class="w-3.5 h-3.5"></i><span>Ambil Foto</span>
+                        </button>
+                        <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i><span>Pilih File</span>
+                            <input type="file" id="drv-pickup-loading-file" accept="image/*" capture="environment" class="hidden" onchange="handleDeliveryPhotoFile(event, 'pickup_loading')">
+                        </label>
+                    </div>
+                    <div id="drv-pickup-loading-preview-wrap" class="hidden relative w-32 h-24 rounded-xl overflow-hidden border border-orange-200 bg-white">
+                        <img id="drv-pickup-loading-preview" src="" alt="Loading Barang" class="w-full h-full object-cover cursor-pointer" onclick="openImageLightbox(this.src, 'Foto Barang Loading')">
+                        <button type="button" onclick="clearDeliveryDraftPhoto('pickup_loading')" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    </div>
+                </div>
+
+                <!-- Foto 2: Dokumen -->
+                <div class="p-3.5 rounded-xl bg-indigo-50/50 border border-indigo-200 space-y-2">
+                    <div class="text-xs font-bold text-indigo-900">2. Foto Dokumen Pengiriman <span class="text-rose-500">*</span></div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="openDeliveryModalCamera('pickup_doc')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold">
+                            <i data-lucide="camera" class="w-3.5 h-3.5"></i><span>Ambil Foto</span>
+                        </button>
+                        <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i><span>Pilih File</span>
+                            <input type="file" id="drv-pickup-doc-file" accept="image/*" capture="environment" class="hidden" onchange="handleDeliveryPhotoFile(event, 'pickup_doc')">
+                        </label>
+                    </div>
+                    <div id="drv-pickup-doc-preview-wrap" class="hidden relative w-32 h-24 rounded-xl overflow-hidden border border-indigo-200 bg-white">
+                        <img id="drv-pickup-doc-preview" src="" alt="Dokumen Pickup" class="w-full h-full object-cover cursor-pointer" onclick="openImageLightbox(this.src, 'Foto Dokumen Pickup')">
+                        <button type="button" onclick="clearDeliveryDraftPhoto('pickup_doc')" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeDriverPickupModal()" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">Batal</button>
+                    <button type="submit" class="py-2.5 px-4 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white rounded-xl text-xs font-bold shadow-sm">Konfirmasi Pickup &amp; Kirim</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL PROSES UNLOADING (TIBA DI LOKASI)    -->
+    <!-- ========================================== -->
+    <div id="driver-unloading-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/65 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden fade-in">
+            <div class="px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center">
+                        <i data-lucide="package-check" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold">Proses Unloading &amp; Close</h3>
+                        <p class="text-[11px] text-emerald-100">Foto barang unloading &amp; dokumen TTD penerima</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeDriverUnloadingModal()" class="p-1.5 text-white/80 hover:text-white rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="driver-unloading-form" class="p-5 sm:p-6 space-y-4 overflow-y-auto">
+                <input type="hidden" id="drv-unloading-id">
+                <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1">
+                    <div class="flex items-center justify-between gap-2">
+                        <span id="drv-unloading-shop-name" class="text-base font-extrabold text-slate-900">-</span>
+                        <span id="drv-unloading-koli-badge" class="px-2.5 py-0.5 rounded-lg bg-sky-100 text-sky-800 text-xs font-extrabold tabular-nums">0 Koli</span>
+                    </div>
+                    <div id="drv-unloading-pickup-meta" class="text-xs text-slate-600">-</div>
+                </div>
+
+                <!-- Auto GPS & Waktu Unloading -->
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-extrabold text-slate-800 inline-flex items-center gap-1.5">
+                            <i data-lucide="navigation" class="w-4 h-4 text-emerald-600"></i>
+                            <span>GPS &amp; Waktu Unloading Otomatis</span>
+                        </span>
+                        <span id="drv-unloading-time-badge" class="px-2 py-0.5 rounded bg-white border border-slate-200 font-mono text-[11px] font-bold text-emerald-700 tabular-nums">-</span>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span id="drv-unloading-gps-text" class="text-[11px] font-mono font-bold text-slate-600">Mengambil GPS...</span>
+                        <button type="button" onclick="refreshDriverDeliveryGps('unloading')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold">
+                            <i data-lucide="crosshair" class="w-3 h-3"></i> Refresh GPS
+                        </button>
+                    </div>
+                    <a id="drv-unloading-maps-link" href="#" target="_blank" rel="noopener noreferrer" class="hidden inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:underline">
+                        <i data-lucide="external-link" class="w-3 h-3"></i><span>Lihat Titik di Google Maps</span>
+                    </a>
+                </div>
+
+                <!-- Foto 1: Barang yang diunloading -->
+                <div class="p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-200 space-y-2">
+                    <div class="text-xs font-bold text-emerald-900">1. Foto Barang yang Di-unloading <span class="text-rose-500">*</span></div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="openDeliveryModalCamera('unloading_goods')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold">
+                            <i data-lucide="camera" class="w-3.5 h-3.5"></i><span>Ambil Foto</span>
+                        </button>
+                        <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i><span>Pilih File</span>
+                            <input type="file" id="drv-unloading-goods-file" accept="image/*" capture="environment" class="hidden" onchange="handleDeliveryPhotoFile(event, 'unloading_goods')">
+                        </label>
+                    </div>
+                    <div id="drv-unloading-goods-preview-wrap" class="hidden relative w-32 h-24 rounded-xl overflow-hidden border border-emerald-200 bg-white">
+                        <img id="drv-unloading-goods-preview" src="" alt="Unloading Barang" class="w-full h-full object-cover cursor-pointer" onclick="openImageLightbox(this.src, 'Foto Barang Unloading')">
+                        <button type="button" onclick="clearDeliveryDraftPhoto('unloading_goods')" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    </div>
+                </div>
+
+                <!-- Foto 2: Dokumen Sudah Ditandatangani Penerima -->
+                <div class="p-3.5 rounded-xl bg-teal-50/50 border border-teal-200 space-y-2">
+                    <div class="text-xs font-bold text-teal-900">2. Foto Dokumen Ditandatangani Penerima <span class="text-rose-500">*</span></div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="openDeliveryModalCamera('unloading_signed_doc')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold">
+                            <i data-lucide="camera" class="w-3.5 h-3.5"></i><span>Ambil Foto</span>
+                        </button>
+                        <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i><span>Pilih File</span>
+                            <input type="file" id="drv-unloading-signed-file" accept="image/*" capture="environment" class="hidden" onchange="handleDeliveryPhotoFile(event, 'unloading_signed_doc')">
+                        </label>
+                    </div>
+                    <div id="drv-unloading-signed-preview-wrap" class="hidden relative w-32 h-24 rounded-xl overflow-hidden border border-teal-200 bg-white">
+                        <img id="drv-unloading-signed-preview" src="" alt="Dokumen TTD Penerima" class="w-full h-full object-cover cursor-pointer" onclick="openImageLightbox(this.src, 'Dokumen TTD Penerima')">
+                        <button type="button" onclick="clearDeliveryDraftPhoto('unloading_signed_doc')" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="drv-unloading-note" class="block text-xs font-bold text-slate-700 mb-1">Nama Penerima / Catatan <span class="text-slate-400 font-normal">(opsional)</span></label>
+                    <input type="text" id="drv-unloading-note" placeholder="Contoh: Diterima oleh Budi (PIC Toko)..."
+                        class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeDriverUnloadingModal()" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">Batal</button>
+                    <button type="submit" class="py-2.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold shadow-sm">Selesai Unloading &amp; Close</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -6156,6 +6525,41 @@ function doPost(e) {
 
         let dispatchEntries = [];
 
+        const DEFAULT_OFFLINE_SHOPS = [
+            'Astro',
+            'DFI',
+            'Miniso',
+            'Shop CP',
+            'Shop LMP',
+            'Shop PI',
+            'Shop PIK',
+            'Shop PIM',
+            'Shop PP'
+        ];
+
+        function normalizeOfflineShops(list) {
+            const seen = new Map();
+            (Array.isArray(list) ? list : []).forEach(raw => {
+                const name = String(raw || '').trim();
+                if (!name) return;
+                const key = name.toLowerCase();
+                if (!seen.has(key)) seen.set(key, name);
+            });
+            return Array.from(seen.values()).sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
+        }
+
+        let offlineShops = normalizeOfflineShops(DEFAULT_OFFLINE_SHOPS);
+        let dispatchOfflineEntries = [];
+
+        function sheetSafePhotoValue(val) {
+            const s = String(val || '').trim();
+            if (!s || s === '-') return '-';
+            if (s.startsWith('data:image')) {
+                return s.length <= 45000 ? s : 'Terlampir (Lokal)';
+            }
+            return s;
+        }
+
         // Isi dengan URL Web App Google Apps Script Anda (berakhiran /exec) agar SEMUA perangkat
         // langsung terhubung ke database Google Sheet tanpa perlu mengisi manual di menu Setting.
         const DEFAULT_APPS_SCRIPT_URL = '';
@@ -6375,6 +6779,32 @@ function doPost(e) {
                 list: () => dispatchEntries,
                 newestFirst: true
             },
+            DispatchOffline: {
+                headers: [
+                    'ID', 'Tanggal', 'Jam Input', 'Nama Shop', 'Jumlah Koli', 'Status', 'Input Oleh', 'Catatan',
+                    'Tgl Pickup', 'Jam Pickup', 'Driver Pickup', 'Armada', 'Lat Pickup', 'Lng Pickup', 'Maps Pickup',
+                    'Tgl Unloading', 'Jam Unloading', 'Lat Unloading', 'Lng Unloading', 'Maps Unloading', 'Catatan Unloading',
+                    'Foto Barang', 'Foto Loading', 'Foto Dok Pickup', 'Foto Unloading', 'Foto Dok TTD'
+                ],
+                row: o => [
+                    o.id, o.date, o.time || '-', o.shopName, Number(o.koli || 0), o.status || 'pending_pickup',
+                    o.createdBy || 'User', o.note || '-',
+                    o.pickupDate || '-', o.pickupTime || '-', o.driverName || '-', o.vehicle || '-',
+                    o.pickupLat || '-', o.pickupLng || '-',
+                    (o.pickupLat && o.pickupLng && o.pickupLat !== '-' && o.pickupLng !== '-') ? `https://maps.google.com/?q=${o.pickupLat},${o.pickupLng}` : '-',
+                    o.unloadingDate || '-', o.unloadingTime || '-',
+                    o.unloadingLat || '-', o.unloadingLng || '-',
+                    (o.unloadingLat && o.unloadingLng && o.unloadingLat !== '-' && o.unloadingLng !== '-') ? `https://maps.google.com/?q=${o.unloadingLat},${o.unloadingLng}` : '-',
+                    o.unloadingNote || '-',
+                    sheetSafePhotoValue(o.dispatchPhoto),
+                    sheetSafePhotoValue(o.pickupLoadingPhoto),
+                    sheetSafePhotoValue(o.pickupDocPhoto),
+                    sheetSafePhotoValue(o.unloadingGoodsPhoto),
+                    sheetSafePhotoValue(o.unloadingSignedDocPhoto)
+                ],
+                list: () => dispatchOfflineEntries,
+                newestFirst: true
+            },
             Absen: {
                 headers: ['ID', 'Tanggal', 'Jam', 'Nama Staff', 'Posisi', 'Reason', 'Catatan', 'Input Oleh'],
                 row: a => [a.id, a.date, a.timestamp, a.staffName, a.staffRole, a.reason, a.note || '-', a.createdBy],
@@ -6474,6 +6904,7 @@ function doPost(e) {
                 ['projectCategories', JSON.stringify(projectCategories)],
                 ['projectPriorities', JSON.stringify(projectPriorities)],
                 ['dispatchQuickQtys', JSON.stringify(dispatchQuickQtys)],
+                ['offlineShops', JSON.stringify(offlineShops)],
                 ['adminResiQuickQtys', JSON.stringify(adminResiQuickQtys)],
                 ['cycleCountQuickQtys', JSON.stringify(cycleCountQuickQtys)],
                 ['cycleCountDamageReasons', JSON.stringify(cycleCountDamageReasons)],
@@ -6490,6 +6921,16 @@ function doPost(e) {
             const safeProjects = stripPhotos
                 ? projectsData.map(p => ({ ...p, startPhoto: '', donePhoto: '' }))
                 : projectsData;
+            const safeDispatchOffline = stripPhotos
+                ? dispatchOfflineEntries.map(o => ({
+                    ...o,
+                    dispatchPhoto: '',
+                    pickupLoadingPhoto: '',
+                    pickupDocPhoto: '',
+                    unloadingGoodsPhoto: '',
+                    unloadingSignedDocPhoto: ''
+                }))
+                : dispatchOfflineEntries;
             const safeCheckins = stripPhotos
                 ? driverCheckins.map(c => ({ ...c, photo: '' }))
                 : driverCheckins;
@@ -6505,6 +6946,8 @@ function doPost(e) {
                 usersData,
                 expedisiData,
                 dispatchEntries,
+                offlineShops,
+                dispatchOfflineEntries: safeDispatchOffline,
                 absenReasons,
                 absenQuickNotes,
                 absenEntries,
@@ -6569,6 +7012,8 @@ function doPost(e) {
                     let t;
                     if (Array.isArray(saved.usersData) && saved.usersData.length > 0) usersData = saved.usersData;
                     if (Array.isArray(saved.expedisiData) && saved.expedisiData.length > 0) expedisiData = saved.expedisiData;
+                    if (Array.isArray(saved.offlineShops)) offlineShops = normalizeOfflineShops(saved.offlineShops);
+                    if (Array.isArray(saved.dispatchOfflineEntries)) dispatchOfflineEntries = saved.dispatchOfflineEntries;
                     if (Array.isArray(saved.absenReasons)) absenReasons = saved.absenReasons;
                     if (Array.isArray(saved.absenQuickNotes)) absenQuickNotes = saved.absenQuickNotes;
                     if (Array.isArray(saved.overtimeReasons)) overtimeReasons = saved.overtimeReasons;
@@ -7004,7 +7449,14 @@ function doPost(e) {
 
         function refreshCurrentView() {
             const map = {
-                dispatch: () => { refreshDispatchExpedisiOptions(); renderDispatchQuickQtyButtons(); renderDispatchStatsAndList(); },
+                dispatch: () => {
+                    refreshDispatchOfflineShopOptions();
+                    renderDispatchOfflineList();
+                    refreshDispatchExpedisiOptions();
+                    renderDispatchQuickQtyButtons();
+                    renderDispatchStatsAndList();
+                    setDispatchTab(currentDispatchTab);
+                },
                 'dispatch-report': renderDispatchReport,
                 expedisi: renderExpedisiList,
                 absen: () => { populateAbsenReasonSelect(); renderAbsenQuickNotes(); renderAbsenList(); },
@@ -7127,6 +7579,7 @@ function doPost(e) {
                     if (Array.isArray(map.projectCategories)) projectCategories = map.projectCategories;
                     if (Array.isArray(map.projectPriorities)) projectPriorities = map.projectPriorities;
                     if (Array.isArray(map.dispatchQuickQtys)) dispatchQuickQtys = map.dispatchQuickQtys;
+                    if (Array.isArray(map.offlineShops)) offlineShops = normalizeOfflineShops(map.offlineShops);
                     if (Array.isArray(map.adminResiQuickQtys)) adminResiQuickQtys = map.adminResiQuickQtys;
                     if (Array.isArray(map.cycleCountQuickQtys)) cycleCountQuickQtys = map.cycleCountQuickQtys;
                     if (Array.isArray(map.cycleCountDamageReasons)) cycleCountDamageReasons = map.cycleCountDamageReasons;
@@ -7177,6 +7630,41 @@ function doPost(e) {
                     id: String(r[0]).trim(), date: D(r[1]), timestamp: str(T(r[2])), packer: str(r[3]),
                     expedisi: str(r[4]), qty: Number(r[5] || 0), createdBy: str(r[6], 'User')
                 }), v => { dispatchEntries = v; });
+
+                apply('DispatchOffline', r => {
+                    const id = String(r[0]).trim();
+                    const prev = dispatchOfflineEntries.find(x => x.id === id);
+                    const pickPhoto = (colIdx, fallback) => {
+                        const rawP = dash(r[colIdx]);
+                        return rawP.startsWith('data:image') ? rawP : (fallback || '');
+                    };
+                    return {
+                        id,
+                        date: D(r[1]),
+                        time: str(T(r[2])),
+                        shopName: str(r[3]),
+                        koli: Number(r[4] || 0),
+                        status: str(r[5], 'pending_pickup'),
+                        createdBy: str(r[6], 'User'),
+                        note: dash(r[7]),
+                        pickupDate: D(r[8]),
+                        pickupTime: dash(T(r[9])),
+                        driverName: dash(r[10]),
+                        vehicle: dash(r[11]),
+                        pickupLat: dash(r[12]),
+                        pickupLng: dash(r[13]),
+                        unloadingDate: D(r[15]),
+                        unloadingTime: dash(T(r[16])),
+                        unloadingLat: dash(r[17]),
+                        unloadingLng: dash(r[18]),
+                        unloadingNote: dash(r[20]),
+                        dispatchPhoto: pickPhoto(21, prev?.dispatchPhoto),
+                        pickupLoadingPhoto: pickPhoto(22, prev?.pickupLoadingPhoto),
+                        pickupDocPhoto: pickPhoto(23, prev?.pickupDocPhoto),
+                        unloadingGoodsPhoto: pickPhoto(24, prev?.unloadingGoodsPhoto),
+                        unloadingSignedDocPhoto: pickPhoto(25, prev?.unloadingSignedDocPhoto)
+                    };
+                }, v => { dispatchOfflineEntries = v; });
 
                 apply('Absen', r => ({
                     id: String(r[0]).trim(), date: D(r[1]), timestamp: str(T(r[2])), staffName: str(r[3]),
@@ -8962,7 +9450,10 @@ function doPost(e) {
                 { id: 'camera-photo-modal', close: () => typeof closePhotoCameraModal === 'function' && closePhotoCameraModal() },
                 { id: 'barcode-camera-modal', close: () => typeof closeBarcodeCameraModal === 'function' && closeBarcodeCameraModal() },
                 { id: 'project-done-photo-modal', close: () => typeof closeProjectDonePhotoModal === 'function' && closeProjectDonePhotoModal() },
-                { id: 'master-barang-delete-modal', close: () => typeof closeDeleteMasterBarangModal === 'function' && closeDeleteMasterBarangModal() },
+                { id: 'driver-pickup-modal', close: () => typeof closeDriverPickupModal === 'function' && closeDriverPickupModal() },
+                { id: 'driver-unloading-modal', close: () => typeof closeDriverUnloadingModal === 'function' && closeDriverUnloadingModal() },
+                { id: 'setting-local-reset-confirm-modal', close: () => typeof closeLocalResetConfirmModal === 'function' && closeLocalResetConfirmModal() },
+                { id: 'setting-option-edit-modal', close: () => typeof closeSettingOptionEditModal === 'function' && closeSettingOptionEditModal() },
                 { id: 'barang-print-barcode-modal', close: () => typeof closeBarangPrintBarcodeModal === 'function' && closeBarangPrintBarcodeModal() },
                 { id: 'barang-modal', close: () => typeof closeBarangModal === 'function' && closeBarangModal() },
                 { id: 'project-detail-modal', close: () => typeof closeProjectDetailModal === 'function' && closeProjectDetailModal() },
@@ -9745,6 +10236,288 @@ function doPost(e) {
             }).join('');
         }
 
+        let currentDispatchTab = 'offline';
+        let dispatchOfflineStatusFilter = 'ALL';
+        let dispatchOfflineDraftPhoto = '';
+
+        function setDispatchTab(tab) {
+            currentDispatchTab = tab === 'online' ? 'online' : 'offline';
+            const offPanel = document.getElementById('dispatch-panel-offline');
+            const onPanel = document.getElementById('dispatch-panel-online');
+            const offBtn = document.getElementById('dispatch-tab-btn-offline');
+            const onBtn = document.getElementById('dispatch-tab-btn-online');
+            const isOff = currentDispatchTab === 'offline';
+            if (offPanel) offPanel.classList.toggle('hidden', !isOff);
+            if (onPanel) onPanel.classList.toggle('hidden', isOff);
+            if (offBtn) {
+                offBtn.className = isOff
+                    ? 'flex-1 min-w-[180px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white shadow-sm whitespace-nowrap'
+                    : 'flex-1 min-w-[180px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-50 whitespace-nowrap';
+            }
+            if (onBtn) {
+                onBtn.className = !isOff
+                    ? 'flex-1 min-w-[180px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 text-white shadow-sm whitespace-nowrap'
+                    : 'flex-1 min-w-[180px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-50 whitespace-nowrap';
+            }
+            lucide.createIcons();
+        }
+
+        function openDispatchShopSetting() {
+            currentSettingTab = 'modules';
+            currentSettingModuleFilter = 'dispatch';
+            handleMenuClick('setting');
+        }
+
+        function setDispatchOfflineTodayDate() {
+            const el = document.getElementById('dispatch-offline-date');
+            if (el) el.value = getTodayISO();
+        }
+
+        function addDispatchOfflineQuickKoli(amount) {
+            const el = document.getElementById('dispatch-offline-koli');
+            if (!el) return;
+            const cur = parseInt(el.value, 10) || 0;
+            el.value = Math.max(1, cur + Number(amount || 0));
+            el.focus();
+        }
+
+        function refreshDispatchOfflineShopOptions() {
+            const sortedShops = normalizeOfflineShops(offlineShops);
+            offlineShops = sortedShops;
+            const sel = document.getElementById('dispatch-offline-shop');
+            if (sel) {
+                const prev = sel.value;
+                sel.innerHTML = `<option value="">— Pilih Shop —</option>` +
+                    sortedShops.map(s => `<option value="${escapeHtmlText(s)}">${escapeHtmlText(s)}</option>`).join('');
+                if (sortedShops.includes(prev)) sel.value = prev;
+            }
+            renderDispatchOfflineShopChips();
+        }
+
+        function selectDispatchOfflineShopChip(shopName) {
+            const sel = document.getElementById('dispatch-offline-shop');
+            if (!sel) return;
+            sel.value = sel.value === shopName ? '' : shopName;
+            renderDispatchOfflineShopChips();
+        }
+
+        function renderDispatchOfflineShopChips() {
+            const wrap = document.getElementById('dispatch-offline-shop-chips');
+            const sel = document.getElementById('dispatch-offline-shop');
+            if (!wrap) return;
+            const sortedShops = normalizeOfflineShops(offlineShops);
+            const activeShop = sel?.value || '';
+            if (sortedShops.length === 0) {
+                wrap.innerHTML = `<span class="text-[11px] text-slate-400">Daftar shop kosong. Tambah di Menu Setting.</span>`;
+                return;
+            }
+            wrap.innerHTML = sortedShops.map(shop => {
+                const active = activeShop === shop;
+                const safe = escapeHtmlText(shop).replace(/'/g, "\\'");
+                return `<button type="button" onclick="selectDispatchOfflineShopChip('${safe}')"
+                    class="px-2.5 py-1 rounded-lg text-xs font-bold border transition whitespace-nowrap ${active ? 'bg-orange-600 text-white border-orange-600 shadow-xs' : 'bg-orange-50/70 text-orange-800 border-orange-200 hover:bg-orange-100'}">${escapeHtmlText(shop)}</button>`;
+            }).join('');
+        }
+
+        function setDispatchOfflinePhoto(dataUrl) {
+            dispatchOfflineDraftPhoto = dataUrl || '';
+            const wrap = document.getElementById('dispatch-offline-photo-preview-wrap');
+            const img = document.getElementById('dispatch-offline-photo-preview');
+            if (img) img.src = dispatchOfflineDraftPhoto;
+            if (wrap) wrap.classList.toggle('hidden', !dispatchOfflineDraftPhoto);
+        }
+
+        function clearDispatchOfflinePhoto() {
+            setDispatchOfflinePhoto('');
+            const fileEl = document.getElementById('dispatch-offline-photo-file');
+            if (fileEl) fileEl.value = '';
+        }
+
+        function openDispatchOfflineCamera() {
+            openPhotoCameraModal({
+                title: 'Foto Barang Pengiriman Offline',
+                facingMode: 'environment',
+                allowSkip: false,
+                onCapture: async dataUrl => {
+                    try {
+                        const smaller = await compressImageDataUrl(dataUrl, 440, 0.52);
+                        setDispatchOfflinePhoto(smaller);
+                    } catch {
+                        setDispatchOfflinePhoto(dataUrl);
+                    }
+                }
+            });
+        }
+
+        async function handleDispatchOfflinePhotoUpload(event) {
+            const file = event?.target?.files?.[0];
+            if (!file) return;
+            try {
+                const dataUrl = await compressImageFileToDataUrl(file, 440, 0.52);
+                setDispatchOfflinePhoto(dataUrl);
+            } catch {
+                showToast('Gagal memproses file foto barang.', 'error');
+            }
+        }
+
+        function setDispatchOfflineStatusFilter(status) {
+            dispatchOfflineStatusFilter = status || 'ALL';
+            renderDispatchOfflineList();
+        }
+
+        function renderDispatchOfflineList() {
+            const allList = dispatchOfflineEntries || [];
+            const cntAll = allList.length;
+            const cntPending = allList.filter(o => (o.status || 'pending_pickup') === 'pending_pickup').length;
+            const cntPickup = allList.filter(o => o.status === 'pickup_done').length;
+            const cntClosed = allList.filter(o => o.status === 'closed').length;
+
+            const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            setTxt('dsp-off-cnt-all', cntAll);
+            setTxt('dsp-off-cnt-pending', cntPending);
+            setTxt('dsp-off-cnt-pickup', cntPickup);
+            setTxt('dsp-off-cnt-closed', cntClosed);
+
+            const btnMap = {
+                ALL: 'border-slate-900 bg-slate-900 text-white',
+                pending_pickup: 'border-amber-500 bg-amber-50 text-amber-900 ring-2 ring-amber-400/30',
+                pickup_done: 'border-sky-500 bg-sky-50 text-sky-900 ring-2 ring-sky-400/30',
+                closed: 'border-emerald-500 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-400/30'
+            };
+            const idleMap = {
+                ALL: 'border-slate-200 bg-white text-slate-800 hover:border-slate-400',
+                pending_pickup: 'border-amber-200 bg-amber-50/70 text-amber-900 hover:border-amber-400',
+                pickup_done: 'border-sky-200 bg-sky-50/70 text-sky-900 hover:border-sky-400',
+                closed: 'border-emerald-200 bg-emerald-50/70 text-emerald-900 hover:border-emerald-400'
+            };
+            ['ALL', 'pending_pickup', 'pickup_done', 'closed'].forEach(k => {
+                const b = document.getElementById(`dsp-off-stat-btn-${k}`);
+                if (!b) return;
+                b.className = `text-left p-2.5 rounded-xl border-2 transition ${dispatchOfflineStatusFilter === k ? btnMap[k] : idleMap[k]}`;
+            });
+
+            const q = (document.getElementById('dispatch-offline-search')?.value || '').trim().toLowerCase();
+            const filterDate = document.getElementById('dispatch-offline-filter-date')?.value || '';
+            const filtered = allList.filter(o => {
+                const st = o.status || 'pending_pickup';
+                if (dispatchOfflineStatusFilter !== 'ALL' && st !== dispatchOfflineStatusFilter) return false;
+                if (filterDate && o.date !== filterDate) return false;
+                if (q) {
+                    const hay = `${o.shopName} ${o.driverName || ''} ${o.note || ''} ${o.unloadingNote || ''} ${o.createdBy || ''}`.toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+
+            const container = document.getElementById('dispatch-offline-list');
+            if (!container) return;
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="py-10 px-4 text-center rounded-xl bg-slate-50/80 border border-dashed border-slate-200">
+                        <div class="w-11 h-11 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center mx-auto mb-2.5">
+                            <i data-lucide="store" class="w-5 h-5"></i>
+                        </div>
+                        <div class="text-sm font-bold text-slate-700">Belum ada rute pengiriman offline</div>
+                        <p class="text-xs text-slate-400 mt-1">Input shop, jumlah koli &amp; foto barang di form sebelah kiri.</p>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = filtered.map(o => {
+                const st = o.status || 'pending_pickup';
+                const statusBadge = st === 'closed'
+                    ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200"><i data-lucide="check-circle-2" class="w-3 h-3"></i>Close</span>`
+                    : st === 'pickup_done'
+                        ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-100 text-sky-800 border border-sky-200"><i data-lucide="truck" class="w-3 h-3"></i>Proses Kirim (Menunggu Unloading)</span>`
+                        : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200"><i data-lucide="clock" class="w-3 h-3"></i>Menunggu Pickup Driver</span>`;
+
+                const hasPickupGps = o.pickupLat && o.pickupLng && o.pickupLat !== '-' && o.pickupLng !== '-';
+                const hasUnloadGps = o.unloadingLat && o.unloadingLng && o.unloadingLat !== '-' && o.unloadingLng !== '-';
+                const photos = [
+                    { src: o.dispatchPhoto, label: 'Barang Dispatch' },
+                    { src: o.pickupLoadingPhoto, label: 'Loading Driver' },
+                    { src: o.pickupDocPhoto, label: 'Dokumen Pickup' },
+                    { src: o.unloadingGoodsPhoto, label: 'Barang Unloading' },
+                    { src: o.unloadingSignedDocPhoto, label: 'Dokumen TTD Penerima' }
+                ].filter(p => p.src && String(p.src).startsWith('data:image'));
+
+                return `
+                    <div class="p-3.5 rounded-xl border border-slate-200/90 bg-white hover:border-orange-300 transition space-y-2.5">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-start gap-3 min-w-0">
+                                ${o.dispatchPhoto ? `
+                                    <img src="${o.dispatchPhoto}" alt="Foto Barang" onclick="openImageLightbox(this.src, 'Barang - ${escapeHtmlText(o.shopName)}')"
+                                        class="w-14 h-14 rounded-xl object-cover border border-orange-200 cursor-pointer shrink-0">
+                                ` : `
+                                    <div class="w-14 h-14 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0"><i data-lucide="store" class="w-6 h-6"></i></div>
+                                `}
+                                <div class="min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-sm font-extrabold text-slate-900">${escapeHtmlText(o.shopName)}</span>
+                                        <span class="px-2 py-0.5 rounded-md bg-orange-100 text-orange-800 text-xs font-black tabular-nums">${Number(o.koli || 0)} Koli</span>
+                                        ${statusBadge}
+                                    </div>
+                                    <div class="text-[11px] text-slate-500 mt-0.5 tabular-nums">
+                                        Input: ${formatDateIndo(o.date)} ${escapeHtmlText(o.time || '-')} · oleh ${escapeHtmlText(o.createdBy || '-')}
+                                    </div>
+                                    ${o.note ? `<div class="text-[11px] text-slate-600 italic mt-0.5">"${escapeHtmlText(o.note)}"</div>` : ''}
+                                </div>
+                            </div>
+                            <button type="button" onclick="deleteDispatchOfflineEntry('${escapeHtmlText(o.id)}')" title="Hapus rute offline"
+                                class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition shrink-0">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        ${(o.pickupTime || o.unloadingTime) ? `
+                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-[11px] space-y-1">
+                                ${o.pickupTime ? `
+                                    <div class="flex flex-wrap items-center justify-between gap-1.5">
+                                        <span class="font-bold text-sky-800">Pickup: ${escapeHtmlText(o.driverName || '-')} (${escapeHtmlText(o.vehicle || '-')}) · ${formatDateIndo(o.pickupDate)} ${escapeHtmlText(o.pickupTime)}</span>
+                                        ${hasPickupGps ? `<a href="https://maps.google.com/?q=${encodeURIComponent(o.pickupLat + ',' + o.pickupLng)}" target="_blank" rel="noopener noreferrer" class="font-bold text-blue-600 hover:underline inline-flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i>GPS Pickup</a>` : ''}
+                                    </div>
+                                ` : ''}
+                                ${o.unloadingTime ? `
+                                    <div class="flex flex-wrap items-center justify-between gap-1.5">
+                                        <span class="font-bold text-emerald-800">Unloading (Close): ${formatDateIndo(o.unloadingDate)} ${escapeHtmlText(o.unloadingTime)}${o.unloadingNote ? ` · ${escapeHtmlText(o.unloadingNote)}` : ''}</span>
+                                        ${hasUnloadGps ? `<a href="https://maps.google.com/?q=${encodeURIComponent(o.unloadingLat + ',' + o.unloadingLng)}" target="_blank" rel="noopener noreferrer" class="font-bold text-emerald-700 hover:underline inline-flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i>GPS Unloading</a>` : ''}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+
+                        ${photos.length > 1 ? `
+                            <div class="flex flex-wrap gap-1.5 pt-1">
+                                ${photos.map(ph => `
+                                    <button type="button" onclick="openImageLightbox('${ph.src}', '${escapeHtmlText(ph.label)} - ${escapeHtmlText(o.shopName)}')"
+                                        class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold transition">
+                                        <i data-lucide="image" class="w-3 h-3"></i><span>${escapeHtmlText(ph.label)}</span>
+                                    </button>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function exportDispatchOfflineCsv() {
+            const headers = ['ID', 'Tanggal', 'Jam Input', 'Nama Shop', 'Jumlah Koli', 'Status', 'Input Oleh', 'Driver Pickup', 'Tgl Pickup', 'Jam Pickup', 'GPS Pickup', 'Tgl Unloading', 'Jam Unloading', 'GPS Unloading', 'Catatan Unloading'];
+            const rows = (dispatchOfflineEntries || []).map(o => [
+                o.id, o.date, o.time || '-', o.shopName, o.koli,
+                o.status === 'closed' ? 'Close' : o.status === 'pickup_done' ? 'Proses Kirim' : 'Menunggu Pickup',
+                o.createdBy || '-', o.driverName || '-', o.pickupDate || '-', o.pickupTime || '-',
+                (o.pickupLat && o.pickupLng && o.pickupLat !== '-') ? `${o.pickupLat},${o.pickupLng}` : '-',
+                o.unloadingDate || '-', o.unloadingTime || '-',
+                (o.unloadingLat && o.unloadingLng && o.unloadingLat !== '-') ? `${o.unloadingLat},${o.unloadingLng}` : '-',
+                o.unloadingNote || '-'
+            ]);
+            downloadCsvFile(`Dispatch_Offline_${getTodayISO()}.csv`, headers, rows);
+            showToast('Report Dispatch Offline berhasil diekspor ke CSV!', 'success');
+        }
+
         function refreshDispatchExpedisiOptions() {
             const expSelect = document.getElementById('dispatch-expedisi');
             if (!expSelect) return;
@@ -9757,6 +10530,11 @@ function doPost(e) {
         }
 
         function initDispatchView() {
+            const offDateInput = document.getElementById('dispatch-offline-date');
+            if (offDateInput && !offDateInput.value) offDateInput.value = getTodayISO();
+            refreshDispatchOfflineShopOptions();
+            renderDispatchOfflineList();
+
             const dateInput = document.getElementById('dispatch-date');
             if (dateInput && !dateInput.value) dateInput.value = getTodayISO();
 
@@ -9772,6 +10550,7 @@ function doPost(e) {
             refreshDispatchExpedisiOptions();
             renderDispatchQuickQtyButtons();
             renderDispatchStatsAndList();
+            setDispatchTab(currentDispatchTab);
         }
 
         function renderDispatchStatsAndList() {
@@ -9912,6 +10691,74 @@ function doPost(e) {
             renderDispatchStatsAndList();
             showToast(`Entri resi ${packer} (${expedisi}: ${qty}) berhasil disimpan!`, 'success');
         });
+
+        document.getElementById('dispatch-offline-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const date = document.getElementById('dispatch-offline-date')?.value || getTodayISO();
+            const shopName = (document.getElementById('dispatch-offline-shop')?.value || '').trim();
+            const koli = parseInt(document.getElementById('dispatch-offline-koli')?.value || '0', 10);
+            const note = (document.getElementById('dispatch-offline-note')?.value || '').trim();
+            const dispatchPhoto = dispatchOfflineDraftPhoto || '';
+
+            if (!shopName || !koli || koli < 1) {
+                showToast('Pilih Nama Shop dan masukkan Jumlah Koli yang valid.', 'warning');
+                return;
+            }
+            if (!dispatchPhoto) {
+                showToast('Silakan ambil atau upload Foto Barang terlebih dahulu.', 'warning');
+                return;
+            }
+
+            const item = {
+                id: 'DOFF-' + Date.now().toString().slice(-6),
+                date,
+                time: nowHHmm(),
+                shopName,
+                koli,
+                status: 'pending_pickup',
+                dispatchPhoto,
+                note,
+                createdBy: currentUser ? currentUser.username : 'User',
+                pickupDate: '',
+                pickupTime: '',
+                driverName: '',
+                vehicle: '',
+                pickupLat: '',
+                pickupLng: '',
+                pickupLoadingPhoto: '',
+                pickupDocPhoto: '',
+                unloadingDate: '',
+                unloadingTime: '',
+                unloadingLat: '',
+                unloadingLng: '',
+                unloadingGoodsPhoto: '',
+                unloadingSignedDocPhoto: '',
+                unloadingNote: ''
+            };
+
+            dispatchOfflineEntries.unshift(item);
+            saveAppStateToLocal();
+            sheetUpsertItem('DispatchOffline', item);
+
+            document.getElementById('dispatch-offline-shop').value = '';
+            document.getElementById('dispatch-offline-koli').value = '';
+            document.getElementById('dispatch-offline-note').value = '';
+            clearDispatchOfflinePhoto();
+            renderDispatchOfflineShopChips();
+            renderDispatchOfflineList();
+            if (typeof renderDriverDeliveryLists === 'function') renderDriverDeliveryLists();
+            showToast(`Rute offline ${shopName} (${koli} koli) disimpan & siap di-pickup Driver!`, 'success');
+        });
+
+        function deleteDispatchOfflineEntry(id) {
+            dispatchOfflineEntries = dispatchOfflineEntries.filter(o => o.id !== id);
+            saveAppStateToLocal();
+            sheetDelete('DispatchOffline', id);
+            renderDispatchOfflineList();
+            if (typeof renderDriverDeliveryLists === 'function') renderDriverDeliveryLists();
+            if (typeof renderDriverHeroSummary === 'function') renderDriverHeroSummary();
+            showToast('Rute pengiriman offline dihapus.', 'info');
+        }
 
         function deleteDispatchEntry(id) {
             dispatchEntries = dispatchEntries.filter(i => i.id !== id);
@@ -11409,8 +12256,6 @@ function doPost(e) {
         let masterBarangSkuSortDir = 'asc';
         let barangViewMode = 'table'; // 'table' | 'grid'
         let barangHealthFilter = 'ALL'; // 'ALL' | 'HEALTHY' | 'WARNING' | 'RACK_MISSING' | 'NEAR_EXP' | 'EXPIRED'
-        const selectedMasterBarangSkus = new Set();
-        let lastFilteredMasterBarangSkus = [];
 
         const BARANG_BRAND_GRADIENTS = [
             'from-purple-500 to-indigo-600',
@@ -11717,15 +12562,8 @@ function doPost(e) {
                 }
             }
 
-            lastFilteredMasterBarangSkus = filtered.map(b => b.sku);
-            const activeSkuSet = new Set(masterBarangData.map(b => b.sku));
-            Array.from(selectedMasterBarangSkus).forEach(s => {
-                if (!activeSkuSet.has(s)) selectedMasterBarangSkus.delete(s);
-            });
-            updateMasterBarangSelectionUI();
-
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400">Tidak ada data barang yang sesuai filter.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400">Tidak ada data barang yang sesuai filter.</td></tr>`;
                 if (gridWrap) {
                     gridWrap.innerHTML = `<div class="col-span-full bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center text-slate-400 text-sm">Tidak ada data barang yang sesuai filter.</div>`;
                 }
@@ -11735,8 +12573,6 @@ function doPost(e) {
 
             tbody.innerHTML = filtered.map(b => {
                 const safeSkuAttr = escapeHtmlText(b.sku).replace(/'/g, '&#39;');
-                const jsSafeSku = String(b.sku || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-                const isChecked = selectedMasterBarangSkus.has(b.sku);
                 const rackMissing = isMasterBarangRackMissing(b.noRack);
                 const diffDays = getMasterBarangExpiryDiffDays(b.expiredDate);
                 const isExpired = diffDays !== null && diffDays < 0;
@@ -11763,11 +12599,7 @@ function doPost(e) {
                     : `<span class="text-xs text-slate-400">-</span>`;
 
                 return `
-                <tr class="hover:bg-purple-50/35 transition ${isChecked ? 'bg-rose-50/40' : ''}">
-                    <td class="py-3.5 pl-4 pr-2 w-10">
-                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelectMasterBarangRow('${jsSafeSku}', this.checked)"
-                            class="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer">
-                    </td>
+                <tr class="hover:bg-purple-50/35 transition">
                     <td class="py-3.5 px-5">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-100/80 text-purple-800 border border-purple-200/80 font-mono text-xs font-extrabold">${escapeHtmlText(b.sku)}</span>
                     </td>
@@ -11807,8 +12639,6 @@ function doPost(e) {
             if (gridWrap) {
                 gridWrap.innerHTML = filtered.map(b => {
                     const safeSkuAttr = escapeHtmlText(b.sku).replace(/'/g, '&#39;');
-                    const jsSafeSku = String(b.sku || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-                    const isChecked = selectedMasterBarangSkus.has(b.sku);
                     const rackMissing = isMasterBarangRackMissing(b.noRack);
                     const diffDays = getMasterBarangExpiryDiffDays(b.expiredDate);
                     const isExpired = diffDays !== null && diffDays < 0;
@@ -11831,16 +12661,12 @@ function doPost(e) {
                                 : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">Aman</span>`;
 
                     return `
-                        <div class="bg-white rounded-2xl border ${isChecked ? 'border-rose-400 ring-2 ring-rose-200' : 'border-slate-200/90'} shadow-xs hover:shadow-md hover:border-purple-300 transition overflow-hidden flex flex-col">
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-purple-300 transition overflow-hidden flex flex-col">
                             <div class="h-1.5 w-full bg-gradient-to-r ${stripeClass}"></div>
                             <div class="p-4 flex-1 flex flex-col justify-between gap-3">
                                 <div class="space-y-2">
                                     <div class="flex items-center justify-between gap-2">
-                                        <div class="flex items-center gap-2">
-                                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelectMasterBarangRow('${jsSafeSku}', this.checked)"
-                                                class="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer">
-                                            <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-800 font-mono text-xs font-extrabold">${escapeHtmlText(b.sku)}</span>
-                                        </div>
+                                        <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-800 font-mono text-xs font-extrabold">${escapeHtmlText(b.sku)}</span>
                                         ${statusBadge}
                                     </div>
                                     <div class="flex items-start gap-2.5">
@@ -11960,119 +12786,12 @@ function doPost(e) {
             renderMasterBarangTable();
         });
 
-        function updateMasterBarangSelectionUI() {
-            const btnLabel = document.getElementById('barang-bulk-delete-label');
-            const selCount = selectedMasterBarangSkus.size;
-            if (btnLabel) {
-                btnLabel.textContent = selCount > 0 ? `Hapus Terpilih (${selCount})` : 'Hapus Data';
-            }
-            const selectAllCb = document.getElementById('barang-select-all-cb');
-            if (selectAllCb) {
-                if (lastFilteredMasterBarangSkus.length === 0) {
-                    selectAllCb.checked = false;
-                    selectAllCb.indeterminate = false;
-                } else {
-                    const checkedVisible = lastFilteredMasterBarangSkus.filter(s => selectedMasterBarangSkus.has(s)).length;
-                    selectAllCb.checked = checkedVisible === lastFilteredMasterBarangSkus.length;
-                    selectAllCb.indeterminate = checkedVisible > 0 && checkedVisible < lastFilteredMasterBarangSkus.length;
-                }
-            }
-        }
-
-        function toggleSelectMasterBarangRow(sku, checked) {
-            if (!sku) return;
-            if (checked) selectedMasterBarangSkus.add(sku);
-            else selectedMasterBarangSkus.delete(sku);
-            updateMasterBarangSelectionUI();
-        }
-
-        function toggleSelectAllMasterBarang(checked) {
-            lastFilteredMasterBarangSkus.forEach(s => {
-                if (checked) selectedMasterBarangSkus.add(s);
-                else selectedMasterBarangSkus.delete(s);
-            });
-            renderMasterBarangTable();
-        }
-
         function deleteMasterBarang(sku) {
-            selectedMasterBarangSkus.delete(sku);
             masterBarangData = masterBarangData.filter(b => b.sku !== sku);
             saveAppStateToLocal();
             sheetDelete('MasterBarang', sku);
             renderMasterBarangTable();
             showToast(`SKU ${sku} dihapus.`, 'info');
-        }
-
-        function openDeleteMasterBarangModal() {
-            if (masterBarangData.length === 0) {
-                showToast('Data Master Barang masih kosong.', 'info');
-                return;
-            }
-            const selCnt = selectedMasterBarangSkus.size;
-            const filtCnt = lastFilteredMasterBarangSkus.length;
-            const allCnt = masterBarangData.length;
-
-            const selCountEl = document.getElementById('barang-del-selected-count');
-            const filtCountEl = document.getElementById('barang-del-filtered-count');
-            const allCountEl = document.getElementById('barang-del-all-count');
-            if (selCountEl) selCountEl.textContent = selCnt;
-            if (filtCountEl) filtCountEl.textContent = filtCnt;
-            if (allCountEl) allCountEl.textContent = allCnt;
-
-            const selWrap = document.getElementById('barang-del-opt-selected-wrap');
-            const filtWrap = document.getElementById('barang-del-opt-filtered-wrap');
-            if (selWrap) selWrap.classList.toggle('hidden', selCnt === 0);
-            if (filtWrap) filtWrap.classList.toggle('hidden', filtCnt === 0 || filtCnt === allCnt);
-
-            const defaultScope = selCnt > 0 ? 'selected' : (filtCnt > 0 && filtCnt < allCnt ? 'filtered' : 'all');
-            const radio = document.querySelector(`input[name="barang-delete-scope"][value="${defaultScope}"]`);
-            if (radio) radio.checked = true;
-
-            const modal = document.getElementById('master-barang-delete-modal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
-            lucide.createIcons();
-        }
-
-        function closeDeleteMasterBarangModal() {
-            const modal = document.getElementById('master-barang-delete-modal');
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
-        }
-
-        function confirmDeleteMasterBarangBulk() {
-            const checkedRadio = document.querySelector('input[name="barang-delete-scope"]:checked');
-            const scope = checkedRadio ? checkedRadio.value : 'all';
-
-            let targetSkus = [];
-            if (scope === 'selected') {
-                targetSkus = Array.from(selectedMasterBarangSkus);
-            } else if (scope === 'filtered') {
-                targetSkus = [...lastFilteredMasterBarangSkus];
-            } else {
-                targetSkus = masterBarangData.map(b => b.sku);
-            }
-
-            if (targetSkus.length === 0) {
-                showToast('Tidak ada data yang dipilih untuk dihapus.', 'warning');
-                return;
-            }
-
-            const delSet = new Set(targetSkus);
-            masterBarangData = masterBarangData.filter(b => !delSet.has(b.sku));
-            targetSkus.forEach(s => {
-                selectedMasterBarangSkus.delete(s);
-                sheetDelete('MasterBarang', s);
-            });
-
-            saveAppStateToLocal();
-            closeDeleteMasterBarangModal();
-            renderMasterBarangTable();
-            showToast(`${targetSkus.length} data Master Barang berhasil dihapus.`, 'success');
         }
 
         function exportMasterBarangExcel() {
@@ -15584,13 +16303,13 @@ function doPost(e) {
         }
 
         function openSettingTabOnNavigate(tab) {
-            currentSettingTab = (tab === 'sheet') ? 'sheet' : 'modules';
+            currentSettingTab = ['modules', 'local_reset', 'sheet'].includes(tab) ? tab : 'modules';
             handleMenuClick('setting');
         }
 
         function setSettingTab(tab) {
-            currentSettingTab = (tab === 'sheet') ? 'sheet' : 'modules';
-            const tabs = ['modules', 'sheet'];
+            currentSettingTab = ['modules', 'local_reset', 'sheet'].includes(tab) ? tab : 'modules';
+            const tabs = ['modules', 'local_reset', 'sheet'];
             tabs.forEach(t => {
                 const panel = document.getElementById(`setting-panel-${t}`);
                 const btn = document.getElementById(`setting-tab-btn-${t}`);
@@ -15602,6 +16321,7 @@ function doPost(e) {
                         : 'inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:text-slate-900 whitespace-nowrap';
                 }
             });
+            if (currentSettingTab === 'local_reset') renderSettingLocalResetPanel();
             lucide.createIcons();
         }
 
@@ -15653,6 +16373,24 @@ function doPost(e) {
                 setItems: v => { salahBarangReasons = v; },
                 defaults: () => [...DEFAULT_SALAH_BARANG_REASONS],
                 onChanged: () => { populateSalahBarangReasonOptions(); }
+            },
+            {
+                key: 'offlineShops',
+                menuLabel: 'Menu Dispatch (Tab Offline)',
+                title: 'Daftar Nama Shop Offline (Urut A–Z)',
+                badgeType: 'Daftar Pilihan',
+                placeholder: 'Contoh: Shop Senayan, Sociolla...',
+                icon: 'store',
+                grad: 'from-amber-500 to-orange-600',
+                chipCls: 'bg-orange-50 text-orange-800 border-orange-200',
+                sortAlphabetical: true,
+                getItems: () => normalizeOfflineShops(offlineShops),
+                setItems: v => { offlineShops = normalizeOfflineShops(v); },
+                defaults: () => normalizeOfflineShops(DEFAULT_OFFLINE_SHOPS),
+                onChanged: () => {
+                    refreshDispatchOfflineShopOptions();
+                    if (typeof renderDriverDeliveryLists === 'function') renderDriverDeliveryLists();
+                }
             },
             {
                 key: 'dispatchQuickQtys',
@@ -15879,13 +16617,13 @@ function doPost(e) {
             {
                 id: 'dispatch',
                 number: '02',
-                title: 'Menu Dispatch',
-                subtitle: 'Filter Nama Packer, daftar nama expedisi (quick tap & dropdown), serta quick tap jumlah resi.',
+                title: 'Menu Dispatch (Offline & Online)',
+                subtitle: 'Filter Nama Packer, daftar Shop Offline (A–Z), daftar expedisi, dan quick tap jumlah resi.',
                 icon: 'send',
                 grad: 'from-sky-500 via-blue-600 to-indigo-600',
                 picMenuKey: 'dispatch_packer',
                 picFieldLabel: 'Nama Packer (Quick Tap & Dropdown)',
-                optionKeys: ['expedisiData', 'dispatchQuickQtys']
+                optionKeys: ['offlineShops', 'expedisiData', 'dispatchQuickQtys']
             },
             {
                 id: 'absen',
@@ -15989,6 +16727,7 @@ function doPost(e) {
             updateSettingHeroSummary();
             renderSettingModuleFilterPills();
             renderSettingModuleSections();
+            renderSettingLocalResetPanel();
             setSettingTab(currentSettingTab);
         }
 
@@ -16139,8 +16878,12 @@ function doPost(e) {
                                         : items.map((item, idx) => {
                                             const display = g.formatChip ? g.formatChip(item) : item;
                                             return `
-                                                <span class="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-lg border text-xs font-bold ${g.chipCls}">
+                                                <span class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-lg border text-xs font-bold ${g.chipCls}">
                                                     <span>${escapeHtmlText(display)}</span>
+                                                    <button type="button" onclick="openSettingOptionEditModal('${g.key}', ${idx})" title="Edit ${escapeHtmlText(display)}"
+                                                        class="w-4 h-4 rounded hover:bg-indigo-600 hover:text-white flex items-center justify-center transition">
+                                                        <i data-lucide="pencil" class="w-2.5 h-2.5"></i>
+                                                    </button>
                                                     <button type="button" onclick="removeSettingMenuOption('${g.key}', ${idx})" title="Hapus ${escapeHtmlText(display)}"
                                                         class="w-4 h-4 rounded hover:bg-rose-600 hover:text-white flex items-center justify-center transition">
                                                         <i data-lucide="x" class="w-3 h-3"></i>
@@ -16255,6 +16998,8 @@ function doPost(e) {
                 list.push(val);
                 if (grp.isNumeric) {
                     list.sort((a, b) => parseFloat(a) - parseFloat(b));
+                } else if (grp.sortAlphabetical) {
+                    list.sort((a, b) => String(a).localeCompare(String(b), 'id', { sensitivity: 'base' }));
                 }
                 grp.setItems(list);
                 syncConfigToSheet();
@@ -16296,6 +17041,80 @@ function doPost(e) {
             renderSettingModuleSections();
         }
 
+        function openSettingOptionEditModal(groupKey, idx) {
+            const grp = SETTING_OPTION_GROUPS.find(g => g.key === groupKey);
+            if (!grp) return;
+            const currentVal = grp.isExpedisi ? expedisiData[idx]?.name : grp.getItems()[idx];
+            if (currentVal === undefined) return;
+            document.getElementById('setting-opt-edit-group').value = groupKey;
+            document.getElementById('setting-opt-edit-index').value = String(idx);
+            document.getElementById('setting-opt-edit-title').textContent = `Edit ${grp.title}`;
+            document.getElementById('setting-opt-edit-value').value = String(currentVal);
+            const modal = document.getElementById('setting-option-edit-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+            lucide.createIcons();
+            document.getElementById('setting-opt-edit-value')?.focus();
+        }
+
+        function closeSettingOptionEditModal() {
+            const modal = document.getElementById('setting-option-edit-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        document.getElementById('setting-option-edit-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const groupKey = document.getElementById('setting-opt-edit-group')?.value || '';
+            const idx = parseInt(document.getElementById('setting-opt-edit-index')?.value || '-1', 10);
+            const grp = SETTING_OPTION_GROUPS.find(g => g.key === groupKey);
+            if (!grp || idx < 0) return;
+
+            let nextVal = (document.getElementById('setting-opt-edit-value')?.value || '').trim();
+            if (grp.normalizeInput) nextVal = grp.normalizeInput(nextVal);
+            if (!nextVal) {
+                showToast(grp.isNumeric ? 'Masukkan angka valid lebih dari 0.' : 'Nilai tidak boleh kosong.', 'warning');
+                return;
+            }
+
+            if (grp.isExpedisi) {
+                const target = expedisiData[idx];
+                if (!target) return;
+                if (expedisiData.some((x, i) => i !== idx && x.name.toLowerCase() === nextVal.toLowerCase())) {
+                    showToast(`Expedisi "${nextVal}" sudah ada.`, 'warning');
+                    return;
+                }
+                target.name = nextVal;
+                sheetUpsertItem('Expedisi', target);
+            } else {
+                const list = [...grp.getItems()];
+                if (list[idx] === undefined) return;
+                if (list.some((x, i) => i !== idx && String(x).toLowerCase() === nextVal.toLowerCase())) {
+                    showToast(`Isian "${nextVal}" sudah ada di ${grp.title}.`, 'warning');
+                    return;
+                }
+                list[idx] = nextVal;
+                if (grp.isNumeric) {
+                    list.sort((a, b) => parseFloat(a) - parseFloat(b));
+                } else if (grp.sortAlphabetical) {
+                    list.sort((a, b) => String(a).localeCompare(String(b), 'id', { sensitivity: 'base' }));
+                }
+                grp.setItems(list);
+                syncConfigToSheet();
+            }
+
+            saveAppStateToLocal();
+            if (grp.onChanged) grp.onChanged();
+            updateSettingHeroSummary();
+            renderSettingModuleSections();
+            closeSettingOptionEditModal();
+            showToast(`"${nextVal}" berhasil diperbarui!`, 'success');
+        });
+
         function resetSettingOptionGroup(groupKey) {
             const grp = SETTING_OPTION_GROUPS.find(g => g.key === groupKey);
             if (!grp || !grp.defaults) return;
@@ -16306,6 +17125,138 @@ function doPost(e) {
             updateSettingHeroSummary();
             renderSettingModuleSections();
             showToast(`${grp.title} dikembalikan ke isian default.`, 'success');
+        }
+
+        // ==========================================
+        // HAPUS DATA TRANSAKSI LOKAL TERPUSAT (KECUALI USER & TANPA HAPUS DATABASE SHEET)
+        // ==========================================
+        const LOCAL_RESET_MODULES = [
+            { key: 'dispatchOnline', label: 'Dispatch Online', desc: 'Entri resi kurir online harian', icon: 'send', grad: 'from-sky-500 to-blue-600', count: () => dispatchEntries.length, clear: () => { dispatchEntries = []; } },
+            { key: 'dispatchOffline', label: 'Dispatch Offline & Proses Kirim', desc: 'Rute shop offline, pickup & unloading driver', icon: 'store', grad: 'from-amber-500 to-orange-600', count: () => dispatchOfflineEntries.length, clear: () => { dispatchOfflineEntries = []; } },
+            { key: 'driverExpense', label: 'Driver · KM & Biaya', desc: 'Laporan kilometer, tol, bensin & parkir', icon: 'gauge', grad: 'from-emerald-500 to-teal-600', count: () => driverExpenses.length, clear: () => { driverExpenses = []; } },
+            { key: 'driverVehicle', label: 'Driver · Kondisi Armada', desc: 'Checklist kondisi, insiden & kebersihan mobil', icon: 'car', grad: 'from-orange-500 to-rose-600', count: () => driverVehicleLogs.length, clear: () => { driverVehicleLogs = []; } },
+            { key: 'absen', label: 'Absensi Staff', desc: 'Catatan cuti, sakit, telat & alpha staff', icon: 'user-check', grad: 'from-teal-500 to-emerald-600', count: () => absenEntries.length, clear: () => { absenEntries = []; } },
+            { key: 'overtime', label: 'Overtime Staff', desc: 'Riwayat jam lembur & alasan lembur', icon: 'clock', grad: 'from-amber-500 to-yellow-600', count: () => overtimeEntries.length, clear: () => { overtimeEntries = []; } },
+            { key: 'adminResi', label: 'Admin · Input Resi', desc: 'Data serah terima resi picker & expedisi', icon: 'file-spreadsheet', grad: 'from-indigo-500 to-blue-600', count: () => adminResiEntries.length, clear: () => { adminResiEntries = []; } },
+            { key: 'salahBarang', label: 'Admin · Salah Barang', desc: 'Catatan temuan selisih / salah barang', icon: 'alert-triangle', grad: 'from-rose-500 to-pink-600', count: () => salahBarangEntries.length, clear: () => { salahBarangEntries = []; } },
+            { key: 'cycleCount', label: 'Cycle Count / Opname', desc: 'Data hitung stok fisik gudang', icon: 'clipboard-check', grad: 'from-violet-500 to-purple-600', count: () => cycleCountEntries.length, clear: () => { cycleCountEntries = []; } },
+            { key: 'qcJobtasks', label: 'Quality Control (QC)', desc: 'Daftar create, proses & transfer QC', icon: 'check-square', grad: 'from-emerald-500 to-green-600', count: () => qcJobtasks.length, clear: () => { qcJobtasks = []; } },
+            { key: 'projects', label: 'Project & Joblist', desc: 'Kanban board & tugas operasional gudang', icon: 'kanban', grad: 'from-purple-500 to-indigo-600', count: () => projectsData.length, clear: () => { projectsData = []; } },
+            { key: 'inventoryMeta', label: 'Inventory Control Stock', desc: 'Data stock sistem & min/max lokal per SKU', icon: 'boxes', grad: 'from-cyan-500 to-sky-600', count: () => Object.keys(inventoryStockMeta || {}).length, clear: () => { inventoryStockMeta = {}; } },
+            { key: 'masterBarang', label: 'Master Barang Lokal', desc: 'Cache katalog SKU di penyimpanan lokal', icon: 'package', grad: 'from-fuchsia-500 to-purple-600', count: () => masterBarangData.length, clear: () => { masterBarangData = []; } }
+        ];
+
+        function renderSettingLocalResetPanel() {
+            const grid = document.getElementById('setting-local-reset-grid');
+            if (!grid) return;
+
+            const cardsHtml = LOCAL_RESET_MODULES.map(m => {
+                const cnt = m.count();
+                return `
+                    <div class="rounded-2xl border border-slate-200/90 bg-slate-50/50 p-4 flex flex-col justify-between gap-3">
+                        <div class="flex items-start justify-between gap-2.5">
+                            <div class="flex items-start gap-2.5 min-w-0">
+                                <div class="w-9 h-9 rounded-xl bg-gradient-to-br ${m.grad} text-white flex items-center justify-center shrink-0">
+                                    <i data-lucide="${m.icon}" class="w-4 h-4"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="text-sm font-extrabold text-slate-900 truncate">${escapeHtmlText(m.label)}</div>
+                                    <div class="text-[11px] text-slate-500 mt-0.5">${escapeHtmlText(m.desc)}</div>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-xs font-black text-slate-800 tabular-nums shrink-0">${cnt.toLocaleString('id-ID')}</span>
+                        </div>
+                        <button type="button" onclick="openLocalResetConfirmModal('${m.key}')" ${cnt === 0 ? 'disabled' : ''}
+                            class="w-full py-2 px-3 rounded-xl border text-xs font-bold transition inline-flex items-center justify-center gap-1.5 ${cnt === 0 ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' : 'bg-white hover:bg-rose-50 text-rose-700 border-rose-200 hover:border-rose-300'}">
+                            <i data-lucide="eraser" class="w-3.5 h-3.5"></i>
+                            <span>${cnt === 0 ? 'Data Lokal Kosong' : 'Hapus Data Lokal Menu Ini'}</span>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            const protectedUserCard = `
+                <div class="rounded-2xl border-2 border-emerald-200 bg-emerald-50/60 p-4 flex flex-col justify-between gap-3">
+                    <div class="flex items-start justify-between gap-2.5">
+                        <div class="flex items-start gap-2.5 min-w-0">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0">
+                                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-sm font-extrabold text-emerald-950">Data User &amp; Posisi</div>
+                                <div class="text-[11px] text-emerald-800 mt-0.5">Dikecualikan dari penghapusan agar akun login tetap aman</div>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-lg bg-white border border-emerald-200 text-xs font-black text-emerald-700 tabular-nums shrink-0">${usersData.length}</span>
+                    </div>
+                    <div class="w-full py-2 px-3 rounded-xl bg-emerald-100/80 border border-emerald-200 text-emerald-800 text-xs font-extrabold text-center">
+                        Dilindungi · Tidak Akan Dihapus
+                    </div>
+                </div>
+            `;
+
+            grid.innerHTML = cardsHtml + protectedUserCard;
+            lucide.createIcons();
+        }
+
+        function openLocalResetConfirmModal(targetKey) {
+            const targetInput = document.getElementById('setting-local-reset-target');
+            const msgEl = document.getElementById('setting-local-reset-confirm-msg');
+            if (!targetInput || !msgEl) return;
+
+            if (targetKey === 'ALL') {
+                const total = LOCAL_RESET_MODULES.reduce((s, m) => s + m.count(), 0);
+                if (total === 0) {
+                    showToast('Semua data transaksi lokal sudah kosong.', 'info');
+                    return;
+                }
+                targetInput.value = 'ALL';
+                msgEl.innerHTML = `Yakin ingin menghapus <strong>SEMUA data transaksi lokal</strong> (${total.toLocaleString('id-ID')} entri di semua menu kecuali Data User) dari perangkat ini?`;
+            } else {
+                const mod = LOCAL_RESET_MODULES.find(m => m.key === targetKey);
+                if (!mod) return;
+                targetInput.value = mod.key;
+                msgEl.innerHTML = `Yakin ingin menghapus data lokal menu <strong>${escapeHtmlText(mod.label)}</strong> (${mod.count().toLocaleString('id-ID')} data) dari perangkat ini?`;
+            }
+
+            const modal = document.getElementById('setting-local-reset-confirm-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+            lucide.createIcons();
+        }
+
+        function closeLocalResetConfirmModal() {
+            const modal = document.getElementById('setting-local-reset-confirm-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function confirmLocalDataReset() {
+            const targetKey = document.getElementById('setting-local-reset-target')?.value || '';
+            if (!targetKey) return;
+
+            // PENTING: Penghapusan hanya memodifikasi array state lokal — JANGAN pernah memanggil sheetDelete / postToGoogleSheet, dan JANGAN menyentuh usersData!
+            if (targetKey === 'ALL') {
+                LOCAL_RESET_MODULES.forEach(m => m.clear());
+                driverCheckins = [];
+                showToast('Semua data transaksi lokal (kecuali User) berhasil dihapus. Database Google Sheet tetap utuh.', 'success');
+            } else {
+                const mod = LOCAL_RESET_MODULES.find(m => m.key === targetKey);
+                if (!mod) return;
+                mod.clear();
+                if (mod.key === 'dispatchOffline' && typeof renderDispatchOfflineList === 'function') renderDispatchOfflineList();
+                showToast(`Data lokal "${mod.label}" dihapus tanpa menghapus database Google Sheet.`, 'success');
+            }
+
+            saveAppStateToLocal();
+            closeLocalResetConfirmModal();
+            renderSettingLocalResetPanel();
+            updateSettingHeroSummary();
+            refreshCurrentView();
         }
 
         // ==========================================
@@ -16571,11 +17522,22 @@ function doPost(e) {
         }
 
         // ==========================================
-        // MODUL DRIVER (LOKASI SELFIE GPS, KM/BIAYA, KONDISI MOBIL)
+        // MODUL DRIVER (PROSES KIRIM BARANG PICKUP & UNLOADING, KM/BIAYA, KONDISI MOBIL)
         // ==========================================
-        let currentDriverTab = 'checkin';
-        let driverLiveClockTimer = null;
-        let driverDraftPhotos = { checkin: '', expense: '', vehicle: '' };
+        let currentDriverTab = 'delivery';
+        let currentDriverDeliverySubTab = 'pickup';
+        let driverDeliveryModalClockTimer = null;
+        let driverDraftPhotos = { expense: '', vehicle: '' };
+        let deliveryDraftPhotos = {
+            pickup_loading: '',
+            pickup_doc: '',
+            unloading_goods: '',
+            unloading_signed_doc: ''
+        };
+        let driverDeliveryGps = {
+            pickup: { lat: '', lng: '', status: '' },
+            unloading: { lat: '', lng: '', status: '' }
+        };
         let driverVehicleDraft = {
             carCondition: 'Baik',
             crashStatus: 'Tidak Ada',
@@ -16583,21 +17545,7 @@ function doPost(e) {
             cleanliness: 'Bersih'
         };
 
-        function startDriverLiveClock() {
-            const updateClock = () => {
-                const el = document.getElementById('drv-checkin-live-clock');
-                if (!el) return;
-                const d = new Date();
-                const p = n => String(n).padStart(2, '0');
-                el.textContent = `${getTodayISO()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
-            };
-            updateClock();
-            if (driverLiveClockTimer) clearInterval(driverLiveClockTimer);
-            driverLiveClockTimer = setInterval(updateClock, 1000);
-        }
-
         function initDriverView() {
-            startDriverLiveClock();
             populateDriverFormOptions();
 
             const expDate = document.getElementById('drv-exp-date');
@@ -16611,23 +17559,24 @@ function doPost(e) {
             setDriverVehicleField('cleanliness', driverVehicleDraft.cleanliness);
 
             updateDriverExpenseDraftTotal();
-            updateDriverMapsPreviewLink();
             renderDriverHeroSummary();
-            renderDriverCheckinList();
+            renderDriverDeliveryLists();
             renderDriverExpenseList();
             renderDriverVehicleList();
+            setDriverDeliverySubTab(currentDriverDeliverySubTab);
             setDriverTab(currentDriverTab);
         }
 
         function setDriverTab(tab) {
-            currentDriverTab = ['checkin', 'expense', 'vehicle'].includes(tab) ? tab : 'checkin';
+            const normalized = tab === 'checkin' ? 'delivery' : tab;
+            currentDriverTab = ['delivery', 'expense', 'vehicle'].includes(normalized) ? normalized : 'delivery';
             const cfg = {
-                checkin: 'bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-sm font-extrabold',
+                delivery: 'bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-sm font-extrabold',
                 expense: 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm font-extrabold',
                 vehicle: 'bg-gradient-to-r from-amber-500 to-rose-600 text-white shadow-sm font-extrabold'
             };
             const idleCls = 'text-slate-600 hover:bg-slate-50 font-bold';
-            ['checkin', 'expense', 'vehicle'].forEach(t => {
+            ['delivery', 'expense', 'vehicle'].forEach(t => {
                 const panel = document.getElementById(`driver-panel-${t}`);
                 const btn = document.getElementById(`driver-tab-btn-${t}`);
                 const active = t === currentDriverTab;
@@ -16639,9 +17588,30 @@ function doPost(e) {
             lucide.createIcons();
         }
 
+        function setDriverDeliverySubTab(subTab) {
+            currentDriverDeliverySubTab = subTab === 'unloading' ? 'unloading' : 'pickup';
+            const isPickup = currentDriverDeliverySubTab === 'pickup';
+            document.getElementById('driver-subpanel-pickup')?.classList.toggle('hidden', !isPickup);
+            document.getElementById('driver-subpanel-unloading')?.classList.toggle('hidden', isPickup);
+
+            const pBtn = document.getElementById('driver-subtab-btn-pickup');
+            const uBtn = document.getElementById('driver-subtab-btn-unloading');
+            if (pBtn) {
+                pBtn.className = isPickup
+                    ? 'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-extrabold transition bg-white text-sky-700 shadow-sm whitespace-nowrap'
+                    : 'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:text-slate-900 whitespace-nowrap';
+            }
+            if (uBtn) {
+                uBtn.className = !isPickup
+                    ? 'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-extrabold transition bg-white text-emerald-700 shadow-sm whitespace-nowrap'
+                    : 'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:text-slate-900 whitespace-nowrap';
+            }
+            lucide.createIcons();
+        }
+
         function populateDriverFormOptions() {
             const staffList = getFilteredUsersByMenu('driver_staff');
-            const driverSelectIds = ['drv-checkin-driver', 'drv-exp-driver', 'drv-veh-driver'];
+            const driverSelectIds = ['drv-delivery-driver', 'drv-exp-driver', 'drv-veh-driver'];
             const driverOptionsHtml = staffList.length > 0
                 ? staffList.map(u => `<option value="${escapeHtmlText(u.username)}">${escapeHtmlText(u.username)} (${escapeHtmlText(u.role)})</option>`).join('')
                 : `<option value="${escapeHtmlText(currentUser?.username || 'Driver')}">${escapeHtmlText(currentUser?.username || 'Driver')}</option>`;
@@ -16660,84 +17630,424 @@ function doPost(e) {
 
             const vehicleHtml = `<option value="">— Pilih Armada —</option>` +
                 driverVehicles.map(v => `<option value="${escapeHtmlText(v)}">${escapeHtmlText(v)}</option>`).join('');
-            ['drv-checkin-vehicle', 'drv-exp-vehicle', 'drv-veh-unit'].forEach(id => {
+            ['drv-delivery-vehicle', 'drv-exp-vehicle', 'drv-veh-unit'].forEach(id => {
                 const sel = document.getElementById(id);
                 if (!sel) return;
                 const prev = sel.value;
                 sel.innerHTML = vehicleHtml;
                 if (prev && driverVehicles.includes(prev)) sel.value = prev;
-                else if (id === 'drv-veh-unit' && driverVehicles.length > 0) sel.value = driverVehicles[0];
+                else if (driverVehicles.length > 0) sel.value = driverVehicles[0];
             });
+        }
 
-            const quickLocWrap = document.getElementById('drv-checkin-quick-locations');
-            if (quickLocWrap) {
-                quickLocWrap.innerHTML = driverLocations.map(loc => `
-                    <button type="button" onclick="document.getElementById('drv-checkin-location').value='${escapeHtmlText(loc).replace(/'/g, "\\'")}'"
-                        class="px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-800 text-[11px] font-bold transition">
-                        ${escapeHtmlText(loc)}
-                    </button>
-                `).join('');
+        function updateDriverDeliveryModalTimes() {
+            const d = new Date();
+            const p = n => String(n).padStart(2, '0');
+            const stamp = `${getTodayISO()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+            const pEl = document.getElementById('drv-pickup-time-badge');
+            const uEl = document.getElementById('drv-unloading-time-badge');
+            if (pEl) pEl.textContent = stamp;
+            if (uEl) uEl.textContent = stamp;
+        }
+
+        function startDriverDeliveryModalClock() {
+            updateDriverDeliveryModalTimes();
+            if (driverDeliveryModalClockTimer) clearInterval(driverDeliveryModalClockTimer);
+            driverDeliveryModalClockTimer = setInterval(updateDriverDeliveryModalTimes, 1000);
+        }
+
+        function stopDriverDeliveryModalClock() {
+            if (driverDeliveryModalClockTimer) {
+                clearInterval(driverDeliveryModalClockTimer);
+                driverDeliveryModalClockTimer = null;
             }
         }
 
-        function captureDriverGpsCoords() {
-            const badge = document.getElementById('drv-gps-status-badge');
+        function refreshDriverDeliveryGps(mode) {
+            const m = mode === 'unloading' ? 'unloading' : 'pickup';
+            const textEl = document.getElementById(`drv-${m}-gps-text`);
+            const linkEl = document.getElementById(`drv-${m}-maps-link`);
+            driverDeliveryGps[m] = { lat: '', lng: '', status: 'loading' };
+            if (linkEl) linkEl.classList.add('hidden');
+
             if (!navigator.geolocation) {
-                if (badge) {
-                    badge.textContent = 'GPS tidak didukung perangkat, isi koordinat manual.';
-                    badge.className = 'text-[11px] font-bold text-rose-600';
-                }
-                showToast('Browser tidak mendukung GPS. Isi Latitude/Longitude secara manual.', 'warning');
+                driverDeliveryGps[m] = { lat: '-', lng: '-', status: 'unsupported' };
+                if (textEl) textEl.textContent = 'GPS tidak didukung browser (waktu tetap tercatat)';
                 return;
             }
-            if (badge) {
-                badge.textContent = 'Mengambil titik GPS...';
-                badge.className = 'text-[11px] font-bold text-sky-700 animate-pulse';
-            }
+            if (textEl) textEl.textContent = 'Mengambil titik GPS otomatis...';
             navigator.geolocation.getCurrentPosition(
                 pos => {
                     const lat = pos.coords.latitude.toFixed(6);
                     const lng = pos.coords.longitude.toFixed(6);
                     const acc = Math.round(pos.coords.accuracy || 0);
-                    const latEl = document.getElementById('drv-checkin-lat');
-                    const lngEl = document.getElementById('drv-checkin-lng');
-                    if (latEl) latEl.value = lat;
-                    if (lngEl) lngEl.value = lng;
-                    if (badge) {
-                        badge.textContent = `GPS Terkunci (±${acc}m)`;
-                        badge.className = 'text-[11px] font-bold text-emerald-700';
+                    driverDeliveryGps[m] = { lat, lng, status: 'ok' };
+                    if (textEl) textEl.textContent = `${lat}, ${lng} (±${acc}m)`;
+                    if (linkEl) {
+                        linkEl.href = `https://maps.google.com/?q=${encodeURIComponent(lat + ',' + lng)}`;
+                        linkEl.classList.remove('hidden');
                     }
-                    updateDriverMapsPreviewLink();
-                    showToast(`Koordinat GPS didapat: ${lat}, ${lng}`, 'success');
                 },
-                err => {
-                    if (badge) {
-                        badge.textContent = 'Izin lokasi ditolak/timeout — bisa input manual';
-                        badge.className = 'text-[11px] font-bold text-amber-700';
-                    }
-                    showToast('Gagal mengambil GPS otomatis. Pastikan izin lokasi aktif atau isi koordinat manual.', 'warning');
+                () => {
+                    driverDeliveryGps[m] = { lat: '-', lng: '-', status: 'denied' };
+                    if (textEl) textEl.textContent = 'Izin GPS belum aktif / timeout — waktu otomatis tetap tersimpan';
                 },
-                { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         }
 
-        function updateDriverMapsPreviewLink() {
-            const lat = (document.getElementById('drv-checkin-lat')?.value || '').trim();
-            const lng = (document.getElementById('drv-checkin-lng')?.value || '').trim();
-            const link = document.getElementById('drv-maps-preview-link');
-            if (!link) return;
-            const valid = /^-?\d+(\.\d+)?$/.test(lat) && /^-?\d+(\.\d+)?$/.test(lng);
-            if (valid) {
-                link.href = `https://maps.google.com/?q=${encodeURIComponent(lat + ',' + lng)}`;
-                link.classList.remove('hidden');
-            } else {
-                link.classList.add('hidden');
+        function setDeliveryDraftPhoto(target, dataUrl) {
+            deliveryDraftPhotos[target] = dataUrl || '';
+            const idMap = {
+                pickup_loading: 'drv-pickup-loading',
+                pickup_doc: 'drv-pickup-doc',
+                unloading_goods: 'drv-unloading-goods',
+                unloading_signed_doc: 'drv-unloading-signed'
+            };
+            const prefix = idMap[target];
+            if (!prefix) return;
+            const wrap = document.getElementById(`${prefix}-preview-wrap`);
+            const img = document.getElementById(`${prefix}-preview`);
+            if (img) img.src = deliveryDraftPhotos[target];
+            if (wrap) wrap.classList.toggle('hidden', !deliveryDraftPhotos[target]);
+        }
+
+        function clearDeliveryDraftPhoto(target) {
+            setDeliveryDraftPhoto(target, '');
+            const idMap = {
+                pickup_loading: 'drv-pickup-loading-file',
+                pickup_doc: 'drv-pickup-doc-file',
+                unloading_goods: 'drv-unloading-goods-file',
+                unloading_signed_doc: 'drv-unloading-signed-file'
+            };
+            const el = document.getElementById(idMap[target]);
+            if (el) el.value = '';
+        }
+
+        function openDeliveryModalCamera(target) {
+            const titleMap = {
+                pickup_loading: 'Foto Barang yang Di-loading',
+                pickup_doc: 'Foto Dokumen Pickup',
+                unloading_goods: 'Foto Barang yang Di-unloading',
+                unloading_signed_doc: 'Foto Dokumen Ditandatangani Penerima'
+            };
+            openPhotoCameraModal({
+                title: titleMap[target] || 'Ambil Foto',
+                facingMode: 'environment',
+                allowSkip: false,
+                onCapture: async dataUrl => {
+                    try {
+                        const smaller = await compressImageDataUrl(dataUrl, 440, 0.52);
+                        setDeliveryDraftPhoto(target, smaller);
+                    } catch {
+                        setDeliveryDraftPhoto(target, dataUrl);
+                    }
+                }
+            });
+        }
+
+        async function handleDeliveryPhotoFile(event, target) {
+            const file = event?.target?.files?.[0];
+            if (!file) return;
+            try {
+                const dataUrl = await compressImageFileToDataUrl(file, 440, 0.52);
+                setDeliveryDraftPhoto(target, dataUrl);
+            } catch {
+                showToast('Gagal memproses file foto.', 'error');
             }
+        }
+
+        function openDriverPickupModal(id) {
+            const entry = dispatchOfflineEntries.find(o => o.id === id);
+            if (!entry) return;
+            document.getElementById('drv-pickup-id').value = entry.id;
+            document.getElementById('drv-pickup-shop-name').textContent = entry.shopName;
+            document.getElementById('drv-pickup-koli-badge').textContent = `${Number(entry.koli || 0)} Koli`;
+            document.getElementById('drv-pickup-dispatch-meta').textContent =
+                `Input Dispatch: ${formatDateIndo(entry.date)} ${entry.time || '-'} · oleh ${entry.createdBy || '-'}${entry.note ? ` · "${entry.note}"` : ''}`;
+
+            clearDeliveryDraftPhoto('pickup_loading');
+            clearDeliveryDraftPhoto('pickup_doc');
+            startDriverDeliveryModalClock();
+            refreshDriverDeliveryGps('pickup');
+
+            const modal = document.getElementById('driver-pickup-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+            lucide.createIcons();
+        }
+
+        function closeDriverPickupModal() {
+            const modal = document.getElementById('driver-pickup-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            const unloadModal = document.getElementById('driver-unloading-modal');
+            if (!unloadModal || unloadModal.classList.contains('hidden')) {
+                stopDriverDeliveryModalClock();
+            }
+        }
+
+        function openDriverUnloadingModal(id) {
+            const entry = dispatchOfflineEntries.find(o => o.id === id);
+            if (!entry) return;
+            document.getElementById('drv-unloading-id').value = entry.id;
+            document.getElementById('drv-unloading-shop-name').textContent = entry.shopName;
+            document.getElementById('drv-unloading-koli-badge').textContent = `${Number(entry.koli || 0)} Koli`;
+            const gpsStr = (entry.pickupLat && entry.pickupLng && entry.pickupLat !== '-') ? `GPS ${entry.pickupLat}, ${entry.pickupLng}` : 'GPS tidak tercatat';
+            document.getElementById('drv-unloading-pickup-meta').textContent =
+                `Pickup oleh ${entry.driverName || '-'} (${entry.vehicle || '-'}) · ${formatDateIndo(entry.pickupDate)} ${entry.pickupTime || '-'} · ${gpsStr}`;
+
+            clearDeliveryDraftPhoto('unloading_goods');
+            clearDeliveryDraftPhoto('unloading_signed_doc');
+            const noteEl = document.getElementById('drv-unloading-note');
+            if (noteEl) noteEl.value = '';
+            startDriverDeliveryModalClock();
+            refreshDriverDeliveryGps('unloading');
+
+            const modal = document.getElementById('driver-unloading-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+            lucide.createIcons();
+        }
+
+        function closeDriverUnloadingModal() {
+            const modal = document.getElementById('driver-unloading-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            const pickModal = document.getElementById('driver-pickup-modal');
+            if (!pickModal || pickModal.classList.contains('hidden')) {
+                stopDriverDeliveryModalClock();
+            }
+        }
+
+        document.getElementById('driver-pickup-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('drv-pickup-id')?.value || '';
+            const entry = dispatchOfflineEntries.find(o => o.id === id);
+            if (!entry) return;
+
+            if (!deliveryDraftPhotos.pickup_loading) {
+                showToast('Lampirkan foto barang yang di-loading terlebih dahulu.', 'warning');
+                return;
+            }
+            if (!deliveryDraftPhotos.pickup_doc) {
+                showToast('Lampirkan foto dokumen pengiriman terlebih dahulu.', 'warning');
+                return;
+            }
+
+            const driverName = document.getElementById('drv-delivery-driver')?.value || currentUser?.username || 'Driver';
+            const vehicle = document.getElementById('drv-delivery-vehicle')?.value || '-';
+            const gps = driverDeliveryGps.pickup || { lat: '-', lng: '-' };
+
+            entry.status = 'pickup_done';
+            entry.pickupDate = getTodayISO();
+            entry.pickupTime = nowHHmm();
+            entry.driverName = driverName;
+            entry.vehicle = vehicle;
+            entry.pickupLat = gps.lat || '-';
+            entry.pickupLng = gps.lng || '-';
+            entry.pickupLoadingPhoto = deliveryDraftPhotos.pickup_loading;
+            entry.pickupDocPhoto = deliveryDraftPhotos.pickup_doc;
+
+            saveAppStateToLocal();
+            sheetUpsertItem('DispatchOffline', entry);
+
+            closeDriverPickupModal();
+            renderDriverHeroSummary();
+            renderDriverDeliveryLists();
+            if (typeof renderDispatchOfflineList === 'function') renderDispatchOfflineList();
+            setDriverDeliverySubTab('unloading');
+            showToast(`Pickup ${entry.shopName} dikonfirmasi! Data pindah ke Tab Unloading.`, 'success');
+        });
+
+        document.getElementById('driver-unloading-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('drv-unloading-id')?.value || '';
+            const entry = dispatchOfflineEntries.find(o => o.id === id);
+            if (!entry) return;
+
+            if (!deliveryDraftPhotos.unloading_goods) {
+                showToast('Lampirkan foto barang yang di-unloading terlebih dahulu.', 'warning');
+                return;
+            }
+            if (!deliveryDraftPhotos.unloading_signed_doc) {
+                showToast('Lampirkan foto dokumen yang sudah ditandatangani penerima.', 'warning');
+                return;
+            }
+
+            const gps = driverDeliveryGps.unloading || { lat: '-', lng: '-' };
+            const unloadingNote = (document.getElementById('drv-unloading-note')?.value || '').trim();
+
+            entry.status = 'closed';
+            entry.unloadingDate = getTodayISO();
+            entry.unloadingTime = nowHHmm();
+            entry.unloadingLat = gps.lat || '-';
+            entry.unloadingLng = gps.lng || '-';
+            entry.unloadingGoodsPhoto = deliveryDraftPhotos.unloading_goods;
+            entry.unloadingSignedDocPhoto = deliveryDraftPhotos.unloading_signed_doc;
+            entry.unloadingNote = unloadingNote;
+
+            saveAppStateToLocal();
+            sheetUpsertItem('DispatchOffline', entry);
+
+            closeDriverUnloadingModal();
+            renderDriverHeroSummary();
+            renderDriverDeliveryLists();
+            if (typeof renderDispatchOfflineList === 'function') renderDispatchOfflineList();
+            showToast(`Unloading ${entry.shopName} selesai! Status report otomatis Close.`, 'success');
+        });
+
+        function renderDriverDeliveryLists() {
+            const pickupWrap = document.getElementById('driver-pickup-list-container');
+            const unloadingWrap = document.getElementById('driver-unloading-list-container');
+            const closedWrap = document.getElementById('driver-closed-list-container');
+            if (!pickupWrap && !unloadingWrap && !closedWrap) return;
+
+            const q = (document.getElementById('drv-delivery-search')?.value || '').trim().toLowerCase();
+            const all = (dispatchOfflineEntries || []).filter(o => {
+                if (!q) return true;
+                const hay = `${o.shopName} ${o.note || ''} ${o.driverName || ''} ${o.unloadingNote || ''} ${o.createdBy || ''}`.toLowerCase();
+                return hay.includes(q);
+            });
+
+            const pendingList = all.filter(o => (o.status || 'pending_pickup') === 'pending_pickup');
+            const unloadingList = all.filter(o => o.status === 'pickup_done');
+            const closedList = all.filter(o => o.status === 'closed');
+
+            const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            setTxt('driver-pickup-tab-count', pendingList.length);
+            setTxt('driver-unloading-tab-count', unloadingList.length);
+            setTxt('driver-closed-count', closedList.length);
+            setTxt('driver-closed-badge', `${closedList.length} Close`);
+
+            if (pickupWrap) {
+                if (pendingList.length === 0) {
+                    pickupWrap.innerHTML = `<div class="col-span-full py-10 text-center text-xs text-slate-400">Belum ada rute dari Dispatch Offline yang menunggu pickup.</div>`;
+                } else {
+                    pickupWrap.innerHTML = pendingList.map(o => `
+                        <div class="p-4 rounded-2xl border border-amber-200 bg-gradient-to-br from-white to-amber-50/40 shadow-xs flex flex-col justify-between gap-3">
+                            <div class="flex items-start gap-3">
+                                ${o.dispatchPhoto ? `
+                                    <img src="${o.dispatchPhoto}" alt="Foto Barang" onclick="openImageLightbox(this.src, 'Barang - ${escapeHtmlText(o.shopName)}')"
+                                        class="w-16 h-16 rounded-xl object-cover border border-amber-200 cursor-pointer shrink-0">
+                                ` : `
+                                    <div class="w-16 h-16 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><i data-lucide="store" class="w-6 h-6"></i></div>
+                                `}
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center justify-between gap-1.5">
+                                        <span class="text-base font-extrabold text-slate-900">${escapeHtmlText(o.shopName)}</span>
+                                        <span class="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 text-xs font-black tabular-nums">${Number(o.koli || 0)} Koli</span>
+                                    </div>
+                                    <div class="text-xs text-slate-500 mt-1 tabular-nums">Dispatch: ${formatDateIndo(o.date)} ${escapeHtmlText(o.time || '-')} · ${escapeHtmlText(o.createdBy || '-')}</div>
+                                    ${o.note ? `<div class="text-xs text-slate-600 italic mt-1">"${escapeHtmlText(o.note)}"</div>` : ''}
+                                </div>
+                            </div>
+                            <button type="button" onclick="openDriverPickupModal('${escapeHtmlText(o.id)}')"
+                                class="w-full py-2.5 px-4 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition inline-flex items-center justify-center gap-2">
+                                <i data-lucide="truck" class="w-4 h-4"></i>
+                                <span>Proses Kirim</span>
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            if (unloadingWrap) {
+                if (unloadingList.length === 0) {
+                    unloadingWrap.innerHTML = `<div class="col-span-full py-10 text-center text-xs text-slate-400">Belum ada barang yang sedang dalam proses kirim untuk di-unloading.</div>`;
+                } else {
+                    unloadingWrap.innerHTML = unloadingList.map(o => {
+                        const hasGps = o.pickupLat && o.pickupLng && o.pickupLat !== '-' && o.pickupLng !== '-';
+                        return `
+                        <div class="p-4 rounded-2xl border border-sky-200 bg-gradient-to-br from-white to-sky-50/40 shadow-xs flex flex-col justify-between gap-3">
+                            <div class="flex items-start gap-3">
+                                ${o.pickupLoadingPhoto ? `
+                                    <img src="${o.pickupLoadingPhoto}" alt="Foto Loading" onclick="openImageLightbox(this.src, 'Loading - ${escapeHtmlText(o.shopName)}')"
+                                        class="w-16 h-16 rounded-xl object-cover border border-sky-200 cursor-pointer shrink-0">
+                                ` : `
+                                    <div class="w-16 h-16 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0"><i data-lucide="truck" class="w-6 h-6"></i></div>
+                                `}
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center justify-between gap-1.5">
+                                        <span class="text-base font-extrabold text-slate-900">${escapeHtmlText(o.shopName)}</span>
+                                        <span class="px-2.5 py-0.5 rounded-lg bg-sky-100 text-sky-800 text-xs font-black tabular-nums">${Number(o.koli || 0)} Koli</span>
+                                    </div>
+                                    <div class="text-xs font-semibold text-sky-800 mt-1">Driver: ${escapeHtmlText(o.driverName || '-')} · ${escapeHtmlText(o.vehicle || '-')}</div>
+                                    <div class="text-[11px] text-slate-500 mt-0.5 tabular-nums">Pickup: ${formatDateIndo(o.pickupDate)} ${escapeHtmlText(o.pickupTime || '-')}</div>
+                                    ${hasGps ? `<a href="https://maps.google.com/?q=${encodeURIComponent(o.pickupLat + ',' + o.pickupLng)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:underline mt-0.5"><i data-lucide="map-pin" class="w-3 h-3"></i>GPS Pickup (${escapeHtmlText(o.pickupLat)}, ${escapeHtmlText(o.pickupLng)})</a>` : ''}
+                                </div>
+                            </div>
+                            <button type="button" onclick="openDriverUnloadingModal('${escapeHtmlText(o.id)}')"
+                                class="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition inline-flex items-center justify-center gap-2">
+                                <i data-lucide="package-check" class="w-4 h-4"></i>
+                                <span>Proses Unloading</span>
+                            </button>
+                        </div>
+                    `;
+                    }).join('');
+                }
+            }
+
+            if (closedWrap) {
+                if (closedList.length === 0) {
+                    closedWrap.innerHTML = `<div class="py-8 text-center text-xs text-slate-400">Belum ada pengiriman yang selesai (Close).</div>`;
+                } else {
+                    closedWrap.innerHTML = closedList.map(o => {
+                        const hasPickGps = o.pickupLat && o.pickupLng && o.pickupLat !== '-';
+                        const hasUnlGps = o.unloadingLat && o.unloadingLng && o.unloadingLat !== '-';
+                        const photos = [
+                            { src: o.dispatchPhoto, label: 'Barang' },
+                            { src: o.pickupLoadingPhoto, label: 'Loading' },
+                            { src: o.pickupDocPhoto, label: 'Dok Pickup' },
+                            { src: o.unloadingGoodsPhoto, label: 'Unloading' },
+                            { src: o.unloadingSignedDocPhoto, label: 'Dok TTD' }
+                        ].filter(p => p.src && String(p.src).startsWith('data:image'));
+
+                        return `
+                            <div class="p-3.5 rounded-xl border border-emerald-200/80 bg-emerald-50/30 space-y-2">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="font-extrabold text-sm text-slate-900">${escapeHtmlText(o.shopName)}</span>
+                                        <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-black">${Number(o.koli || 0)} Koli</span>
+                                        <span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold">Close</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-500">${formatDateIndo(o.unloadingDate)} ${escapeHtmlText(o.unloadingTime || '-')}</span>
+                                </div>
+                                <div class="text-[11px] text-slate-600 flex flex-wrap gap-x-4 gap-y-1">
+                                    <span><strong>Driver:</strong> ${escapeHtmlText(o.driverName || '-')} (${escapeHtmlText(o.vehicle || '-')})</span>
+                                    <span><strong>Pickup:</strong> ${formatDateIndo(o.pickupDate)} ${escapeHtmlText(o.pickupTime || '-')}${hasPickGps ? ` · <a href="https://maps.google.com/?q=${encodeURIComponent(o.pickupLat + ',' + o.pickupLng)}" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-bold hover:underline">GPS</a>` : ''}</span>
+                                    <span><strong>Unloading:</strong> ${formatDateIndo(o.unloadingDate)} ${escapeHtmlText(o.unloadingTime || '-')}${hasUnlGps ? ` · <a href="https://maps.google.com/?q=${encodeURIComponent(o.unloadingLat + ',' + o.unloadingLng)}" target="_blank" rel="noopener noreferrer" class="text-emerald-700 font-bold hover:underline">GPS</a>` : ''}</span>
+                                </div>
+                                ${o.unloadingNote ? `<div class="text-[11px] text-emerald-900 italic">Penerima / Catatan: "${escapeHtmlText(o.unloadingNote)}"</div>` : ''}
+                                ${photos.length > 0 ? `
+                                    <div class="flex flex-wrap gap-1.5">
+                                        ${photos.map(ph => `
+                                            <button type="button" onclick="openImageLightbox('${ph.src}', '${escapeHtmlText(ph.label)} - ${escapeHtmlText(o.shopName)}')"
+                                                class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-emerald-200 hover:bg-emerald-50 text-emerald-800 text-[10px] font-bold transition">
+                                                <i data-lucide="image" class="w-3 h-3"></i><span>${escapeHtmlText(ph.label)}</span>
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+            lucide.createIcons();
         }
 
         function setDriverDraftPhoto(target, dataUrl) {
             driverDraftPhotos[target] = dataUrl || '';
-            const prefix = target === 'checkin' ? 'drv-checkin' : target === 'expense' ? 'drv-exp' : 'drv-veh';
+            const prefix = target === 'expense' ? 'drv-exp' : 'drv-veh';
             const wrap = document.getElementById(`${prefix}-photo-preview-wrap`);
             const img = document.getElementById(`${prefix}-photo-preview`);
             if (img) img.src = driverDraftPhotos[target];
@@ -16746,18 +18056,9 @@ function doPost(e) {
 
         function clearDriverDraftPhoto(target) {
             setDriverDraftPhoto(target, '');
-            const prefix = target === 'checkin' ? 'drv-checkin' : target === 'expense' ? 'drv-exp' : 'drv-veh';
+            const prefix = target === 'expense' ? 'drv-exp' : 'drv-veh';
             const fileEl = document.getElementById(`${prefix}-photo-file`);
             if (fileEl) fileEl.value = '';
-        }
-
-        function openDriverSelfieCamera() {
-            openPhotoCameraModal({
-                title: 'Foto Selfie Driver di Lokasi',
-                facingMode: 'user',
-                allowSkip: false,
-                onCapture: dataUrl => setDriverDraftPhoto('checkin', dataUrl)
-            });
         }
 
         function openDriverKmCamera() {
@@ -16832,58 +18133,14 @@ function doPost(e) {
         }
 
         function renderDriverHeroSummary() {
-            const cEl = document.getElementById('driver-hero-checkin-cnt');
+            const dEl = document.getElementById('driver-hero-delivery-cnt');
             const eEl = document.getElementById('driver-hero-expense-total');
             const vEl = document.getElementById('driver-hero-vehicle-cnt');
             const totalCost = driverExpenses.reduce((sum, x) => sum + Number(x.totalCost || 0), 0);
-            if (cEl) cEl.textContent = driverCheckins.length;
+            if (dEl) dEl.textContent = (dispatchOfflineEntries || []).length;
             if (eEl) eEl.textContent = `Rp ${totalCost.toLocaleString('id-ID')}`;
             if (vEl) vEl.textContent = driverVehicleLogs.length;
         }
-
-        document.getElementById('driver-checkin-form')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const driverName = document.getElementById('drv-checkin-driver')?.value || '';
-            const vehicle = document.getElementById('drv-checkin-vehicle')?.value || '-';
-            const location = (document.getElementById('drv-checkin-location')?.value || '').trim();
-            const lat = (document.getElementById('drv-checkin-lat')?.value || '').trim();
-            const lng = (document.getElementById('drv-checkin-lng')?.value || '').trim();
-            const note = (document.getElementById('drv-checkin-note')?.value || '').trim();
-            const photo = driverDraftPhotos.checkin || '';
-
-            if (!driverName || !location) {
-                showToast('Lengkapi Nama Driver dan Lokasi Tujuan terlebih dahulu.', 'warning');
-                return;
-            }
-            if (!photo) {
-                showToast('Silakan ambil atau upload foto selfie di lokasi.', 'warning');
-                return;
-            }
-
-            const item = {
-                id: 'DRV-CHK-' + Date.now().toString().slice(-6),
-                date: getTodayISO(),
-                time: nowHHmm(),
-                driverName,
-                vehicle,
-                location,
-                lat,
-                lng,
-                photo,
-                note,
-                createdBy: currentUser?.username || driverName
-            };
-            driverCheckins.unshift(item);
-            saveAppStateToLocal();
-            sheetUpsertItem('DriverCheckin', item);
-
-            document.getElementById('drv-checkin-location').value = '';
-            document.getElementById('drv-checkin-note').value = '';
-            clearDriverDraftPhoto('checkin');
-            renderDriverHeroSummary();
-            renderDriverCheckinList();
-            showToast('Check-in lokasi & selfie driver berhasil disimpan!', 'success');
-        });
 
         document.getElementById('driver-expense-form')?.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -16997,52 +18254,7 @@ function doPost(e) {
         });
 
         function renderDriverCheckinList() {
-            const container = document.getElementById('drv-checkin-list-container');
-            if (!container) return;
-            const filterDate = document.getElementById('drv-checkin-filter-date')?.value || '';
-            const rows = filterDate ? driverCheckins.filter(c => c.date === filterDate) : driverCheckins;
-            if (rows.length === 0) {
-                container.innerHTML = `<div class="py-10 text-center text-xs text-slate-400">Belum ada check-in lokasi selfie driver.</div>`;
-                return;
-            }
-            container.innerHTML = rows.map(c => {
-                const hasCoords = Boolean(c.lat && c.lng);
-                const mapsUrl = hasCoords ? `https://maps.google.com/?q=${encodeURIComponent(c.lat + ',' + c.lng)}` : '';
-                return `
-                    <div class="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/40 flex items-start gap-3">
-                        ${c.photo ? `
-                            <img src="${c.photo}" alt="Selfie" onclick="openImageLightbox(this.src, 'Selfie ${escapeHtmlText(c.driverName)} - ${escapeHtmlText(c.location)}')"
-                                class="w-16 h-16 rounded-xl object-cover border border-sky-200 cursor-pointer shrink-0 hover:opacity-90">
-                        ` : `
-                            <div class="w-16 h-16 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0"><i data-lucide="user" class="w-6 h-6"></i></div>
-                        `}
-                        <div class="flex-1 min-w-0">
-                            <div class="flex flex-wrap items-center justify-between gap-2">
-                                <div class="font-extrabold text-sm text-slate-900">${escapeHtmlText(c.driverName)} <span class="text-xs font-semibold text-slate-500">• ${escapeHtmlText(c.vehicle || '-')}</span></div>
-                                <span class="px-2 py-0.5 rounded-md bg-white border border-slate-200 font-mono text-[11px] font-bold text-slate-600">${formatDateIndo(c.date)} ${escapeHtmlText(c.time)}</span>
-                            </div>
-                            <div class="mt-1 text-xs font-bold text-sky-800 flex items-center gap-1">
-                                <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0"></i>
-                                <span class="truncate">${escapeHtmlText(c.location)}</span>
-                            </div>
-                            <div class="mt-1 flex flex-wrap items-center gap-2 text-[11px]">
-                                ${hasCoords ? `
-                                    <span class="font-mono text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">${escapeHtmlText(c.lat)}, ${escapeHtmlText(c.lng)}</span>
-                                    <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline">
-                                        <i data-lucide="external-link" class="w-3 h-3"></i>
-                                        <span>Buka Google Maps</span>
-                                    </a>
-                                ` : `<span class="text-slate-400 italic">Koordinat GPS tidak diisi</span>`}
-                            </div>
-                            ${c.note ? `<div class="mt-1 text-[11px] text-slate-600 italic">"${escapeHtmlText(c.note)}"</div>` : ''}
-                        </div>
-                        <button type="button" onclick="deleteDriverCheckin('${escapeHtmlText(c.id)}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition shrink-0" title="Hapus">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                `;
-            }).join('');
-            lucide.createIcons();
+            renderDriverDeliveryLists();
         }
 
         function renderDriverExpenseList() {
@@ -17190,10 +18402,18 @@ function doPost(e) {
         }
 
         function exportDriverTabCsv() {
-            if (currentDriverTab === 'checkin') {
-                const headers = ['ID', 'Tanggal', 'Jam', 'Nama Driver', 'Armada', 'Lokasi', 'Latitude', 'Longitude', 'Google Maps Link', 'Catatan'];
-                const rows = driverCheckins.map(c => [c.id, c.date, c.time, c.driverName, c.vehicle || '-', c.location, c.lat || '-', c.lng || '-', (c.lat && c.lng) ? `https://maps.google.com/?q=${c.lat},${c.lng}` : '-', c.note || '-']);
-                downloadCsvFile(`Driver_Lokasi_Checkin_${getTodayISO()}.csv`, headers, rows);
+            if (currentDriverTab === 'delivery') {
+                const headers = ['ID', 'Tanggal', 'Jam Input', 'Nama Shop', 'Jumlah Koli', 'Status', 'Driver', 'Armada', 'Tgl Pickup', 'Jam Pickup', 'GPS Pickup', 'Tgl Unloading', 'Jam Unloading', 'GPS Unloading', 'Catatan Unloading'];
+                const rows = (dispatchOfflineEntries || []).map(o => [
+                    o.id, o.date, o.time || '-', o.shopName, o.koli,
+                    o.status === 'closed' ? 'Close' : o.status === 'pickup_done' ? 'Proses Kirim' : 'Menunggu Pickup',
+                    o.driverName || '-', o.vehicle || '-', o.pickupDate || '-', o.pickupTime || '-',
+                    (o.pickupLat && o.pickupLng && o.pickupLat !== '-') ? `${o.pickupLat},${o.pickupLng}` : '-',
+                    o.unloadingDate || '-', o.unloadingTime || '-',
+                    (o.unloadingLat && o.unloadingLng && o.unloadingLat !== '-') ? `${o.unloadingLat},${o.unloadingLng}` : '-',
+                    o.unloadingNote || '-'
+                ]);
+                downloadCsvFile(`Driver_Proses_Kirim_Barang_${getTodayISO()}.csv`, headers, rows);
             } else if (currentDriverTab === 'expense') {
                 const headers = ['ID', 'Tanggal', 'Jam', 'Nama Driver', 'Armada', 'KM', 'Tol', 'Bensin', 'Parkir', 'Total Biaya', 'Keterangan'];
                 const rows = driverExpenses.map(e => [e.id, e.date, e.time, e.driverName, e.vehicle || '-', e.km, e.tol, e.bensin, e.parkir, e.totalCost, e.note || '-']);
@@ -17943,6 +19163,13 @@ function doPost(e) {
                     d.totalTransactions++;
                 }
             });
+            dispatchOfflineEntries.filter(o => o.driverName && inRange(o.pickupDate || o.date)).forEach(o => {
+                const d = ensureStaff(o.driverName, 'Driver');
+                if (d) {
+                    d.driverCheckinTx++;
+                    d.totalTransactions++;
+                }
+            });
             driverExpenses.filter(e => inRange(e.date)).forEach(e => {
                 const d = ensureStaff(e.driverName, 'Driver');
                 if (d) {
@@ -18208,7 +19435,7 @@ function doPost(e) {
                 ['Cycle Count', `${s.cycleCountTx} entri • ${s.cycleCountQty.toLocaleString('id-ID')} pcs`],
                 ['Quality Control (QC)', `${s.qcProsesTx} job proses • ${s.qcProsesQty.toLocaleString('id-ID')} pcs • Rata-rata Ach: ${s.qcProsesTx > 0 ? Math.round(s.qcAchSum / s.qcProsesTx) : 0}%`],
                 ['Project / Joblist', `${s.projectDone} selesai dari ${s.projectTotal} job • Terlambat: ${s.projectOverdue}`],
-                ['Driver (Lokasi/KM/Armada)', `${s.driverCheckinTx} check-in GPS • ${s.driverExpenseTx} lap KM (Rp ${s.driverExpenseTotal.toLocaleString('id-ID')}) • ${s.driverVehicleTx} cek mobil`]
+                ['Driver (Kirim/KM/Armada)', `${s.driverCheckinTx} proses kirim • ${s.driverExpenseTx} lap KM (Rp ${s.driverExpenseTotal.toLocaleString('id-ID')}) • ${s.driverVehicleTx} cek mobil`]
             ];
 
             document.getElementById('kpi-detail-modal-body').innerHTML = `
