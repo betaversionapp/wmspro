@@ -182,18 +182,39 @@
                 background: #ffffff !important;
                 box-shadow: none !important;
             }
-            body:not(.printing-barang-barcode) #login-view,
-            body:not(.printing-barang-barcode) #toast-container,
-            body:not(.printing-barang-barcode) header,
-            body:not(.printing-barang-barcode) .no-print {
+            body.printing-berita-acara * {
+                visibility: hidden !important;
+            }
+            body.printing-berita-acara #return-berita-acara-print-sheet,
+            body.printing-berita-acara #return-berita-acara-print-sheet * {
+                visibility: visible !important;
+            }
+            body.printing-berita-acara #return-berita-acara-print-sheet {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 10mm 12mm !important;
+                background: #ffffff !important;
+                border: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                color: #000000 !important;
+            }
+            body:not(.printing-barang-barcode):not(.printing-berita-acara) #login-view,
+            body:not(.printing-barang-barcode):not(.printing-berita-acara) #toast-container,
+            body:not(.printing-barang-barcode):not(.printing-berita-acara) header,
+            body:not(.printing-barang-barcode):not(.printing-berita-acara) .no-print {
                 display: none !important;
             }
-            body:not(.printing-barang-barcode) #app-shell,
-            body:not(.printing-barang-barcode) main,
-            body:not(.printing-barang-barcode) #view-print-label,
-            body:not(.printing-barang-barcode) #print-label-grid,
-            body:not(.printing-barang-barcode) #print-label-preview-card,
-            body:not(.printing-barang-barcode) #print-label-canvas-wrap {
+            body:not(.printing-barang-barcode):not(.printing-berita-acara) #app-shell,
+            body:not(.printing-barang-barcode):not(.printing-berita-acara) main,
+            body:not(.printing-barang-barcode):not(.printing-berita-acara) #view-print-label,
+            body:not(.printing-barang-barcode):not(.printing-berita-acara) #print-label-grid,
+            body:not(.printing-barang-barcode):not(.printing-berita-acara) #print-label-preview-card,
+            body:not(.printing-barang-barcode):not(.printing-berita-acara) #print-label-canvas-wrap {
                 display: block !important;
                 margin: 0 !important;
                 padding: 0 !important;
@@ -206,7 +227,7 @@
                 overflow: visible !important;
                 border-radius: 0 !important;
             }
-            body:not(.printing-barang-barcode) #print-label-sheet-area {
+            body:not(.printing-barang-barcode):not(.printing-berita-acara) #print-label-sheet-area {
                 display: block !important;
                 gap: 0 !important;
                 margin: 0 !important;
@@ -775,7 +796,7 @@ function doPost(e) {
                             </div>
                             <div>
                                 <h2 class="text-xl font-bold text-slate-900">Manajemen Data User & Posisi</h2>
-                                <p class="text-sm text-slate-500">Posisi menentukan menu apa saja yang otomatis terbuka (Manager & SPV = All Menu).</p>
+                                <p class="text-sm text-slate-500">Posisi menentukan menu apa saja yang otomatis terbuka (hak akses Manager & SPV dapat diatur bebas).</p>
                             </div>
                         </div>
 
@@ -4737,6 +4758,428 @@ function doPost(e) {
             </section>
 
             <!-- ========================================== -->
+            <!-- VIEW: MODUL RETURN (OFFLINE & ONLINE)      -->
+            <!-- ========================================== -->
+            <section id="view-return" class="hidden fade-in space-y-5">
+                <div class="max-w-7xl mx-auto space-y-5">
+                    <!-- Top Bar -->
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <button type="button" onclick="navigateTo('home')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap shrink-0">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                            <span>Kembali ke Menu Utama</span>
+                        </button>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" onclick="syncReturnOfflineToSheet()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-indigo-50 text-indigo-700 rounded-xl text-xs font-bold shadow-sm transition whitespace-nowrap shrink-0">
+                                <i data-lucide="cloud-upload" class="w-4 h-4"></i>
+                                <span>Kirim ke Google Sheet</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hero Banner -->
+                    <div class="bg-gradient-to-br from-rose-600 via-red-600 to-orange-600 rounded-2xl p-6 sm:p-7 text-white shadow-lg relative overflow-hidden">
+                        <div class="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-white/10"></div>
+                        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
+                                    <i data-lucide="rotate-ccw" class="w-7 h-7"></i>
+                                </div>
+                                <div>
+                                    <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-bold uppercase tracking-wider">Return Warehouse</span>
+                                    <h2 class="text-xl sm:text-2xl font-extrabold mt-1">Menu Return (Offline Waste &amp; Online Paket)</h2>
+                                    <p class="text-xs sm:text-sm text-rose-100 mt-1">Catat barang waste beserta cetak Berita Acara Serah Terima Barang serta kelola retur paket online.</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0">
+                                <div class="px-3.5 py-2.5 rounded-xl bg-white/15 border border-white/20">
+                                    <div class="text-[10px] font-bold uppercase text-rose-100">Waste Offline</div>
+                                    <div id="ret-hero-off-cnt" class="text-lg font-extrabold tabular-nums">0</div>
+                                </div>
+                                <div class="px-3.5 py-2.5 rounded-xl bg-white/15 border border-white/20">
+                                    <div class="text-[10px] font-bold uppercase text-rose-100">Total Qty Waste</div>
+                                    <div id="ret-hero-off-qty" class="text-lg font-extrabold tabular-nums">0</div>
+                                </div>
+                                <div class="px-3.5 py-2.5 rounded-xl bg-white/15 border border-white/20">
+                                    <div class="text-[10px] font-bold uppercase text-rose-100">Paket Online</div>
+                                    <div id="ret-hero-on-cnt" class="text-lg font-extrabold tabular-nums">0</div>
+                                </div>
+                                <div class="px-3.5 py-2.5 rounded-xl bg-white/15 border border-white/20">
+                                    <div class="text-[10px] font-bold uppercase text-rose-100">Total Qty Paket</div>
+                                    <div id="ret-hero-on-qty" class="text-lg font-extrabold tabular-nums">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Switcher: Retur Offline vs Retur Online -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-1.5 inline-flex flex-wrap gap-1.5 w-full sm:w-auto">
+                        <button type="button" id="return-tab-btn-offline" onclick="setReturnTab('offline')"
+                            class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition bg-gradient-to-r from-rose-600 to-orange-600 text-white shadow-sm whitespace-nowrap">
+                            <i data-lucide="file-warning" class="w-4 h-4"></i>
+                            <span>Tab Retur Offline (Waste &amp; Berita Acara)</span>
+                        </button>
+                        <button type="button" id="return-tab-btn-online" onclick="setReturnTab('online')"
+                            class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-50 whitespace-nowrap">
+                            <i data-lucide="package-x" class="w-4 h-4"></i>
+                            <span>Tab Retur Online (Retur Paket)</span>
+                        </button>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- PANEL 1: TAB RETUR OFFLINE (WASTE & BA)    -->
+                    <!-- ========================================== -->
+                    <div id="return-panel-offline" class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                        <!-- Kiri: Form Input Waste + Daftar Waste -->
+                        <div class="xl:col-span-5 space-y-5">
+                            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6">
+                                <div class="flex items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                                            <i data-lucide="trash" class="w-5 h-5"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-extrabold text-slate-900 text-base">Form Input Waste</h3>
+                                            <p class="text-xs text-slate-500">Item otomatis masuk ke Berita Acara untuk dicetak</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form id="return-offline-form" class="space-y-4">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <label for="ret-off-date" class="text-xs font-bold text-slate-700">Tanggal <span class="text-rose-500">*</span></label>
+                                            <button type="button" onclick="setReturnOfflineTodayDate()" class="text-[11px] font-bold text-rose-600 hover:underline">Hari Ini</button>
+                                        </div>
+                                        <input type="date" id="ret-off-date" onchange="onReturnOfflineDateChange()" required
+                                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition tabular-nums">
+                                    </div>
+
+                                    <!-- Search SKU / Nama Barang / Scan Kamera -->
+                                    <div>
+                                        <label for="ret-off-product-search" class="block text-xs font-bold text-slate-700 mb-1.5">
+                                            Cari Barang (Kode SKU / Nama / Scan Barcode) <span class="text-rose-500">*</span>
+                                        </label>
+                                        <div class="flex items-stretch gap-2">
+                                            <div class="relative flex-1 min-w-0">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                    <i data-lucide="search" class="w-4 h-4"></i>
+                                                </div>
+                                                <input type="text" id="ret-off-product-search" autocomplete="off"
+                                                    onfocus="showReturnOfflineProductDropdown()" oninput="filterReturnOfflineProductDropdown()"
+                                                    onkeydown="handleReturnOfflineSearchEnter(event)"
+                                                    placeholder="Ketik SKU, nama barang, atau scan barcode..."
+                                                    class="w-full pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition">
+                                                <button type="button" id="clear-ret-off-search-btn" onclick="resetReturnOfflineProductSelection()"
+                                                    class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                                </button>
+                                                <div id="ret-off-product-dropdown" class="hidden absolute z-30 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-slate-100"></div>
+                                            </div>
+                                            <button type="button" onclick="openBarcodeCameraModal('return_offline')"
+                                                class="px-3.5 py-2.5 bg-slate-900 hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 shrink-0"
+                                                title="Scan Barcode Kamera">
+                                                <i data-lucide="camera" class="w-4 h-4"></i>
+                                                <span>Scan</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Kode SKU & Nama Barang Otomatis -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-rose-50/60 border border-rose-200/80">
+                                        <div>
+                                            <div class="flex items-center justify-between mb-1">
+                                                <label class="text-[11px] font-bold uppercase text-rose-700">Kode SKU (Otomatis)</label>
+                                                <span id="ret-off-barcode-preview" class="text-[10px] font-mono font-bold text-slate-500">Barcode: -</span>
+                                            </div>
+                                            <input type="text" id="ret-off-sku" readonly value="-"
+                                                class="w-full px-3 py-2 bg-white border border-rose-200 rounded-lg text-xs font-mono font-extrabold text-slate-900">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[11px] font-bold uppercase text-rose-700 mb-1">Nama Barang (Otomatis)</label>
+                                            <input type="text" id="ret-off-name" readonly value="-"
+                                                class="w-full px-3 py-2 bg-white border border-rose-200 rounded-lg text-xs font-bold text-slate-900">
+                                        </div>
+                                    </div>
+
+                                    <!-- Qty + Quick Tap -->
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <label for="ret-off-qty" class="text-xs font-bold text-slate-700">Qty Waste <span class="text-rose-500">*</span></label>
+                                            <span class="text-[11px] text-slate-400">tap cepat di bawah</span>
+                                        </div>
+                                        <input type="number" id="ret-off-qty" min="1" required placeholder="0"
+                                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-extrabold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition tabular-nums">
+                                        <div id="ret-off-quick-qty" class="flex flex-wrap gap-1.5 mt-2"></div>
+                                    </div>
+
+                                    <!-- Alasan (Quick Tap sama dengan Notes kerusakan QC) -->
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <label for="ret-off-reason" class="text-xs font-bold text-slate-700">Alasan Waste <span class="text-rose-500">*</span></label>
+                                            <span class="text-[11px] text-emerald-700 font-semibold">Sinkron Notes QC</span>
+                                        </div>
+                                        <input type="text" id="ret-off-reason" required placeholder="Pilih quick tap atau ketik alasan..."
+                                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition">
+                                        <div id="ret-off-quick-reasons" class="flex flex-wrap gap-1.5 mt-2"></div>
+                                    </div>
+
+                                    <!-- Keterangan Tambahan (tampil di kolom Keterangan Berita Acara) -->
+                                    <div>
+                                        <label for="ret-off-note" class="block text-xs font-bold text-slate-700 mb-1.5">Keterangan Tambahan (Untuk Kolom Berita Acara)</label>
+                                        <input type="text" id="ret-off-note" placeholder="Contoh: EXP 8/26 barang tidak masuk di sistem"
+                                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition">
+                                    </div>
+
+                                    <button type="submit"
+                                        class="w-full py-3 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white font-bold rounded-xl text-sm shadow-md shadow-rose-600/20 transition flex items-center justify-center gap-2">
+                                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                                        <span>Simpan &amp; Masukkan ke Berita Acara</span>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Daftar Item Waste & Export -->
+                            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                                <div class="p-4 sm:p-5 border-b border-slate-100 space-y-3">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <div>
+                                            <h3 class="text-sm sm:text-base font-extrabold text-slate-900">List Data Waste / Retur Offline</h3>
+                                            <p id="ret-off-list-meta" class="text-[11px] text-slate-500 mt-0.5">0 item tercatat</p>
+                                        </div>
+                                        <div class="flex flex-wrap items-center gap-1.5">
+                                            <button type="button" onclick="exportReturnOfflineExcel()"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs transition whitespace-nowrap">
+                                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+                                                <span>Excel</span>
+                                            </button>
+                                            <button type="button" onclick="syncReturnOfflineToSheet()"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition whitespace-nowrap">
+                                                <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i>
+                                                <span>Sheet</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <select id="ret-off-scope-filter" onchange="renderReturnOfflineListAndBa()"
+                                            class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700">
+                                            <option value="date">Tanggal Terpilih</option>
+                                            <option value="all">Semua Tanggal</option>
+                                        </select>
+                                        <input type="text" id="ret-off-search" oninput="renderReturnOfflineListAndBa()" placeholder="Filter SKU, barcode, alasan..."
+                                            class="flex-1 min-w-[140px] px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                                    </div>
+                                </div>
+                                <div id="ret-off-list-container" class="divide-y divide-slate-100 max-h-[440px] overflow-y-auto p-3 space-y-2"></div>
+                            </div>
+                        </div>
+
+                        <!-- Kanan: Template Berita Acara Serah Terima Barang (Sesuai Gambar) -->
+                        <div class="xl:col-span-7 space-y-4">
+                            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-4 no-print">
+                                <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                                    <div>
+                                        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                                            <i data-lucide="file-text" class="w-4 h-4 text-rose-600"></i>
+                                            <span>Template Berita Acara Serah Terima Barang</span>
+                                        </h3>
+                                        <p class="text-xs text-slate-500">Item waste yang dicentang otomatis masuk ke tabel Berita Acara siap cetak</p>
+                                    </div>
+                                    <button type="button" onclick="printReturnBeritaAcara()"
+                                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-rose-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition whitespace-nowrap">
+                                        <i data-lucide="printer" class="w-4 h-4"></i>
+                                        <span>Print Berita Acara</span>
+                                    </button>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                    <div>
+                                        <label for="ret-ba-subtitle" class="block font-bold text-slate-700 mb-1">Subjudul Berita Acara</label>
+                                        <input type="text" id="ret-ba-subtitle" value="(TAKE OUT BARANG EXPIRED)" oninput="renderReturnBeritaAcaraPreview()"
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800">
+                                    </div>
+                                    <div>
+                                        <label for="ret-ba-reason" class="block font-bold text-slate-700 mb-1">Alasan Penyerahan</label>
+                                        <input type="text" id="ret-ba-reason" value="Barang Expired (Take Out)" oninput="renderReturnBeritaAcaraPreview()"
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                                    <div>
+                                        <label for="ret-ba-approver" class="block font-bold text-slate-700 mb-1">Persetujuan (Opsional)</label>
+                                        <input type="text" id="ret-ba-approver" placeholder="Kosong = titik-titik" oninput="renderReturnBeritaAcaraPreview()"
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800">
+                                    </div>
+                                    <div>
+                                        <label for="ret-ba-handover" class="block font-bold text-slate-700 mb-1">Menyerahkan (Opsional)</label>
+                                        <input type="text" id="ret-ba-handover" placeholder="Kosong = titik-titik" oninput="renderReturnBeritaAcaraPreview()"
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800">
+                                    </div>
+                                    <div>
+                                        <label for="ret-ba-receiver" class="block font-bold text-slate-700 mb-1">Menerima (Opsional)</label>
+                                        <input type="text" id="ret-ba-receiver" placeholder="Kosong = titik-titik" oninput="renderReturnBeritaAcaraPreview()"
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview & Print Area Dokumen Berita Acara -->
+                            <div class="bg-slate-100/90 border border-dashed border-slate-300 rounded-2xl p-3 sm:p-5 overflow-x-auto">
+                                <div id="return-berita-acara-print-sheet" class="bg-white text-black mx-auto shadow-sm border border-slate-300 p-6 sm:p-10 max-w-[794px] min-h-[540px] text-[13px] leading-relaxed" style="font-family: 'Times New Roman', Georgia, serif;">
+                                    <!-- Di-render dinamis oleh renderReturnBeritaAcaraPreview() -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- PANEL 2: TAB RETUR ONLINE (RETUR PAKET)    -->
+                    <!-- ========================================== -->
+                    <div id="return-panel-online" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        <!-- Kiri: Form Retur Paket -->
+                        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6">
+                            <div class="flex items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                                        <i data-lucide="package-x" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-extrabold text-slate-900 text-base">Form Retur Paket</h3>
+                                        <p class="text-xs text-slate-500">Catat retur paket marketplace / online</p>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="openReturnOnlineReasonSetting()"
+                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 text-[11px] font-bold transition whitespace-nowrap">
+                                    <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                                    <span>Atur Alasan</span>
+                                </button>
+                            </div>
+
+                            <form id="return-online-form" class="space-y-4">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label for="ret-on-date" class="text-xs font-bold text-slate-700">Tanggal <span class="text-rose-500">*</span></label>
+                                        <button type="button" onclick="setReturnOnlineTodayDate()" class="text-[11px] font-bold text-indigo-600 hover:underline">Hari Ini</button>
+                                    </div>
+                                    <input type="date" id="ret-on-date" onchange="renderReturnOnlineList()" required
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition tabular-nums">
+                                </div>
+
+                                <!-- Search SKU / Nama Barang / Scan Kamera -->
+                                <div>
+                                    <label for="ret-on-product-search" class="block text-xs font-bold text-slate-700 mb-1.5">
+                                        Cari Barang (Kode SKU / Nama / Scan Barcode) <span class="text-rose-500">*</span>
+                                    </label>
+                                    <div class="flex items-stretch gap-2">
+                                        <div class="relative flex-1 min-w-0">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                <i data-lucide="search" class="w-4 h-4"></i>
+                                            </div>
+                                            <input type="text" id="ret-on-product-search" autocomplete="off"
+                                                onfocus="showReturnOnlineProductDropdown()" oninput="filterReturnOnlineProductDropdown()"
+                                                onkeydown="handleReturnOnlineSearchEnter(event)"
+                                                placeholder="Ketik SKU, nama barang, atau scan barcode..."
+                                                class="w-full pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                                            <button type="button" id="clear-ret-on-search-btn" onclick="resetReturnOnlineProductSelection()"
+                                                class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                                                <i data-lucide="x" class="w-4 h-4"></i>
+                                            </button>
+                                            <div id="ret-on-product-dropdown" class="hidden absolute z-30 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-slate-100"></div>
+                                        </div>
+                                        <button type="button" onclick="openBarcodeCameraModal('return_online')"
+                                            class="px-3.5 py-2.5 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 shrink-0"
+                                            title="Scan Barcode Kamera">
+                                            <i data-lucide="camera" class="w-4 h-4"></i>
+                                            <span>Scan</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Kode SKU & Nama Barang Otomatis -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-200/80">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <label class="text-[11px] font-bold uppercase text-indigo-700">Kode SKU (Otomatis)</label>
+                                            <span id="ret-on-barcode-preview" class="text-[10px] font-mono font-bold text-slate-500">Barcode: -</span>
+                                        </div>
+                                        <input type="text" id="ret-on-sku" readonly value="-"
+                                            class="w-full px-3 py-2 bg-white border border-indigo-200 rounded-lg text-xs font-mono font-extrabold text-slate-900">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold uppercase text-indigo-700 mb-1">Nama Barang (Otomatis)</label>
+                                        <input type="text" id="ret-on-name" readonly value="-"
+                                            class="w-full px-3 py-2 bg-white border border-indigo-200 rounded-lg text-xs font-bold text-slate-900">
+                                    </div>
+                                </div>
+
+                                <!-- Qty + Quick Tap -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label for="ret-on-qty" class="text-xs font-bold text-slate-700">Qty Retur <span class="text-rose-500">*</span></label>
+                                        <span class="text-[11px] text-slate-400">tap cepat di bawah</span>
+                                    </div>
+                                    <input type="number" id="ret-on-qty" min="1" required placeholder="0"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-extrabold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition tabular-nums">
+                                    <div id="ret-on-quick-qty" class="flex flex-wrap gap-1.5 mt-2"></div>
+                                </div>
+
+                                <!-- Alasan Retur Paket (Quick Tap & Dropdown, Sort A-Z, Add/Edit/Delete di Setting) -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label for="ret-on-reason" class="text-xs font-bold text-slate-700">Alasan Retur Paket <span class="text-rose-500">*</span></label>
+                                        <span class="text-[11px] text-slate-400">Urut A – Z</span>
+                                    </div>
+                                    <div id="ret-on-quick-reasons" class="flex flex-wrap gap-1.5 mb-2"></div>
+                                    <select id="ret-on-reason" required onchange="renderReturnOnlineReasonChips()"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                                        <option value="">— Pilih Alasan —</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label for="ret-on-note" class="block text-xs font-bold text-slate-700 mb-1.5">No. Resi / Catatan (Opsional)</label>
+                                    <input type="text" id="ret-on-note" placeholder="Contoh: Resi JX12345678 / kondisi dus..."
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                                </div>
+
+                                <button type="submit"
+                                    class="w-full py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold rounded-xl text-sm shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2">
+                                    <i data-lucide="save" class="w-4 h-4"></i>
+                                    <span>Simpan Retur Paket</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Kanan: Riwayat & Export Excel Retur Online -->
+                        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <div class="p-4 sm:p-5 border-b border-slate-100 space-y-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <div>
+                                        <h3 class="text-base font-extrabold text-slate-900">Daftar Retur Paket Online</h3>
+                                        <p id="ret-on-list-meta" class="text-xs text-slate-500 mt-0.5">0 entri · 0 pcs</p>
+                                    </div>
+                                    <button type="button" onclick="exportReturnOnlineExcel()"
+                                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold shadow-sm transition whitespace-nowrap">
+                                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                                        <span>Export Excel (.xlsx)</span>
+                                    </button>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <select id="ret-on-scope-filter" onchange="renderReturnOnlineList()"
+                                        class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700">
+                                        <option value="date">Tanggal Terpilih</option>
+                                        <option value="all">Semua Tanggal</option>
+                                    </select>
+                                    <input type="text" id="ret-on-search" oninput="renderReturnOnlineList()" placeholder="Cari SKU, barang, alasan, atau resi..."
+                                        class="flex-1 min-w-[160px] px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                            <div id="ret-on-list-container" class="divide-y divide-slate-100 max-h-[650px] overflow-y-auto p-4 space-y-2.5"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================== -->
             <!-- VIEW: MODUL INVENTORY CONTROL              -->
             <!-- ========================================== -->
             <section id="view-inventory" class="hidden fade-in space-y-5">
@@ -6430,6 +6873,18 @@ function doPost(e) {
                 desc: 'Pemeriksaan kualitas dan kelayakan barang sebelum disimpan/dikirim.'
             },
             {
+                id: 'return',
+                title: 'Return',
+                subtitle: 'Retur Offline & Online',
+                icon: 'rotate-ccw',
+                colorBg: 'bg-gradient-to-br from-rose-500 via-red-500 to-orange-600',
+                colorText: 'text-white',
+                shadowClass: 'shadow-rose-500/30',
+                hoverText: 'group-hover:text-rose-600',
+                hoverBorder: 'hover:border-rose-400',
+                desc: 'Input retur offline (waste & berita acara serah terima) serta retur paket online.'
+            },
+            {
                 id: 'setting',
                 title: 'Setting',
                 subtitle: 'Link Apps Script Sheet',
@@ -6462,12 +6917,12 @@ function doPost(e) {
         let ROLE_PERMISSIONS = {
             'Manager': [...ALL_MENU_IDS],
             'SPV': [...ALL_MENU_IDS],
-            'Admin': ['absen', 'admin', 'dispatch', 'laporan', 'master_barang', 'overtime', 'print_label'],
-            'Operator': ['absen', 'dispatch', 'overtime', 'print_label', 'qc'],
+            'Admin': ['absen', 'admin', 'dispatch', 'laporan', 'master_barang', 'overtime', 'print_label', 'return'],
+            'Operator': ['absen', 'dispatch', 'overtime', 'print_label', 'qc', 'return'],
             'Packer': ['absen', 'dispatch', 'overtime', 'print_label'],
             'Dispatch': ['absen', 'dispatch', 'overtime', 'print_label'],
-            'Inventory': ['absen', 'inventory', 'laporan', 'master_barang', 'overtime', 'qc', 'opname'],
-            'Qc': ['absen', 'overtime', 'print_label', 'qc'],
+            'Inventory': ['absen', 'inventory', 'laporan', 'master_barang', 'overtime', 'qc', 'opname', 'return'],
+            'Qc': ['absen', 'overtime', 'print_label', 'qc', 'return'],
             'Driver': ['absen', 'driver', 'overtime']
         };
 
@@ -6672,6 +7127,32 @@ function doPost(e) {
         ];
         let qcQuickNotes = [...DEFAULT_QC_QUICK_NOTES];
 
+        const DEFAULT_RETURN_OFFLINE_QUICK_QTYS = ['1', '5', '10', '25', '50'];
+        let returnOfflineQuickQtys = [...DEFAULT_RETURN_OFFLINE_QUICK_QTYS];
+
+        const DEFAULT_RETURN_ONLINE_QUICK_QTYS = ['1', '2', '5', '10', '20'];
+        let returnOnlineQuickQtys = [...DEFAULT_RETURN_ONLINE_QUICK_QTYS];
+
+        const DEFAULT_RETURN_ONLINE_REASONS = [
+            'Dibatalkan buyer',
+            'Dibatalkan seller',
+            'Dibatalkan sistem',
+            'Kesalahan logistik'
+        ];
+        function normalizeReturnOnlineReasons(list) {
+            const seen = new Map();
+            (Array.isArray(list) ? list : []).forEach(raw => {
+                const text = String(raw || '').trim();
+                if (!text) return;
+                const key = text.toLowerCase();
+                if (!seen.has(key)) seen.set(key, text);
+            });
+            return Array.from(seen.values()).sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
+        }
+        let returnOnlineReasons = normalizeReturnOnlineReasons(DEFAULT_RETURN_ONLINE_REASONS);
+        let returnOfflineEntries = [];
+        let returnOnlineEntries = [];
+
         let overtimeEntries = [];
 
         let masterBarangData = [];
@@ -6864,6 +7345,18 @@ function doPost(e) {
                 row: m => [m.sku, Number(m.stock || 0), Number(m.minStock || 0), Number(m.maxStock || 0), Number(m.avgDailyOut || 0), m.lastMovementDate || '-'],
                 list: () => Object.entries(inventoryStockMeta || {}).map(([sku, val]) => ({ sku, ...(val || {}) }))
             },
+            ReturOffline: {
+                headers: ['ID', 'Tanggal', 'Jam', 'Kode SKU', 'Barcode', 'Nama Barang', 'Qty', 'Alasan', 'Keterangan', 'Input Oleh'],
+                row: r => [r.id, r.date, r.time || '-', r.sku, String(r.barcode || '-'), r.name, Number(r.qty || 0), r.reason || '-', r.note || '-', r.createdBy || 'User'],
+                list: () => returnOfflineEntries,
+                newestFirst: true
+            },
+            ReturOnline: {
+                headers: ['ID', 'Tanggal', 'Jam', 'Kode SKU', 'Barcode', 'Nama Barang', 'Qty', 'Alasan', 'Catatan', 'Input Oleh'],
+                row: r => [r.id, r.date, r.time || '-', r.sku, String(r.barcode || '-'), r.name, Number(r.qty || 0), r.reason || '-', r.note || '-', r.createdBy || 'User'],
+                list: () => returnOnlineEntries,
+                newestFirst: true
+            },
             Pengaturan: {
                 headers: ['Key', 'Value'],
                 row: r => r,
@@ -6880,8 +7373,12 @@ function doPost(e) {
         }
 
         function ensureFullAccessRoles() {
-            ROLE_PERMISSIONS['Manager'] = [...ALL_MENU_IDS];
-            ROLE_PERMISSIONS['SPV'] = [...ALL_MENU_IDS];
+            if (!Array.isArray(ROLE_PERMISSIONS['Manager'])) {
+                ROLE_PERMISSIONS['Manager'] = [...ALL_MENU_IDS];
+            }
+            if (!Array.isArray(ROLE_PERMISSIONS['SPV'])) {
+                ROLE_PERMISSIONS['SPV'] = [...ALL_MENU_IDS];
+            }
             if (!Array.isArray(ROLE_PERMISSIONS['Driver'])) {
                 ROLE_PERMISSIONS['Driver'] = ['absen', 'driver', 'overtime'];
             } else if (!ROLE_PERMISSIONS['Driver'].includes('driver')) {
@@ -6909,6 +7406,9 @@ function doPost(e) {
                 ['cycleCountQuickQtys', JSON.stringify(cycleCountQuickQtys)],
                 ['cycleCountDamageReasons', JSON.stringify(cycleCountDamageReasons)],
                 ['qcQuickNotes', JSON.stringify(qcQuickNotes)],
+                ['returnOfflineQuickQtys', JSON.stringify(returnOfflineQuickQtys)],
+                ['returnOnlineQuickQtys', JSON.stringify(returnOnlineQuickQtys)],
+                ['returnOnlineReasons', JSON.stringify(returnOnlineReasons)],
                 ['driverLocations', JSON.stringify(driverLocations)],
                 ['driverVehicles', JSON.stringify(driverVehicles)],
                 ['inventoryConfig', JSON.stringify(inventoryConfig)],
@@ -6978,11 +7478,35 @@ function doPost(e) {
                 qcJobtasks,
                 adminResiEntries,
                 salahBarangEntries,
+                returnOfflineQuickQtys,
+                returnOnlineQuickQtys,
+                returnOnlineReasons,
+                returnOfflineEntries,
+                returnOnlineEntries,
                 rolePermissions: ROLE_PERMISSIONS
             };
         }
 
+        const STORAGE_KEY_SCRIPT_BACKUP = 'wms_pro_apps_script_backup_v1';
+
+        function saveScriptConfigBackup() {
+            try {
+                const url = String(setupConfig.appsScriptUrl || '').trim();
+                if (url && isValidAppsScriptUrl(url)) {
+                    localStorage.setItem(STORAGE_KEY_SCRIPT_BACKUP, JSON.stringify({
+                        appsScriptUrl: url,
+                        sheetName: String(setupConfig.sheetName || '').trim(),
+                        spreadsheetId: String(setupConfig.spreadsheetId || '').trim(),
+                        lastUpdated: String(setupConfig.lastUpdated || '')
+                    }));
+                } else {
+                    localStorage.removeItem(STORAGE_KEY_SCRIPT_BACKUP);
+                }
+            } catch (e) {}
+        }
+
         function saveAppStateToLocal() {
+            saveScriptConfigBackup();
             try {
                 localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(buildSerializableAppState(false)));
             } catch (e) {
@@ -7052,7 +7576,24 @@ function doPost(e) {
                     if ((t = clean(saved.qcJobtasks, 'QC_Jobtasks'))) qcJobtasks = t;
                     if ((t = clean(saved.adminResiEntries, 'AdminResi'))) adminResiEntries = t;
                     if ((t = clean(saved.salahBarangEntries, 'SalahBarang'))) salahBarangEntries = t;
+                    if (Array.isArray(saved.returnOfflineQuickQtys)) returnOfflineQuickQtys = saved.returnOfflineQuickQtys;
+                    if (Array.isArray(saved.returnOnlineQuickQtys)) returnOnlineQuickQtys = saved.returnOnlineQuickQtys;
+                    if (Array.isArray(saved.returnOnlineReasons)) returnOnlineReasons = normalizeReturnOnlineReasons(saved.returnOnlineReasons);
+                    if (Array.isArray(saved.returnOfflineEntries)) returnOfflineEntries = saved.returnOfflineEntries;
+                    if (Array.isArray(saved.returnOnlineEntries)) returnOnlineEntries = saved.returnOnlineEntries;
                     if (saved.rolePermissions && typeof saved.rolePermissions === 'object') ROLE_PERMISSIONS = saved.rolePermissions;
+                }
+                if (!setupConfig.appsScriptUrl) {
+                    const backupRaw = localStorage.getItem(STORAGE_KEY_SCRIPT_BACKUP);
+                    if (backupRaw) {
+                        const backup = JSON.parse(backupRaw);
+                        if (backup && isValidAppsScriptUrl(backup.appsScriptUrl)) {
+                            setupConfig.appsScriptUrl = String(backup.appsScriptUrl).trim();
+                            if (backup.sheetName && !setupConfig.sheetName) setupConfig.sheetName = backup.sheetName;
+                            if (backup.spreadsheetId && !setupConfig.spreadsheetId) setupConfig.spreadsheetId = backup.spreadsheetId;
+                            if (backup.lastUpdated) setupConfig.lastUpdated = backup.lastUpdated;
+                        }
+                    }
                 }
                 const q = JSON.parse(localStorage.getItem(STORAGE_KEY_QUEUE) || '[]');
                 if (Array.isArray(q)) syncQueue = q;
@@ -7284,7 +7825,27 @@ function doPost(e) {
             }
         }
 
+        let clearGlobalSheetArmedUntil = 0;
+
         async function clearGlobalSheetConfig() {
+            const now = Date.now();
+            const btn = document.getElementById('setup-clear-global-btn');
+            if (now > clearGlobalSheetArmedUntil) {
+                clearGlobalSheetArmedUntil = now + 5000;
+                if (btn) btn.innerHTML = '<i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i><span>Klik Lagi</span>';
+                lucide.createIcons();
+                showToast('Klik tombol "Klik Lagi" dalam 5 detik untuk memutus koneksi global di semua device.', 'warning');
+                setTimeout(() => {
+                    if (Date.now() > clearGlobalSheetArmedUntil && btn) {
+                        btn.innerHTML = '<i data-lucide="unlink" class="w-3.5 h-3.5"></i><span>Putus</span>';
+                        lucide.createIcons();
+                    }
+                }, 5200);
+                return;
+            }
+            clearGlobalSheetArmedUntil = 0;
+            if (btn) btn.innerHTML = '<i data-lucide="unlink" class="w-3.5 h-3.5"></i><span>Putus</span>';
+            try { localStorage.removeItem(STORAGE_KEY_SCRIPT_BACKUP); } catch (e) {}
             const cleared = await saveSheetConfigToServer({}, true);
             applySharedSheetConfig({ appsScriptUrl: '', sheetName: '', spreadsheetId: '', lastUpdated: '-' }, true);
             showToast(cleared
@@ -7475,6 +8036,7 @@ function doPost(e) {
                 'admin-salah-barang': () => { populateSalahBarangReasonOptions(); renderSalahBarangQuickPickerChips(); renderSalahBarangDailyList(); },
                 'admin-salah-barang-report': renderSalahBarangReport,
                 driver: initDriverView,
+                return: initReturnView,
                 inventory: initInventoryView,
                 kpi: initKpiView,
                 setting: initSettingView,
@@ -7488,6 +8050,12 @@ function doPost(e) {
         }
 
         async function pullAllDataFromGoogleSheet(silent = true) {
+            if (!getScriptUrl()) {
+                await syncSheetConfigWithServer();
+            } else {
+                // Pastikan server tetap sinkron jika server baru restart dan belum menyimpan URL
+                syncSheetConfigWithServer().catch(() => {});
+            }
             const url = getScriptUrl();
             if (!url) {
                 if (!silent) showToast('URL Google Apps Script belum diatur di menu Setting.', 'warning');
@@ -7584,6 +8152,9 @@ function doPost(e) {
                     if (Array.isArray(map.cycleCountQuickQtys)) cycleCountQuickQtys = map.cycleCountQuickQtys;
                     if (Array.isArray(map.cycleCountDamageReasons)) cycleCountDamageReasons = map.cycleCountDamageReasons;
                     if (Array.isArray(map.qcQuickNotes)) qcQuickNotes = map.qcQuickNotes;
+                    if (Array.isArray(map.returnOfflineQuickQtys)) returnOfflineQuickQtys = map.returnOfflineQuickQtys;
+                    if (Array.isArray(map.returnOnlineQuickQtys)) returnOnlineQuickQtys = map.returnOnlineQuickQtys;
+                    if (Array.isArray(map.returnOnlineReasons)) returnOnlineReasons = normalizeReturnOnlineReasons(map.returnOnlineReasons);
                     if (Array.isArray(map.driverLocations)) driverLocations = map.driverLocations;
                     if (Array.isArray(map.driverVehicles)) driverVehicles = map.driverVehicles;
                     if (map.inventoryConfig && typeof map.inventoryConfig === 'object') inventoryConfig = { ...inventoryConfig, ...map.inventoryConfig };
@@ -7766,6 +8337,32 @@ function doPost(e) {
                     });
                     inventoryStockMeta = nextMeta;
                 }
+
+                apply('ReturOffline', r => ({
+                    id: String(r[0]).trim(),
+                    date: D(r[1]),
+                    time: str(T(r[2])),
+                    sku: str(r[3]),
+                    barcode: str(r[4]),
+                    name: str(r[5]),
+                    qty: Number(r[6] || 0),
+                    reason: str(r[7], '-'),
+                    note: dash(r[8]),
+                    createdBy: str(r[9], 'User')
+                }), v => { returnOfflineEntries = v; });
+
+                apply('ReturOnline', r => ({
+                    id: String(r[0]).trim(),
+                    date: D(r[1]),
+                    time: str(T(r[2])),
+                    sku: str(r[3]),
+                    barcode: str(r[4]),
+                    name: str(r[5]),
+                    qty: Number(r[6] || 0),
+                    reason: str(r[7], '-'),
+                    note: dash(r[8]),
+                    createdBy: str(r[9], 'User')
+                }), v => { returnOnlineEntries = v; });
 
                 syncState.error = '';
                 syncState.lastSync = nowHHmm();
@@ -9356,6 +9953,10 @@ function doPost(e) {
             renderHomeMenuGrid();
             navigateTo('home');
             showToast(`Selamat datang, ${matchedUser.username} (${matchedUser.role})!`, 'success');
+            // Sinkronkan konfigurasi & tarik data Google Sheet segera saat login di device baru
+            syncSheetConfigWithServer().then(ok => {
+                if (ok) pullAllDataFromGoogleSheet(true);
+            }).catch(() => {});
         });
 
         function handleLogout() {
@@ -9371,10 +9972,13 @@ function doPost(e) {
         // ==========================================
         function getAllowedMenusForUser(user) {
             if (!user) return [];
+            if (Array.isArray(ROLE_PERMISSIONS[user.role])) {
+                return ROLE_PERMISSIONS[user.role];
+            }
             if (user.role === 'Manager' || user.role === 'SPV') {
                 return MASTER_MENUS.map(m => m.id);
             }
-            return ROLE_PERMISSIONS[user.role] || [];
+            return [];
         }
 
         function renderHomeMenuGrid() {
@@ -9684,6 +10288,9 @@ function doPost(e) {
             } else if (route === 'driver') {
                 document.getElementById('view-driver').classList.remove('hidden');
                 initDriverView();
+            } else if (route === 'return') {
+                document.getElementById('view-return').classList.remove('hidden');
+                initReturnView();
             } else if (route === 'inventory') {
                 document.getElementById('view-inventory').classList.remove('hidden');
                 initInventoryView();
@@ -9881,8 +10488,10 @@ function doPost(e) {
             MASTER_MENUS.sort((a, b) => a.title.localeCompare(b.title, 'id', { sensitivity: 'base' }));
 
             if (autoAll) {
-                ROLE_PERMISSIONS['Manager'].push(id);
-                ROLE_PERMISSIONS['SPV'].push(id);
+                if (!Array.isArray(ROLE_PERMISSIONS['Manager'])) ROLE_PERMISSIONS['Manager'] = [];
+                if (!Array.isArray(ROLE_PERMISSIONS['SPV'])) ROLE_PERMISSIONS['SPV'] = [];
+                if (!ROLE_PERMISSIONS['Manager'].includes(id)) ROLE_PERMISSIONS['Manager'].push(id);
+                if (!ROLE_PERMISSIONS['SPV'].includes(id)) ROLE_PERMISSIONS['SPV'].push(id);
             }
             document.getElementById('new-menu-title').value = '';
             document.getElementById('new-menu-subtitle').value = '';
@@ -9915,14 +10524,17 @@ function doPost(e) {
             );
 
             tbody.innerHTML = filtered.map(u => {
-                const isAll = u.role === 'Manager' || u.role === 'SPV';
-                const menus = isAll ? MASTER_MENUS.map(m => m.title) : (ROLE_PERMISSIONS[u.role] || []).map(id => {
+                const permIds = Array.isArray(ROLE_PERMISSIONS[u.role]) ? ROLE_PERMISSIONS[u.role] : [];
+                const isAll = MASTER_MENUS.length > 0 && MASTER_MENUS.every(m => permIds.includes(m.id));
+                const menus = permIds.map(id => {
                     const found = MASTER_MENUS.find(m => m.id === id);
                     return found ? found.title : id;
                 });
                 const badgesHtml = isAll
                     ? `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">SEMUA MENU (${MASTER_MENUS.length})</span>`
-                    : menus.map(t => `<span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-medium">${t}</span>`).join(' ');
+                    : (menus.length === 0
+                        ? `<span class="text-xs text-slate-400 italic">Belum ada menu</span>`
+                        : menus.map(t => `<span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-medium">${t}</span>`).join(' '));
 
                 return `
                     <tr class="hover:bg-slate-50/80 transition">
@@ -9986,8 +10598,8 @@ function doPost(e) {
             const role = document.getElementById('form-user-role')?.value;
             const previewBox = document.getElementById('modal-role-menus-preview');
             if (!previewBox || !role) return;
-            const isAll = role === 'Manager' || role === 'SPV';
-            const menus = isAll ? MASTER_MENUS : MASTER_MENUS.filter(m => (ROLE_PERMISSIONS[role] || []).includes(m.id));
+            const permIds = Array.isArray(ROLE_PERMISSIONS[role]) ? ROLE_PERMISSIONS[role] : [];
+            const menus = MASTER_MENUS.filter(m => permIds.includes(m.id));
             previewBox.innerHTML = menus.length === 0
                 ? `<span class="text-xs text-slate-400">Belum ada menu aktif untuk posisi ini.</span>`
                 : menus.map(m => `<span class="px-2 py-0.5 rounded-md bg-white border border-indigo-200 text-indigo-800 text-[11px] font-semibold">${m.title}</span>`).join('');
@@ -10071,39 +10683,63 @@ function doPost(e) {
 
         function renderExistingRolesList() {
             const container = document.getElementById('existing-roles-list');
-            container.innerHTML = Object.entries(ROLE_PERMISSIONS).map(([roleName, menuIds]) => `
+            container.innerHTML = Object.entries(ROLE_PERMISSIONS).map(([roleName, menuIds]) => {
+                const activeIds = Array.isArray(menuIds) ? menuIds : [];
+                const isProtectedRole = ['Manager', 'SPV'].includes(roleName);
+                const allSelected = MASTER_MENUS.length > 0 && MASTER_MENUS.every(m => activeIds.includes(m.id));
+                return `
                 <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="font-bold text-xs text-slate-900">${roleName}</span>
-                        ${['Manager', 'SPV'].includes(roleName)
-                            ? `<span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Akses Penuh</span>`
-                            : `<button type="button" onclick="deleteRole('${roleName}')" class="text-xs text-rose-600 hover:underline font-semibold">Hapus</button>`
-                        }
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-xs text-slate-900">${escapeHtmlText(roleName)}</span>
+                            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded tabular-nums">${activeIds.length}/${MASTER_MENUS.length} menu</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <button type="button" onclick="toggleAllExistingRoleMenus('${roleName.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', ${!allSelected})"
+                                class="text-[11px] text-indigo-600 hover:underline font-bold">
+                                ${allSelected ? 'Kosongkan' : 'Pilih Semua'}
+                            </button>
+                            ${!isProtectedRole ? `<button type="button" onclick="deleteRole('${roleName.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')" class="text-xs text-rose-600 hover:underline font-semibold">Hapus</button>` : ''}
+                        </div>
                     </div>
                     <div class="flex flex-wrap gap-1.5">
                         ${MASTER_MENUS.map(m => {
-                            const checked = roleName === 'Manager' || roleName === 'SPV' || menuIds.includes(m.id);
+                            const checked = activeIds.includes(m.id);
                             return `
-                                <label class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-white border border-slate-200 text-[11px] cursor-pointer">
-                                    <input type="checkbox" ${checked ? 'checked' : ''} ${['Manager', 'SPV'].includes(roleName) ? 'disabled' : ''}
-                                        onchange="toggleRoleMenuPermission('${roleName}', '${m.id}', this.checked)">
+                                <label class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-white border border-slate-200 text-[11px] cursor-pointer hover:border-indigo-300 transition">
+                                    <input type="checkbox" ${checked ? 'checked' : ''}
+                                        onchange="toggleRoleMenuPermission('${roleName.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${m.id}', this.checked)">
                                     <span>${m.title}</span>
                                 </label>
                             `;
                         }).join('')}
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
+        }
+
+        function toggleAllExistingRoleMenus(roleName, selectAll) {
+            ROLE_PERMISSIONS[roleName] = selectAll ? MASTER_MENUS.map(m => m.id) : [];
+            saveAppStateToLocal();
+            syncConfigToSheet();
+            renderExistingRolesList();
+            renderUserTable();
+            renderHomeMenuGrid();
         }
 
         function toggleRoleMenuPermission(roleName, menuId, isChecked) {
-            if (!ROLE_PERMISSIONS[roleName]) ROLE_PERMISSIONS[roleName] = [];
+            if (!Array.isArray(ROLE_PERMISSIONS[roleName])) ROLE_PERMISSIONS[roleName] = [];
             if (isChecked && !ROLE_PERMISSIONS[roleName].includes(menuId)) {
                 ROLE_PERMISSIONS[roleName].push(menuId);
             } else if (!isChecked) {
                 ROLE_PERMISSIONS[roleName] = ROLE_PERMISSIONS[roleName].filter(id => id !== menuId);
             }
+            saveAppStateToLocal();
             syncConfigToSheet();
+            renderExistingRolesList();
+            renderUserTable();
+            renderHomeMenuGrid();
         }
 
         function deleteRole(roleName) {
@@ -16262,6 +16898,16 @@ function doPost(e) {
                 filterSalahBarangProductDropdown();
                 const exact = masterBarangData.find(b => b.barcode === cleanCode || b.sku.toLowerCase() === cleanCode.toLowerCase());
                 if (exact) selectSalahBarangProduct(exact.sku);
+            } else if (activeScannerTarget === 'return_offline') {
+                document.getElementById('ret-off-product-search').value = cleanCode;
+                filterReturnOfflineProductDropdown();
+                const exact = masterBarangData.find(b => b.barcode === cleanCode || b.sku.toLowerCase() === cleanCode.toLowerCase());
+                if (exact) selectReturnOfflineProduct(exact.sku);
+            } else if (activeScannerTarget === 'return_online') {
+                document.getElementById('ret-on-product-search').value = cleanCode;
+                filterReturnOnlineProductDropdown();
+                const exact = masterBarangData.find(b => b.barcode === cleanCode || b.sku.toLowerCase() === cleanCode.toLowerCase());
+                if (exact) selectReturnOnlineProduct(exact.sku);
             }
         }
 
@@ -16532,9 +17178,9 @@ function doPost(e) {
             },
             {
                 key: 'qcQuickNotes',
-                menuLabel: 'Menu Quality Control (QC)',
-                title: 'Isian Keterangan Cepat Kerusakan QC',
-                badgeType: 'Keterangan',
+                menuLabel: 'Menu Quality Control (QC) & Return Offline',
+                title: 'Notes Kerusakan QC & Alasan Waste Return',
+                badgeType: 'Keterangan & Quick Tap',
                 placeholder: 'Contoh: Produk bocor / label buram...',
                 icon: 'message-square-warning',
                 grad: 'from-emerald-500 to-teal-600',
@@ -16542,7 +17188,71 @@ function doPost(e) {
                 getItems: () => qcQuickNotes,
                 setItems: v => { qcQuickNotes = v; },
                 defaults: () => [...DEFAULT_QC_QUICK_NOTES],
-                onChanged: () => { renderQcQuickDamageNotes(); }
+                onChanged: () => {
+                    renderQcQuickDamageNotes();
+                    if (typeof renderReturnOfflineQuickReasons === 'function') renderReturnOfflineQuickReasons();
+                }
+            },
+            {
+                key: 'returnOnlineReasons',
+                menuLabel: 'Menu Return (Online)',
+                title: 'Alasan Retur Paket Online (Urut A–Z)',
+                badgeType: 'Alasan A–Z',
+                placeholder: 'Contoh: Salah kirim varian...',
+                icon: 'package-x',
+                grad: 'from-indigo-500 to-blue-600',
+                chipCls: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+                sortAlphabetical: true,
+                getItems: () => normalizeReturnOnlineReasons(returnOnlineReasons),
+                setItems: v => { returnOnlineReasons = normalizeReturnOnlineReasons(v); },
+                defaults: () => normalizeReturnOnlineReasons(DEFAULT_RETURN_ONLINE_REASONS),
+                onChanged: () => {
+                    if (typeof populateReturnOnlineReasonOptions === 'function') populateReturnOnlineReasonOptions();
+                }
+            },
+            {
+                key: 'returnOfflineQuickQtys',
+                menuLabel: 'Menu Return (Offline)',
+                title: 'Quick Tap Qty Waste (Retur Offline)',
+                badgeType: 'Quick Tap',
+                placeholder: 'Angka Qty, cth: 10',
+                icon: 'zap',
+                grad: 'from-rose-500 to-orange-600',
+                chipCls: 'bg-rose-50 text-rose-800 border-rose-200',
+                isNumeric: true,
+                normalizeInput: v => {
+                    const n = parseInt(String(v).replace(/[^\d]/g, ''), 10);
+                    return (!isNaN(n) && n > 0) ? String(n) : '';
+                },
+                formatChip: v => `+${v}`,
+                getItems: () => returnOfflineQuickQtys,
+                setItems: v => { returnOfflineQuickQtys = v; },
+                defaults: () => [...DEFAULT_RETURN_OFFLINE_QUICK_QTYS],
+                onChanged: () => {
+                    if (typeof renderReturnOfflineQuickQtyButtons === 'function') renderReturnOfflineQuickQtyButtons();
+                }
+            },
+            {
+                key: 'returnOnlineQuickQtys',
+                menuLabel: 'Menu Return (Online)',
+                title: 'Quick Tap Qty Retur Paket (Retur Online)',
+                badgeType: 'Quick Tap',
+                placeholder: 'Angka Qty, cth: 5',
+                icon: 'zap',
+                grad: 'from-blue-500 to-indigo-600',
+                chipCls: 'bg-blue-50 text-blue-800 border-blue-200',
+                isNumeric: true,
+                normalizeInput: v => {
+                    const n = parseInt(String(v).replace(/[^\d]/g, ''), 10);
+                    return (!isNaN(n) && n > 0) ? String(n) : '';
+                },
+                formatChip: v => `+${v}`,
+                getItems: () => returnOnlineQuickQtys,
+                setItems: v => { returnOnlineQuickQtys = v; },
+                defaults: () => [...DEFAULT_RETURN_ONLINE_QUICK_QTYS],
+                onChanged: () => {
+                    if (typeof renderReturnOnlineQuickQtyButtons === 'function') renderReturnOnlineQuickQtyButtons();
+                }
             },
             {
                 key: 'projectCategories',
@@ -16571,20 +17281,6 @@ function doPost(e) {
                 setItems: v => { projectPriorities = v; },
                 defaults: () => [...DEFAULT_PROJECT_PRIORITIES],
                 onChanged: () => { populateProjectPriorityOptions(); }
-            },
-            {
-                key: 'driverLocations',
-                menuLabel: 'Menu Driver',
-                title: 'Quick Tap Lokasi Tujuan Driver',
-                badgeType: 'Quick Tap Lokasi',
-                placeholder: 'Contoh: Hub Sicepat Tangerang...',
-                icon: 'map-pin',
-                grad: 'from-sky-500 to-blue-600',
-                chipCls: 'bg-sky-50 text-sky-800 border-sky-200',
-                getItems: () => driverLocations,
-                setItems: v => { driverLocations = v; },
-                defaults: () => [...DEFAULT_DRIVER_LOCATIONS],
-                onChanged: () => { populateDriverFormOptions(); }
             },
             {
                 key: 'driverVehicles',
@@ -16683,12 +17379,22 @@ function doPost(e) {
                 id: 'driver',
                 number: '08',
                 title: 'Menu Driver',
-                subtitle: 'Filter posisi Nama Driver, quick tap lokasi tujuan, dan daftar armada kendaraan.',
+                subtitle: 'Filter posisi Nama Driver dan daftar armada kendaraan.',
                 icon: 'truck',
                 grad: 'from-sky-500 via-blue-600 to-indigo-600',
                 picMenuKey: 'driver_staff',
-                picFieldLabel: 'Nama Driver (Lokasi, KM & Kondisi)',
-                optionKeys: ['driverLocations', 'driverVehicles']
+                picFieldLabel: 'Nama Driver (Proses Kirim, KM & Kondisi)',
+                optionKeys: ['driverVehicles']
+            },
+            {
+                id: 'return',
+                number: '09',
+                title: 'Menu Return (Offline & Online)',
+                subtitle: 'Kelola alasan retur paket online (A–Z), quick tap qty return, serta notes kerusakan QC untuk waste.',
+                icon: 'rotate-ccw',
+                grad: 'from-rose-500 via-red-600 to-orange-600',
+                picMenuKey: null,
+                optionKeys: ['returnOnlineReasons', 'qcQuickNotes', 'returnOfflineQuickQtys', 'returnOnlineQuickQtys']
             }
         ];
 
@@ -16729,6 +17435,10 @@ function doPost(e) {
             renderSettingModuleSections();
             renderSettingLocalResetPanel();
             setSettingTab(currentSettingTab);
+            syncSheetConfigWithServer().then(() => {
+                updateSetupConnectionUI();
+                updateSettingHeroSummary();
+            }).catch(() => {});
         }
 
         function setSettingModuleFilter(modId) {
@@ -17141,6 +17851,8 @@ function doPost(e) {
             { key: 'salahBarang', label: 'Admin · Salah Barang', desc: 'Catatan temuan selisih / salah barang', icon: 'alert-triangle', grad: 'from-rose-500 to-pink-600', count: () => salahBarangEntries.length, clear: () => { salahBarangEntries = []; } },
             { key: 'cycleCount', label: 'Cycle Count / Opname', desc: 'Data hitung stok fisik gudang', icon: 'clipboard-check', grad: 'from-violet-500 to-purple-600', count: () => cycleCountEntries.length, clear: () => { cycleCountEntries = []; } },
             { key: 'qcJobtasks', label: 'Quality Control (QC)', desc: 'Daftar create, proses & transfer QC', icon: 'check-square', grad: 'from-emerald-500 to-green-600', count: () => qcJobtasks.length, clear: () => { qcJobtasks = []; } },
+            { key: 'returnOffline', label: 'Return · Retur Offline (Waste)', desc: 'Daftar waste & Berita Acara serah terima lokal', icon: 'file-warning', grad: 'from-rose-500 to-orange-600', count: () => returnOfflineEntries.length, clear: () => { returnOfflineEntries = []; returnBaExcludedIds = new Set(); } },
+            { key: 'returnOnline', label: 'Return · Retur Paket Online', desc: 'Daftar retur paket marketplace lokal', icon: 'package-x', grad: 'from-indigo-500 to-blue-600', count: () => returnOnlineEntries.length, clear: () => { returnOnlineEntries = []; } },
             { key: 'projects', label: 'Project & Joblist', desc: 'Kanban board & tugas operasional gudang', icon: 'kanban', grad: 'from-purple-500 to-indigo-600', count: () => projectsData.length, clear: () => { projectsData = []; } },
             { key: 'inventoryMeta', label: 'Inventory Control Stock', desc: 'Data stock sistem & min/max lokal per SKU', icon: 'boxes', grad: 'from-cyan-500 to-sky-600', count: () => Object.keys(inventoryStockMeta || {}).length, clear: () => { inventoryStockMeta = {}; } },
             { key: 'masterBarang', label: 'Master Barang Lokal', desc: 'Cache katalog SKU di penyimpanan lokal', icon: 'package', grad: 'from-fuchsia-500 to-purple-600', count: () => masterBarangData.length, clear: () => { masterBarangData = []; } }
@@ -19486,6 +20198,763 @@ function doPost(e) {
         }
 
         // ==========================================
+        // MODUL RETURN (RETUR OFFLINE WASTE + BERITA ACARA & RETUR ONLINE PAKET)
+        // ==========================================
+        let currentReturnTab = 'offline';
+        let selectedReturnOfflineProduct = null;
+        let selectedReturnOnlineProduct = null;
+        let returnBaExcludedIds = new Set();
+
+        function initReturnView() {
+            const offDate = document.getElementById('ret-off-date');
+            if (offDate && !offDate.value) offDate.value = getTodayISO();
+            const onDate = document.getElementById('ret-on-date');
+            if (onDate && !onDate.value) onDate.value = getTodayISO();
+
+            renderReturnOfflineQuickQtyButtons();
+            renderReturnOfflineQuickReasons();
+            renderReturnOnlineQuickQtyButtons();
+            populateReturnOnlineReasonOptions();
+            renderReturnHeroSummary();
+            renderReturnOfflineListAndBa();
+            renderReturnOnlineList();
+            setReturnTab(currentReturnTab);
+        }
+
+        function setReturnTab(tab) {
+            currentReturnTab = tab === 'online' ? 'online' : 'offline';
+            const isOffline = currentReturnTab === 'offline';
+            document.getElementById('return-panel-offline')?.classList.toggle('hidden', !isOffline);
+            document.getElementById('return-panel-online')?.classList.toggle('hidden', isOffline);
+
+            const offBtn = document.getElementById('return-tab-btn-offline');
+            const onBtn = document.getElementById('return-tab-btn-online');
+            if (offBtn) {
+                offBtn.className = isOffline
+                    ? 'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition bg-gradient-to-r from-rose-600 to-orange-600 text-white shadow-sm whitespace-nowrap'
+                    : 'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-50 whitespace-nowrap';
+            }
+            if (onBtn) {
+                onBtn.className = !isOffline
+                    ? 'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm whitespace-nowrap'
+                    : 'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-50 whitespace-nowrap';
+            }
+            lucide.createIcons();
+        }
+
+        function renderReturnHeroSummary() {
+            const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            const offQty = returnOfflineEntries.reduce((s, x) => s + Number(x.qty || 0), 0);
+            const onQty = returnOnlineEntries.reduce((s, x) => s + Number(x.qty || 0), 0);
+            setTxt('ret-hero-off-cnt', returnOfflineEntries.length.toLocaleString('id-ID'));
+            setTxt('ret-hero-off-qty', offQty.toLocaleString('id-ID'));
+            setTxt('ret-hero-on-cnt', returnOnlineEntries.length.toLocaleString('id-ID'));
+            setTxt('ret-hero-on-qty', onQty.toLocaleString('id-ID'));
+        }
+
+        function formatDateBeritaAcara(isoDate) {
+            const raw = String(isoDate || getTodayISO()).trim();
+            const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (!m) return raw.toUpperCase();
+            const months = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
+            const idx = Math.max(0, Math.min(11, parseInt(m[2], 10) - 1));
+            return `${parseInt(m[3], 10)} ${months[idx]} ${m[1]}`;
+        }
+
+        // ---------- TAB RETUR OFFLINE (WASTE & BERITA ACARA) ----------
+        function setReturnOfflineTodayDate() {
+            const d = document.getElementById('ret-off-date');
+            if (d) d.value = getTodayISO();
+            onReturnOfflineDateChange();
+        }
+
+        function onReturnOfflineDateChange() {
+            renderReturnOfflineListAndBa();
+        }
+
+        function showReturnOfflineProductDropdown() {
+            filterReturnOfflineProductDropdown();
+            document.getElementById('ret-off-product-dropdown')?.classList.remove('hidden');
+        }
+
+        function filterReturnOfflineProductDropdown() {
+            const input = document.getElementById('ret-off-product-search');
+            const dropdown = document.getElementById('ret-off-product-dropdown');
+            if (!input || !dropdown) return;
+            const q = (input.value || '').toLowerCase().trim();
+            document.getElementById('clear-ret-off-search-btn')?.classList.toggle('hidden', input.value.length === 0);
+
+            const matches = masterBarangData.filter(b =>
+                b.sku.toLowerCase().includes(q) || b.name.toLowerCase().includes(q) || String(b.barcode || '').toLowerCase().includes(q)
+            ).slice(0, 60);
+
+            dropdown.innerHTML = matches.length === 0
+                ? `<div class="p-3 text-xs text-slate-400 text-center">Produk tidak ditemukan di Master Barang.</div>`
+                : matches.map(b => {
+                    const safeSku = String(b.sku).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                    return `
+                        <button type="button" onclick="selectReturnOfflineProduct('${safeSku}')"
+                            class="w-full px-4 py-2.5 text-left hover:bg-rose-50 flex items-center justify-between gap-2 text-xs">
+                            <div class="min-w-0">
+                                <div class="font-mono font-bold text-rose-700 truncate">${escapeHtmlText(b.sku)} · ${escapeHtmlText(b.barcode || '-')}</div>
+                                <div class="font-bold text-slate-800 truncate">${escapeHtmlText(b.name)}</div>
+                            </div>
+                            <span class="font-mono text-[11px] bg-slate-100 px-2 py-0.5 rounded shrink-0">${escapeHtmlText(b.noRack || '-')}</span>
+                        </button>
+                    `;
+                }).join('');
+            dropdown.classList.remove('hidden');
+        }
+
+        function handleReturnOfflineSearchEnter(e) {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            const q = (e.target.value || '').toLowerCase().trim();
+            const exact = masterBarangData.find(b => String(b.barcode || '').toLowerCase() === q || b.sku.toLowerCase() === q);
+            if (exact) selectReturnOfflineProduct(exact.sku);
+        }
+
+        function selectReturnOfflineProduct(sku) {
+            const prod = masterBarangData.find(b => b.sku === sku);
+            if (!prod) return;
+            selectedReturnOfflineProduct = prod;
+            document.getElementById('ret-off-product-search').value = `${prod.sku} - ${prod.name}`;
+            document.getElementById('clear-ret-off-search-btn')?.classList.remove('hidden');
+            document.getElementById('ret-off-product-dropdown')?.classList.add('hidden');
+            document.getElementById('ret-off-sku').value = prod.sku;
+            document.getElementById('ret-off-name').value = prod.name;
+            const bcEl = document.getElementById('ret-off-barcode-preview');
+            if (bcEl) bcEl.textContent = `Barcode: ${prod.barcode || '-'}`;
+        }
+
+        function resetReturnOfflineProductSelection() {
+            selectedReturnOfflineProduct = null;
+            const sEl = document.getElementById('ret-off-product-search');
+            if (sEl) sEl.value = '';
+            document.getElementById('clear-ret-off-search-btn')?.classList.add('hidden');
+            document.getElementById('ret-off-product-dropdown')?.classList.add('hidden');
+            const skuEl = document.getElementById('ret-off-sku');
+            if (skuEl) skuEl.value = '-';
+            const nameEl = document.getElementById('ret-off-name');
+            if (nameEl) nameEl.value = '-';
+            const bcEl = document.getElementById('ret-off-barcode-preview');
+            if (bcEl) bcEl.textContent = 'Barcode: -';
+        }
+
+        function renderReturnOfflineQuickQtyButtons() {
+            const wrap = document.getElementById('ret-off-quick-qty');
+            if (!wrap) return;
+            const styles = [
+                'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200',
+                'bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-200',
+                'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200',
+                'bg-pink-50 hover:bg-pink-100 text-pink-700 border-pink-200',
+                'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
+            ];
+            wrap.innerHTML = (returnOfflineQuickQtys || []).map((raw, idx) => {
+                const n = parseInt(String(raw).replace(/[^\d]/g, ''), 10);
+                if (isNaN(n) || n <= 0) return '';
+                return `<button type="button" onclick="addReturnOfflineQuickQty(${n})"
+                    class="px-2.5 py-1 rounded-lg border text-xs font-bold transition tabular-nums ${styles[idx % styles.length]}">+${n}</button>`;
+            }).join('');
+        }
+
+        function addReturnOfflineQuickQty(val) {
+            const el = document.getElementById('ret-off-qty');
+            if (!el) return;
+            const cur = parseInt(el.value || '0', 10) || 0;
+            el.value = cur + val;
+            el.focus();
+        }
+
+        function renderReturnOfflineQuickReasons() {
+            const wrap = document.getElementById('ret-off-quick-reasons');
+            if (!wrap) return;
+            if (!Array.isArray(qcQuickNotes) || qcQuickNotes.length === 0) {
+                wrap.innerHTML = `<span class="text-[11px] text-slate-400">Belum ada notes kerusakan QC di Setting.</span>`;
+                return;
+            }
+            const curVal = (document.getElementById('ret-off-reason')?.value || '').trim().toLowerCase();
+            const styles = [
+                'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200',
+                'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200',
+                'bg-orange-50 hover:bg-orange-100 text-orange-800 border-orange-200',
+                'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+            ];
+            wrap.innerHTML = qcQuickNotes.map((txt, idx) => {
+                const active = curVal === String(txt).trim().toLowerCase();
+                const safeArg = String(txt).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                return `<button type="button" onclick="selectReturnOfflineQuickReason('${safeArg}')"
+                    class="px-2.5 py-1 rounded-lg border text-[11px] font-bold transition ${active ? 'bg-rose-600 text-white border-rose-600 shadow-xs' : styles[idx % styles.length]}">${escapeHtmlText(txt)}</button>`;
+            }).join('');
+        }
+
+        function selectReturnOfflineQuickReason(text) {
+            const el = document.getElementById('ret-off-reason');
+            if (!el) return;
+            el.value = text;
+            renderReturnOfflineQuickReasons();
+            el.focus();
+        }
+
+        document.getElementById('return-offline-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const date = document.getElementById('ret-off-date')?.value || getTodayISO();
+            const qty = parseInt(document.getElementById('ret-off-qty')?.value || '0', 10);
+            const reason = (document.getElementById('ret-off-reason')?.value || '').trim();
+            const note = (document.getElementById('ret-off-note')?.value || '').trim();
+
+            if (!selectedReturnOfflineProduct) {
+                showToast('Pilih barang dari pencarian atau scan barcode terlebih dahulu.', 'warning');
+                return;
+            }
+            if (!qty || qty < 1) {
+                showToast('Masukkan Qty waste yang valid.', 'warning');
+                return;
+            }
+            if (!reason) {
+                showToast('Pilih atau isi alasan waste terlebih dahulu.', 'warning');
+                return;
+            }
+
+            const item = {
+                id: 'ROFF-' + Date.now().toString().slice(-6),
+                date,
+                time: nowHHmm(),
+                sku: selectedReturnOfflineProduct.sku,
+                barcode: selectedReturnOfflineProduct.barcode || '-',
+                name: selectedReturnOfflineProduct.name,
+                qty,
+                reason,
+                note,
+                createdBy: currentUser ? currentUser.username : 'User'
+            };
+
+            returnOfflineEntries.unshift(item);
+            saveAppStateToLocal();
+            sheetUpsertItem('ReturOffline', item);
+
+            resetReturnOfflineProductSelection();
+            document.getElementById('ret-off-qty').value = '';
+            document.getElementById('ret-off-reason').value = '';
+            document.getElementById('ret-off-note').value = '';
+            renderReturnOfflineQuickReasons();
+            renderReturnHeroSummary();
+            renderReturnOfflineListAndBa();
+            showToast(`Waste ${item.sku} (${item.qty} pcs) masuk ke list Berita Acara!`, 'success');
+        });
+
+        function getFilteredReturnOfflineEntries() {
+            const scope = document.getElementById('ret-off-scope-filter')?.value || 'date';
+            const selectedDate = document.getElementById('ret-off-date')?.value || getTodayISO();
+            const q = (document.getElementById('ret-off-search')?.value || '').trim().toLowerCase();
+
+            return (returnOfflineEntries || []).filter(item => {
+                if (scope === 'date' && item.date !== selectedDate) return false;
+                if (!q) return true;
+                return String(item.sku || '').toLowerCase().includes(q) ||
+                    String(item.barcode || '').toLowerCase().includes(q) ||
+                    String(item.name || '').toLowerCase().includes(q) ||
+                    String(item.reason || '').toLowerCase().includes(q) ||
+                    String(item.note || '').toLowerCase().includes(q);
+            });
+        }
+
+        function toggleReturnBaInclude(id, checked) {
+            if (checked) {
+                returnBaExcludedIds.delete(id);
+            } else {
+                returnBaExcludedIds.add(id);
+            }
+            renderReturnBeritaAcaraPreview();
+        }
+
+        function deleteReturnOfflineEntry(id) {
+            returnOfflineEntries = returnOfflineEntries.filter(x => x.id !== id);
+            returnBaExcludedIds.delete(id);
+            saveAppStateToLocal();
+            sheetDelete('ReturOffline', id);
+            renderReturnHeroSummary();
+            renderReturnOfflineListAndBa();
+            showToast('Item waste dihapus dari daftar & Berita Acara.', 'info');
+        }
+
+        function renderReturnOfflineListAndBa() {
+            const list = getFilteredReturnOfflineEntries();
+            const totalQty = list.reduce((s, x) => s + Number(x.qty || 0), 0);
+            const metaEl = document.getElementById('ret-off-list-meta');
+            if (metaEl) metaEl.textContent = `${list.length} item · Total ${totalQty.toLocaleString('id-ID')} pcs`;
+
+            const container = document.getElementById('ret-off-list-container');
+            if (container) {
+                container.innerHTML = list.length === 0
+                    ? `<div class="py-10 px-4 text-center rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-xs text-slate-400">Belum ada data waste untuk filter ini. Input waste di form untuk otomatis masuk ke Berita Acara.</div>`
+                    : list.map(item => {
+                        const checked = !returnBaExcludedIds.has(item.id);
+                        const safeId = String(item.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                        return `
+                            <div class="p-3 rounded-xl border border-slate-200/80 hover:border-rose-300 bg-white transition flex items-start justify-between gap-2.5">
+                                <label class="flex items-start gap-2.5 min-w-0 cursor-pointer flex-1">
+                                    <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleReturnBaInclude('${safeId}', this.checked)"
+                                        class="mt-1 rounded border-slate-300 text-rose-600 focus:ring-rose-500" title="Sertakan di Berita Acara">
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-1.5">
+                                            <span class="text-xs font-mono font-bold text-rose-700">${escapeHtmlText(item.sku)}</span>
+                                            <span class="text-[10px] font-mono text-slate-400">(${escapeHtmlText(item.barcode || '-')})</span>
+                                            <span class="px-2 py-0.5 rounded bg-rose-50 border border-rose-200 text-[10px] font-bold text-rose-700">${escapeHtmlText(item.reason)}</span>
+                                        </div>
+                                        <div class="text-xs font-bold text-slate-900 mt-0.5">${escapeHtmlText(item.name)}</div>
+                                        ${item.note ? `<div class="text-[11px] text-slate-600 mt-0.5">${escapeHtmlText(item.note)}</div>` : ''}
+                                        <div class="text-[10px] text-slate-400 mt-0.5 tabular-nums">${formatDateIndo(item.date)} ${escapeHtmlText(item.time || '-')} · ${escapeHtmlText(item.createdBy || 'User')}</div>
+                                    </div>
+                                </label>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <span class="px-2 py-1 rounded-lg bg-slate-100 text-xs font-extrabold text-slate-900 tabular-nums">${Number(item.qty || 0)}</span>
+                                    <button type="button" onclick="deleteReturnOfflineEntry('${safeId}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+            }
+            renderReturnBeritaAcaraPreview();
+            lucide.createIcons();
+        }
+
+        function renderReturnBeritaAcaraPreview() {
+            const sheetEl = document.getElementById('return-berita-acara-print-sheet');
+            if (!sheetEl) return;
+
+            const selectedDate = document.getElementById('ret-off-date')?.value || getTodayISO();
+            const subtitle = (document.getElementById('ret-ba-subtitle')?.value || '(TAKE OUT BARANG EXPIRED)').trim();
+            const baReason = (document.getElementById('ret-ba-reason')?.value || 'Barang Expired (Take Out)').trim();
+            const approver = (document.getElementById('ret-ba-approver')?.value || '').trim();
+            const handover = (document.getElementById('ret-ba-handover')?.value || '').trim();
+            const receiver = (document.getElementById('ret-ba-receiver')?.value || '').trim();
+
+            const list = getFilteredReturnOfflineEntries().filter(item => !returnBaExcludedIds.has(item.id));
+            // Tampilkan urutan kronologis input (terlama ke terbaru) di dokumen cetak
+            const docRows = [...list].reverse();
+            const totalQty = docRows.reduce((s, r) => s + Number(r.qty || 0), 0);
+
+            const rowsHtml = docRows.length === 0
+                ? `<tr><td colspan="5" style="border:1px solid #000; padding:18px 8px; text-align:center; color:#64748b; font-style:italic;">Belum ada item waste yang masuk ke Berita Acara. Silakan input pada Form Input Waste.</td></tr>`
+                : docRows.map((item, idx) => {
+                    const codeDisplay = (item.barcode && item.barcode !== '-') ? item.barcode : item.sku;
+                    const ketText = item.note ? `${item.reason}\n${item.note}` : item.reason;
+                    return `
+                        <tr>
+                            <td style="border:1px solid #000; padding:6px 8px; text-align:center; vertical-align:middle;">${idx + 1}</td>
+                            <td style="border:1px solid #000; padding:6px 8px; text-align:center; vertical-align:middle; font-family: Arial, sans-serif; font-size:12px;">${escapeHtmlText(codeDisplay)}</td>
+                            <td style="border:1px solid #000; padding:6px 10px; text-align:left; vertical-align:middle; font-family: Arial, sans-serif; font-size:12px;">${escapeHtmlText(item.name)}</td>
+                            <td style="border:1px solid #000; padding:6px 8px; text-align:center; vertical-align:middle; font-weight:bold;">${Number(item.qty || 0)}</td>
+                            <td style="border:1px solid #000; padding:6px 8px; text-align:center; vertical-align:middle; white-space:pre-line; font-size:12px;">${escapeHtmlText(ketText)}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+            const sigText = name => name ? `(${escapeHtmlText(name)})` : '(.................................)';
+
+            sheetEl.innerHTML = `
+                <div style="text-align:center; font-family: Arial, Helvetica, sans-serif; font-weight:700; font-size:16px; letter-spacing:0.3px;">
+                    BERITA ACARA SERAH TERIMA BARANG
+                </div>
+                <div style="text-align:center; font-family: Arial, Helvetica, sans-serif; font-weight:700; font-size:14px; margin-top:2px;">
+                    ${escapeHtmlText(subtitle)}
+                </div>
+                <div style="border-bottom:2px solid #000; margin:12px 0 14px 0;"></div>
+
+                <table style="width:100%; border-collapse:collapse; margin-bottom:12px; font-size:13px;">
+                    <tr>
+                        <td style="width:165px; padding:2px 0;">Tanggal</td>
+                        <td style="width:14px; padding:2px 0;">:</td>
+                        <td style="padding:2px 0;">${escapeHtmlText(formatDateBeritaAcara(selectedDate))}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:2px 0;">Alasan Penyerahan</td>
+                        <td style="padding:2px 0;">:</td>
+                        <td style="padding:2px 0;">${escapeHtmlText(baReason)}</td>
+                    </tr>
+                </table>
+
+                <p style="margin:0 0 10px 0; font-size:13px;">
+                    Pada hari ini, telah dilakukan serah terima barang dari pihak gudang kepada pihak penerima sesuai dengan kondisi barang sebagai berikut:
+                </p>
+
+                <table style="width:100%; border-collapse:collapse; margin-bottom:14px; font-size:12.5px;">
+                    <thead>
+                        <tr style="background-color:#d9d9d9; font-weight:700; font-family: Arial, Helvetica, sans-serif;">
+                            <th style="border:1px solid #000; padding:6px 8px; text-align:center; width:38px;">No</th>
+                            <th style="border:1px solid #000; padding:6px 8px; text-align:center; width:130px;">Barcode</th>
+                            <th style="border:1px solid #000; padding:6px 10px; text-align:center;">Nama Barang</th>
+                            <th style="border:1px solid #000; padding:6px 8px; text-align:center; width:64px;">Qty</th>
+                            <th style="border:1px solid #000; padding:6px 8px; text-align:center; width:175px;">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                        <tr>
+                            <td colspan="3" style="border:1px solid #000; padding:6px 10px; text-align:right; font-weight:700; font-family: Arial, Helvetica, sans-serif;">TOTAL</td>
+                            <td style="border:1px solid #000; padding:6px 8px; text-align:center; font-weight:700;">${totalQty.toLocaleString('id-ID')}</td>
+                            <td style="border:1px solid #000; padding:6px 8px;"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p style="margin:0 0 28px 0; font-size:13px;">
+                    Demikian Berita Acara Serah Terima Barang ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya. Kedua belah pihak menyatakan bahwa jumlah dan kondisi barang di atas telah sesuai dan diperiksa bersama pada saat serah terima.
+                </p>
+
+                <table style="width:100%; border-collapse:collapse; text-align:center; font-family: Arial, Helvetica, sans-serif; font-size:13px; margin-top:18px;">
+                    <tr>
+                        <td style="width:33.33%; font-weight:700; padding-bottom:64px;">Persetujuan,</td>
+                        <td style="width:33.33%; font-weight:700; padding-bottom:64px;">Menyerahkan</td>
+                        <td style="width:33.33%; font-weight:700; padding-bottom:64px;">Menerima,</td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top:4px;">${sigText(approver)}</td>
+                        <td style="padding-top:4px;">${sigText(handover)}</td>
+                        <td style="padding-top:4px;">${sigText(receiver)}</td>
+                    </tr>
+                </table>
+            `;
+        }
+
+        function printReturnBeritaAcara() {
+            const list = getFilteredReturnOfflineEntries().filter(item => !returnBaExcludedIds.has(item.id));
+            if (list.length === 0) {
+                showToast('Tambahkan minimal 1 item waste sebelum mencetak Berita Acara.', 'warning');
+                return;
+            }
+            const styleEl = document.getElementById('dynamic-print-page-style');
+            const prevCss = styleEl ? styleEl.textContent : '';
+            if (styleEl) styleEl.textContent = '@media print { @page { size: A4 portrait; margin: 10mm; } }';
+            document.body.classList.add('printing-berita-acara');
+            const cleanup = () => {
+                document.body.classList.remove('printing-berita-acara');
+                if (styleEl) styleEl.textContent = prevCss;
+                window.removeEventListener('afterprint', cleanup);
+            };
+            window.addEventListener('afterprint', cleanup);
+            window.print();
+            setTimeout(cleanup, 1200);
+        }
+
+        function exportReturnDataToExcel(filenamePrefix, headers, rows, emptyMsg) {
+            if (!rows || rows.length === 0) {
+                showToast(emptyMsg, 'warning');
+                return;
+            }
+            if (typeof XLSX !== 'undefined') {
+                const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+                const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:A1');
+                // Paksa kolom Kode SKU & Barcode sebagai sel teks agar angka 0 di awal tidak hilang
+                for (let r = 1; r <= range.e.r; r++) {
+                    [3, 4].forEach(c => {
+                        const addr = XLSX.utils.encode_cell({ r, c });
+                        if (ws[addr]) {
+                            ws[addr].t = 's';
+                            ws[addr].v = String(ws[addr].v ?? '');
+                            ws[addr].z = '@';
+                        }
+                    });
+                }
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Data');
+                XLSX.writeFile(wb, `${filenamePrefix}_${getTodayISO()}.xlsx`);
+                showToast(`File ${filenamePrefix}_${getTodayISO()}.xlsx berhasil diunduh!`, 'success');
+            } else {
+                downloadCsvFile(`${filenamePrefix}_${getTodayISO()}.csv`, headers, rows);
+                showToast('Data diekspor ke CSV!', 'success');
+            }
+        }
+
+        function exportReturnOfflineExcel() {
+            const list = getFilteredReturnOfflineEntries();
+            const headers = ['ID', 'Tanggal', 'Jam', 'Kode SKU', 'Barcode', 'Nama Barang', 'Qty', 'Alasan', 'Keterangan', 'Input Oleh'];
+            const rows = list.map(r => [r.id, r.date, r.time || '-', String(r.sku || ''), String(r.barcode || '-'), r.name, Number(r.qty || 0), r.reason || '-', r.note || '-', r.createdBy || 'User']);
+            exportReturnDataToExcel('Retur_Offline_Waste', headers, rows, 'Belum ada data Retur Offline untuk diekspor.');
+        }
+
+        async function syncReturnOfflineToSheet() {
+            if (!getScriptUrl()) {
+                await syncSheetConfigWithServer();
+            }
+            if (!getScriptUrl()) {
+                showToast('Google Apps Script belum terhubung di menu Setting.', 'warning');
+                return;
+            }
+            if (returnOfflineEntries.length === 0) {
+                showToast('Belum ada data Retur Offline untuk dikirim ke Google Sheet.', 'warning');
+                return;
+            }
+            const schema = SHEET_SCHEMA.ReturOffline;
+            const rows = [...returnOfflineEntries].reverse().map(schema.row);
+            postToGoogleSheet('ReturOffline', schema.headers, rows, 'replace_all');
+            await flushSyncQueue();
+            showToast(`${returnOfflineEntries.length} data Retur Offline dikirim ke Google Sheet!`, 'success');
+        }
+
+        // ---------- TAB RETUR ONLINE (RETUR PAKET) ----------
+        function setReturnOnlineTodayDate() {
+            const d = document.getElementById('ret-on-date');
+            if (d) d.value = getTodayISO();
+            renderReturnOnlineList();
+        }
+
+        function openReturnOnlineReasonSetting() {
+            currentSettingTab = 'modules';
+            currentSettingModuleFilter = 'return';
+            handleMenuClick('setting');
+        }
+
+        function showReturnOnlineProductDropdown() {
+            filterReturnOnlineProductDropdown();
+            document.getElementById('ret-on-product-dropdown')?.classList.remove('hidden');
+        }
+
+        function filterReturnOnlineProductDropdown() {
+            const input = document.getElementById('ret-on-product-search');
+            const dropdown = document.getElementById('ret-on-product-dropdown');
+            if (!input || !dropdown) return;
+            const q = (input.value || '').toLowerCase().trim();
+            document.getElementById('clear-ret-on-search-btn')?.classList.toggle('hidden', input.value.length === 0);
+
+            const matches = masterBarangData.filter(b =>
+                b.sku.toLowerCase().includes(q) || b.name.toLowerCase().includes(q) || String(b.barcode || '').toLowerCase().includes(q)
+            ).slice(0, 60);
+
+            dropdown.innerHTML = matches.length === 0
+                ? `<div class="p-3 text-xs text-slate-400 text-center">Produk tidak ditemukan di Master Barang.</div>`
+                : matches.map(b => {
+                    const safeSku = String(b.sku).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                    return `
+                        <button type="button" onclick="selectReturnOnlineProduct('${safeSku}')"
+                            class="w-full px-4 py-2.5 text-left hover:bg-indigo-50 flex items-center justify-between gap-2 text-xs">
+                            <div class="min-w-0">
+                                <div class="font-mono font-bold text-indigo-700 truncate">${escapeHtmlText(b.sku)} · ${escapeHtmlText(b.barcode || '-')}</div>
+                                <div class="font-bold text-slate-800 truncate">${escapeHtmlText(b.name)}</div>
+                            </div>
+                            <span class="font-mono text-[11px] bg-slate-100 px-2 py-0.5 rounded shrink-0">${escapeHtmlText(b.noRack || '-')}</span>
+                        </button>
+                    `;
+                }).join('');
+            dropdown.classList.remove('hidden');
+        }
+
+        function handleReturnOnlineSearchEnter(e) {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            const q = (e.target.value || '').toLowerCase().trim();
+            const exact = masterBarangData.find(b => String(b.barcode || '').toLowerCase() === q || b.sku.toLowerCase() === q);
+            if (exact) selectReturnOnlineProduct(exact.sku);
+        }
+
+        function selectReturnOnlineProduct(sku) {
+            const prod = masterBarangData.find(b => b.sku === sku);
+            if (!prod) return;
+            selectedReturnOnlineProduct = prod;
+            document.getElementById('ret-on-product-search').value = `${prod.sku} - ${prod.name}`;
+            document.getElementById('clear-ret-on-search-btn')?.classList.remove('hidden');
+            document.getElementById('ret-on-product-dropdown')?.classList.add('hidden');
+            document.getElementById('ret-on-sku').value = prod.sku;
+            document.getElementById('ret-on-name').value = prod.name;
+            const bcEl = document.getElementById('ret-on-barcode-preview');
+            if (bcEl) bcEl.textContent = `Barcode: ${prod.barcode || '-'}`;
+        }
+
+        function resetReturnOnlineProductSelection() {
+            selectedReturnOnlineProduct = null;
+            const sEl = document.getElementById('ret-on-product-search');
+            if (sEl) sEl.value = '';
+            document.getElementById('clear-ret-on-search-btn')?.classList.add('hidden');
+            document.getElementById('ret-on-product-dropdown')?.classList.add('hidden');
+            const skuEl = document.getElementById('ret-on-sku');
+            if (skuEl) skuEl.value = '-';
+            const nameEl = document.getElementById('ret-on-name');
+            if (nameEl) nameEl.value = '-';
+            const bcEl = document.getElementById('ret-on-barcode-preview');
+            if (bcEl) bcEl.textContent = 'Barcode: -';
+        }
+
+        function renderReturnOnlineQuickQtyButtons() {
+            const wrap = document.getElementById('ret-on-quick-qty');
+            if (!wrap) return;
+            const styles = [
+                'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200',
+                'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200',
+                'bg-sky-50 hover:bg-sky-100 text-sky-700 border-sky-200',
+                'bg-violet-50 hover:bg-violet-100 text-violet-700 border-violet-200',
+                'bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border-cyan-200'
+            ];
+            wrap.innerHTML = (returnOnlineQuickQtys || []).map((raw, idx) => {
+                const n = parseInt(String(raw).replace(/[^\d]/g, ''), 10);
+                if (isNaN(n) || n <= 0) return '';
+                return `<button type="button" onclick="addReturnOnlineQuickQty(${n})"
+                    class="px-2.5 py-1 rounded-lg border text-xs font-bold transition tabular-nums ${styles[idx % styles.length]}">+${n}</button>`;
+            }).join('');
+        }
+
+        function addReturnOnlineQuickQty(val) {
+            const el = document.getElementById('ret-on-qty');
+            if (!el) return;
+            const cur = parseInt(el.value || '0', 10) || 0;
+            el.value = cur + val;
+            el.focus();
+        }
+
+        function populateReturnOnlineReasonOptions() {
+            const sorted = normalizeReturnOnlineReasons(returnOnlineReasons);
+            returnOnlineReasons = sorted;
+            const sel = document.getElementById('ret-on-reason');
+            if (sel) {
+                const prev = sel.value;
+                sel.innerHTML = `<option value="">— Pilih Alasan (Urut A–Z) —</option>` +
+                    sorted.map(r => `<option value="${escapeHtmlText(r)}">${escapeHtmlText(r)}</option>`).join('');
+                if (prev && sorted.includes(prev)) sel.value = prev;
+            }
+            renderReturnOnlineReasonChips();
+        }
+
+        function renderReturnOnlineReasonChips() {
+            const wrap = document.getElementById('ret-on-quick-reasons');
+            if (!wrap) return;
+            const sorted = normalizeReturnOnlineReasons(returnOnlineReasons);
+            const curVal = document.getElementById('ret-on-reason')?.value || '';
+            wrap.innerHTML = sorted.length === 0
+                ? `<span class="text-xs text-slate-400">Belum ada daftar alasan. Tambahkan di Menu Setting.</span>`
+                : sorted.map(r => {
+                    const active = curVal === r;
+                    const safeArg = r.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                    return `<button type="button" onclick="selectReturnOnlineReasonChip('${safeArg}')"
+                        class="px-2.5 py-1 rounded-lg border text-[11px] font-bold transition ${active ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-slate-50 hover:bg-indigo-50 text-slate-700 border-slate-200 hover:border-indigo-300'}">${escapeHtmlText(r)}</button>`;
+                }).join('');
+        }
+
+        function selectReturnOnlineReasonChip(reason) {
+            const sel = document.getElementById('ret-on-reason');
+            if (!sel) return;
+            sel.value = sel.value === reason ? '' : reason;
+            renderReturnOnlineReasonChips();
+        }
+
+        document.getElementById('return-online-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const date = document.getElementById('ret-on-date')?.value || getTodayISO();
+            const qty = parseInt(document.getElementById('ret-on-qty')?.value || '0', 10);
+            const reason = (document.getElementById('ret-on-reason')?.value || '').trim();
+            const note = (document.getElementById('ret-on-note')?.value || '').trim();
+
+            if (!selectedReturnOnlineProduct) {
+                showToast('Pilih barang dari pencarian atau scan barcode terlebih dahulu.', 'warning');
+                return;
+            }
+            if (!qty || qty < 1) {
+                showToast('Masukkan Qty retur yang valid.', 'warning');
+                return;
+            }
+            if (!reason) {
+                showToast('Pilih alasan retur paket terlebih dahulu.', 'warning');
+                return;
+            }
+
+            const item = {
+                id: 'RON-' + Date.now().toString().slice(-6),
+                date,
+                time: nowHHmm(),
+                sku: selectedReturnOnlineProduct.sku,
+                barcode: selectedReturnOnlineProduct.barcode || '-',
+                name: selectedReturnOnlineProduct.name,
+                qty,
+                reason,
+                note,
+                createdBy: currentUser ? currentUser.username : 'User'
+            };
+
+            returnOnlineEntries.unshift(item);
+            saveAppStateToLocal();
+            sheetUpsertItem('ReturOnline', item);
+
+            resetReturnOnlineProductSelection();
+            document.getElementById('ret-on-qty').value = '';
+            document.getElementById('ret-on-reason').value = '';
+            document.getElementById('ret-on-note').value = '';
+            renderReturnOnlineReasonChips();
+            renderReturnHeroSummary();
+            renderReturnOnlineList();
+            showToast(`Retur paket ${item.sku} (${item.qty} pcs) berhasil disimpan!`, 'success');
+        });
+
+        function getFilteredReturnOnlineEntries() {
+            const scope = document.getElementById('ret-on-scope-filter')?.value || 'date';
+            const selectedDate = document.getElementById('ret-on-date')?.value || getTodayISO();
+            const q = (document.getElementById('ret-on-search')?.value || '').trim().toLowerCase();
+
+            return (returnOnlineEntries || []).filter(item => {
+                if (scope === 'date' && item.date !== selectedDate) return false;
+                if (!q) return true;
+                return String(item.sku || '').toLowerCase().includes(q) ||
+                    String(item.barcode || '').toLowerCase().includes(q) ||
+                    String(item.name || '').toLowerCase().includes(q) ||
+                    String(item.reason || '').toLowerCase().includes(q) ||
+                    String(item.note || '').toLowerCase().includes(q);
+            });
+        }
+
+        function deleteReturnOnlineEntry(id) {
+            returnOnlineEntries = returnOnlineEntries.filter(x => x.id !== id);
+            saveAppStateToLocal();
+            sheetDelete('ReturOnline', id);
+            renderReturnHeroSummary();
+            renderReturnOnlineList();
+            showToast('Data retur paket dihapus.', 'info');
+        }
+
+        function renderReturnOnlineList() {
+            const list = getFilteredReturnOnlineEntries();
+            const totalQty = list.reduce((s, x) => s + Number(x.qty || 0), 0);
+            const metaEl = document.getElementById('ret-on-list-meta');
+            if (metaEl) metaEl.textContent = `${list.length} entri · Total ${totalQty.toLocaleString('id-ID')} pcs`;
+
+            const wrap = document.getElementById('ret-on-list-container');
+            if (!wrap) return;
+            wrap.innerHTML = list.length === 0
+                ? `<div class="py-12 px-4 text-center rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-xs text-slate-400">Belum ada data retur paket online pada filter ini.</div>`
+                : list.map(item => {
+                    const safeId = String(item.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                    return `
+                        <div class="p-3.5 rounded-xl border border-slate-200/80 hover:border-indigo-300 bg-white transition flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <span class="text-xs font-mono font-bold text-indigo-700">${escapeHtmlText(item.sku)}</span>
+                                    <span class="text-[11px] font-mono text-slate-400">· ${escapeHtmlText(item.barcode || '-')}</span>
+                                    <span class="px-2 py-0.5 rounded-lg bg-indigo-50 border border-indigo-200 text-[11px] font-bold text-indigo-700">${escapeHtmlText(item.reason)}</span>
+                                </div>
+                                <div class="text-xs sm:text-sm font-bold text-slate-900 mt-1">${escapeHtmlText(item.name)}</div>
+                                ${item.note ? `<div class="text-xs text-slate-600 mt-0.5">Catatan/Resi: ${escapeHtmlText(item.note)}</div>` : ''}
+                                <div class="text-[11px] text-slate-400 mt-1 tabular-nums">${formatDateIndo(item.date)} ${escapeHtmlText(item.time || '-')} · oleh ${escapeHtmlText(item.createdBy || 'User')}</div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span class="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-xs font-extrabold text-indigo-800 tabular-nums">${Number(item.qty || 0)} pcs</span>
+                                <button type="button" onclick="deleteReturnOnlineEntry('${safeId}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            lucide.createIcons();
+        }
+
+        function exportReturnOnlineExcel() {
+            const list = getFilteredReturnOnlineEntries();
+            const headers = ['ID', 'Tanggal', 'Jam', 'Kode SKU', 'Barcode', 'Nama Barang', 'Qty', 'Alasan', 'Catatan / Resi', 'Input Oleh'];
+            const rows = list.map(r => [r.id, r.date, r.time || '-', String(r.sku || ''), String(r.barcode || '-'), r.name, Number(r.qty || 0), r.reason || '-', r.note || '-', r.createdBy || 'User']);
+            exportReturnDataToExcel('Retur_Online_Paket', headers, rows, 'Belum ada data Retur Online untuk diekspor.');
+        }
+
+        // ==========================================
         // AUTO-HIDE SEMUA COMBOBOX / SEARCH DROPDOWN
         // ==========================================
         const AUTO_HIDE_DROPDOWNS = [
@@ -19496,7 +20965,9 @@ function doPost(e) {
             { inputId: 'qc-product-search', dropdownId: 'qc-product-dropdown', showFn: () => showQcProductDropdown() },
             { inputId: 'admin-resi-picker-search', dropdownId: 'admin-resi-picker-dropdown', showFn: () => showAdminResiPickerDropdown() },
             { inputId: 'sb-product-search', dropdownId: 'sb-product-dropdown', showFn: () => showSalahBarangProductDropdown() },
-            { inputId: 'sb-picker-search', dropdownId: 'sb-picker-dropdown', showFn: () => showSalahBarangPickerDropdown() }
+            { inputId: 'sb-picker-search', dropdownId: 'sb-picker-dropdown', showFn: () => showSalahBarangPickerDropdown() },
+            { inputId: 'ret-off-product-search', dropdownId: 'ret-off-product-dropdown', showFn: () => showReturnOfflineProductDropdown() },
+            { inputId: 'ret-on-product-search', dropdownId: 'ret-on-product-dropdown', showFn: () => showReturnOnlineProductDropdown() }
         ];
 
         function hideAllSearchDropdowns(exceptDropdownId = '') {

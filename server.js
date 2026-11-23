@@ -5,7 +5,9 @@ const path = require('path');
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const DATA_DIR = path.resolve(__dirname, '.data');
+const CONFIG_DIR = path.resolve(__dirname, 'config');
 const CONFIG_FILE = path.resolve(DATA_DIR, 'sheet-config.json');
+const WORKSPACE_CONFIG_FILE = path.resolve(CONFIG_DIR, 'sheet-config.json');
 
 function isValidAppsScriptUrl(raw) {
   if (typeof raw !== 'string') return false;
@@ -28,26 +30,34 @@ function sanitizeText(val, maxLen = 120) {
   return val.trim().slice(0, maxLen);
 }
 
-function readSharedSheetConfig() {
-  if (!CONFIG_FILE.startsWith(DATA_DIR + path.sep)) {
+function parseConfigFile(filePath, baseDir) {
+  if (!filePath.startsWith(baseDir + path.sep)) {
     throw new Error('Invalid config storage path');
   }
-  try {
-    if (fs.existsSync(CONFIG_FILE)) {
-      const parsed = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
-      const url = sanitizeText(parsed.appsScriptUrl, 500);
-      if (url && !isValidAppsScriptUrl(url)) {
-        return { appsScriptUrl: '', sheetName: '', spreadsheetId: '', lastUpdated: '-' };
-      }
-      return {
-        appsScriptUrl: url,
-        sheetName: sanitizeText(parsed.sheetName, 120),
-        spreadsheetId: sanitizeText(parsed.spreadsheetId, 120),
-        lastUpdated: sanitizeText(parsed.lastUpdated, 80) || '-'
-      };
+  if (!fs.existsSync(filePath)) return null;
+  const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  const url = sanitizeText(parsed.appsScriptUrl, 500);
+  if (url && !isValidAppsScriptUrl(url)) return null;
+  return {
+    appsScriptUrl: url,
+    sheetName: sanitizeText(parsed.sheetName, 120),
+    spreadsheetId: sanitizeText(parsed.spreadsheetId, 120),
+    lastUpdated: sanitizeText(parsed.lastUpdated, 80) || '-'
+  };
+}
+
+function readSharedSheetConfig() {
+  const candidates = [
+    [WORKSPACE_CONFIG_FILE, CONFIG_DIR],
+    [CONFIG_FILE, DATA_DIR]
+  ];
+  for (const [filePath, baseDir] of candidates) {
+    try {
+      const cfg = parseConfigFile(filePath, baseDir);
+      if (cfg && cfg.appsScriptUrl) return cfg;
+    } catch {
+      // Ignore unreadable candidate
     }
-  } catch {
-    // Fallback below if file is missing or unreadable
   }
 
   const envUrl = sanitizeText(process.env.WMS_APPS_SCRIPT_URL || '', 500);
@@ -62,20 +72,32 @@ function readSharedSheetConfig() {
   return { appsScriptUrl: '', sheetName: '', spreadsheetId: '', lastUpdated: '-' };
 }
 
-function writeSharedSheetConfig(cfg) {
-  if (!CONFIG_FILE.startsWith(DATA_DIR + path.sep)) {
+function writeConfigAtomically(filePath, baseDir, cfg) {
+  if (!filePath.startsWith(baseDir + path.sep)) {
     throw new Error('Invalid config storage path');
   }
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  const tmpFile = path.resolve(DATA_DIR, 'sheet-config.tmp.json');
-  if (!tmpFile.startsWith(DATA_DIR + path.sep)) {
+  fs.mkdirSync(baseDir, { recursive: true });
+  const tmpFile = path.resolve(baseDir, 'sheet-config.tmp.json');
+  if (!tmpFile.startsWith(baseDir + path.sep)) {
     throw new Error('Invalid temp path');
   }
   fs.writeFileSync(tmpFile, JSON.stringify(cfg, null, 2), 'utf8');
-  fs.renameSync(tmpFile, CONFIG_FILE);
+  fs.renameSync(tmpFile, filePath);
+}
+
+function writeSharedSheetConfig(cfg) {
+  writeConfigAtomically(WORKSPACE_CONFIG_FILE, CONFIG_DIR, cfg);
+  try {
+    writeConfigAtomically(CONFIG_FILE, DATA_DIR, cfg);
+  } catch {
+    // Non-fatal mirror to .data
+  }
 }
 
 app.use('/.data', (_req, res) => {
+  res.status(403).json({ ok: false, error: 'Forbidden' });
+});
+app.use('/config', (_req, res) => {
   res.status(403).json({ ok: false, error: 'Forbidden' });
 });
 
