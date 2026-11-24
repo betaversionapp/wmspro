@@ -21,10 +21,10 @@
         }
         /* Animasi halus untuk transisi antar tampilan */
         .fade-in {
-            animation: fadeIn 0.25s ease-out forwards;
+            animation: fadeIn 0.12s ease-out forwards;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
+            from { opacity: 0; transform: translateY(4px); }
             to { opacity: 1; transform: translateY(0); }
         }
         /* Custom scrollbar */
@@ -182,26 +182,71 @@
                 background: #ffffff !important;
                 box-shadow: none !important;
             }
-            body.printing-berita-acara * {
-                visibility: hidden !important;
+            body.printing-berita-acara {
+                display: block !important;
+                height: auto !important;
+                min-height: 0 !important;
             }
-            body.printing-berita-acara #return-berita-acara-print-sheet,
-            body.printing-berita-acara #return-berita-acara-print-sheet * {
-                visibility: visible !important;
+            body.printing-berita-acara > *:not(#app-shell),
+            body.printing-berita-acara #app-shell > *:not(main),
+            body.printing-berita-acara .no-print,
+            body.printing-berita-acara #view-return > div > *:not(#return-panel-offline),
+            body.printing-berita-acara #return-panel-offline > div:first-child {
+                display: none !important;
+            }
+            body.printing-berita-acara #app-shell,
+            body.printing-berita-acara main,
+            body.printing-berita-acara #view-return,
+            body.printing-berita-acara #view-return > div,
+            body.printing-berita-acara #return-panel-offline,
+            body.printing-berita-acara #return-panel-offline > div:last-child,
+            body.printing-berita-acara #return-berita-acara-paper-wrap {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: none !important;
+                min-height: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                background: #ffffff !important;
+                overflow: visible !important;
+                border-radius: 0 !important;
             }
             body.printing-berita-acara #return-berita-acara-print-sheet {
-                position: fixed !important;
-                left: 0 !important;
-                top: 0 !important;
+                position: static !important;
+                display: block !important;
                 width: 100% !important;
                 max-width: 100% !important;
+                min-height: 0 !important;
                 margin: 0 !important;
-                padding: 10mm 12mm !important;
+                padding: 0 !important;
                 background: #ffffff !important;
                 border: none !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
                 color: #000000 !important;
+                box-sizing: border-box !important;
+                font-size: 10.5pt !important;
+                line-height: 1.4 !important;
+            }
+            body.printing-berita-acara #return-berita-acara-print-sheet table {
+                width: 100% !important;
+                table-layout: fixed !important;
+                border-collapse: collapse !important;
+            }
+            body.printing-berita-acara #return-berita-acara-print-sheet th,
+            body.printing-berita-acara #return-berita-acara-print-sheet td {
+                word-wrap: break-word !important;
+                overflow-wrap: anywhere !important;
+            }
+            body.printing-berita-acara #return-berita-acara-print-sheet thead {
+                display: table-header-group;
+            }
+            body.printing-berita-acara #return-berita-acara-print-sheet tr,
+            body.printing-berita-acara .ba-signature-block {
+                break-inside: avoid;
+                page-break-inside: avoid;
             }
             body:not(.printing-barang-barcode):not(.printing-berita-acara) #login-view,
             body:not(.printing-barang-barcode):not(.printing-berita-acara) #toast-container,
@@ -809,10 +854,10 @@ function doPost(e) {
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto overflow-y-auto max-h-[580px]">
                         <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50/80 border-b border-slate-200/80 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,0.9)]">
+                                <tr class="bg-slate-50 border-b border-slate-200/80 text-xs font-bold text-slate-500 uppercase tracking-wider">
                                     <th class="py-3.5 px-5">ID User</th>
                                     <th class="py-3.5 px-5">Username</th>
                                     <th class="py-3.5 px-5">Password</th>
@@ -946,7 +991,7 @@ function doPost(e) {
                                     <label for="dispatch-offline-koli" class="text-xs font-bold text-slate-700">b. Jumlah Koli <span class="text-rose-500">*</span></label>
                                     <span class="text-[11px] text-slate-400">bisa tambah cepat</span>
                                 </div>
-                                <input type="number" id="dispatch-offline-koli" min="1" placeholder="0" required
+                                <input type="text" inputmode="numeric" data-num-format="int" id="dispatch-offline-koli" min="1" placeholder="0" required
                                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-extrabold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition tabular-nums">
                                 <div class="flex flex-wrap gap-1.5 mt-2">
                                     <button type="button" onclick="addDispatchOfflineQuickKoli(1)" class="px-2.5 py-1 rounded-lg border bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200 text-xs font-bold transition tabular-nums">+1</button>
@@ -1116,7 +1161,7 @@ function doPost(e) {
                                     <label for="dispatch-qty" class="text-xs font-bold text-slate-700">Jumlah Resi <span class="text-rose-500">*</span></label>
                                     <span class="text-[11px] text-slate-400">bisa tambah cepat</span>
                                 </div>
-                                <input type="number" id="dispatch-qty" min="1" placeholder="0" required
+                                <input type="text" inputmode="numeric" data-num-format="int" id="dispatch-qty" min="1" placeholder="0" required
                                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-extrabold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition tabular-nums">
                                 <div id="dispatch-quick-qty" class="flex flex-wrap gap-1.5 mt-2">
                                     <!-- Diisi dinamis dari Setting -->
@@ -1869,7 +1914,7 @@ function doPost(e) {
                                     <span class="text-[11px] text-slate-400">tap cepat atau isi manual</span>
                                 </div>
                                 <div class="relative">
-                                    <input type="number" id="overtime-hours" min="0.5" max="24" step="0.5" placeholder="0" required
+                                    <input type="text" inputmode="decimal" data-num-format="decimal" id="overtime-hours" min="0.5" max="24" step="0.5" placeholder="0" required
                                         class="w-full px-3.5 py-2.5 pr-14 bg-slate-50 border border-slate-200 rounded-xl text-base font-extrabold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition tabular-nums">
                                     <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-xs font-bold text-slate-400 pointer-events-none">Jam</span>
                                 </div>
@@ -2254,9 +2299,9 @@ function doPost(e) {
 
                 <!-- TAMPILAN 1: TABEL MASTER BARANG -->
                 <div id="barang-table-container" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
+                    <div id="barang-table-scroll" class="overflow-x-auto overflow-y-auto max-h-[590px]">
                         <table class="w-full text-left border-collapse">
-                            <thead>
+                            <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,0.9)]">
                                 <tr class="bg-gradient-to-r from-slate-50 via-purple-50/50 to-fuchsia-50/40 border-b border-slate-200/80 text-xs font-bold text-slate-600 uppercase tracking-wider">
                                     <th class="py-3.5 px-5">
                                         <button type="button" onclick="toggleMasterBarangSkuSort()" class="inline-flex items-center gap-1.5 text-purple-700 hover:text-purple-900 font-bold uppercase tracking-wider focus:outline-none group cursor-pointer" title="Klik untuk ubah urutan SKU Code (A–Z / Z–A)">
@@ -2283,9 +2328,12 @@ function doPost(e) {
                 </div>
 
                 <!-- TAMPILAN 2: GRID KARTU KATALOG BARANG -->
-                <div id="barang-grid-container" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div id="barang-grid-container" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[780px] overflow-y-auto pr-1">
                     <!-- Kartu barang di-render dinamis -->
                 </div>
+
+                <!-- Kontrol Tampilkan Lebih Banyak (Optimasi Render Cepat) -->
+                <div id="barang-pagination-bar" class="hidden flex flex-wrap items-center justify-between gap-3 bg-white rounded-2xl border border-slate-200/80 px-4 py-3 shadow-xs"></div>
             </section>
 
             <!-- ========================================== -->
@@ -2618,8 +2666,8 @@ function doPost(e) {
                                 </div>
                                 <div>
                                     <label for="so-label-copies" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Jumlah Label</label>
-                                    <input type="number" id="so-label-copies" value="30" min="1" max="150" oninput="renderPrintLabelPreview()"
-                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <input type="text" inputmode="numeric" data-num-format="int" id="so-label-copies" value="30" min="1" max="150" oninput="renderPrintLabelPreview()"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
                                 </div>
                             </div>
 
@@ -2713,13 +2761,13 @@ function doPost(e) {
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label for="label-qty-input" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Qty pada Label</label>
-                                    <input type="number" id="label-qty-input" value="1" min="1" oninput="renderPrintLabelPreview()"
-                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <input type="text" inputmode="numeric" data-num-format="int" id="label-qty-input" value="1" min="1" oninput="renderPrintLabelPreview()"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
                                 </div>
                                 <div>
                                     <label for="label-copies-input" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Jumlah Cetak (Copy)</label>
-                                    <input type="number" id="label-copies-input" value="1" min="1" max="100" oninput="renderPrintLabelPreview()"
-                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <input type="text" inputmode="numeric" data-num-format="int" id="label-copies-input" value="1" min="1" max="100" oninput="renderPrintLabelPreview()"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
                                 </div>
                             </div>
 
@@ -2751,13 +2799,13 @@ function doPost(e) {
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label for="label-width-mm" class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Lebar (mm)</label>
-                                        <input type="number" id="label-width-mm" value="148" min="50" max="297" oninput="onCustomPaperSizeInput()"
-                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                        <input type="text" inputmode="numeric" data-num-format="int" id="label-width-mm" value="148" min="50" max="297" oninput="onCustomPaperSizeInput()"
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
                                     </div>
                                     <div>
                                         <label for="label-height-mm" class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tinggi (mm)</label>
-                                        <input type="number" id="label-height-mm" value="105" min="35" max="297" oninput="onCustomPaperSizeInput()"
-                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                        <input type="text" inputmode="numeric" data-num-format="int" id="label-height-mm" value="105" min="35" max="297" oninput="onCustomPaperSizeInput()"
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
                                     </div>
                                 </div>
                             </div>
@@ -2773,15 +2821,78 @@ function doPost(e) {
                                 </div>
                                 <div>
                                     <h2 class="text-base font-bold text-slate-900">Print Label Custom (A6)</h2>
-                                    <p class="text-xs text-slate-500">Teks ditulis manual dengan ukuran huruf besar otomatis menyesuaikan kertas A6.</p>
+                                    <p class="text-xs text-slate-500">Atur ukuran font untuk semua teks sekaligus atau sebagian teks/per baris.</p>
                                 </div>
                             </div>
 
                             <div>
-                                <label for="custom-label-text" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Teks Label Manual</label>
-                                <textarea id="custom-label-text" rows="4" oninput="renderPrintLabelPreview()"
+                                <div class="flex items-center justify-between gap-2 mb-1.5">
+                                    <label for="custom-label-text" class="block text-xs font-bold text-slate-700 uppercase">Teks Label Manual</label>
+                                    <button type="button" onclick="resetCustomLabelPartialSizes()"
+                                        class="text-[11px] font-bold text-rose-600 hover:underline">Reset Ukuran Sebagian</button>
+                                </div>
+                                <textarea id="custom-label-text" rows="4" oninput="onCustomLabelTextInput()"
                                     placeholder="Ketik teks label di sini (misal: AREA KARANTINA / HOLD QC / RAK A-01)..."
                                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500">AREA HOLDING QC</textarea>
+                                <p class="text-[11px] text-slate-500 mt-1">Tips: Blok sebagian teks di kotak di atas lalu klik <strong>Terapkan ke Teks Terpilih</strong>, atau ketik tag <code class="px-1 py-0.5 rounded bg-slate-100 font-mono text-[10px]">[28pt]Teks[/28pt]</code>.</p>
+                            </div>
+
+                            <!-- Pengaturan Font Size Semua & Sebagian -->
+                            <div class="p-3.5 rounded-xl bg-teal-50/70 border border-teal-200/80 space-y-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <span class="text-xs font-extrabold text-teal-900 uppercase tracking-wide">Ukuran Font Semua Teks</span>
+                                    <div class="inline-flex p-0.5 rounded-lg bg-white border border-teal-200 text-[11px] font-bold">
+                                        <button type="button" id="custom-font-mode-auto" onclick="setCustomLabelFontMode('auto')"
+                                            class="px-2.5 py-1 rounded-md bg-teal-600 text-white transition">Auto Fit A6</button>
+                                        <button type="button" id="custom-font-mode-manual" onclick="setCustomLabelFontMode('manual')"
+                                            class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Custom Semua</button>
+                                    </div>
+                                </div>
+
+                                <div id="custom-label-global-font-wrap" class="hidden space-y-2">
+                                    <div class="flex items-center gap-2">
+                                        <input type="range" id="custom-label-font-range" min="10" max="120" value="48"
+                                            oninput="syncCustomLabelGlobalFontInput(this.value)"
+                                            class="flex-1 accent-teal-600">
+                                        <div class="flex items-center gap-1 shrink-0">
+                                            <input type="text" inputmode="numeric" data-num-format="int" id="custom-label-font-size" value="48" min="10" max="140"
+                                                oninput="onCustomLabelGlobalFontNumberInput()"
+                                                class="w-16 px-2.5 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-extrabold text-slate-900 text-center tabular-nums">
+                                            <span class="text-xs font-bold text-slate-500">pt</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        <button type="button" onclick="applyCustomLabelGlobalPreset(24)" class="px-2 py-1 rounded-lg bg-white border border-teal-200 hover:bg-teal-100 text-[11px] font-bold text-teal-800">24pt</button>
+                                        <button type="button" onclick="applyCustomLabelGlobalPreset(36)" class="px-2 py-1 rounded-lg bg-white border border-teal-200 hover:bg-teal-100 text-[11px] font-bold text-teal-800">36pt</button>
+                                        <button type="button" onclick="applyCustomLabelGlobalPreset(48)" class="px-2 py-1 rounded-lg bg-white border border-teal-200 hover:bg-teal-100 text-[11px] font-bold text-teal-800">48pt</button>
+                                        <button type="button" onclick="applyCustomLabelGlobalPreset(64)" class="px-2 py-1 rounded-lg bg-white border border-teal-200 hover:bg-teal-100 text-[11px] font-bold text-teal-800">64pt</button>
+                                        <button type="button" onclick="applyCustomLabelGlobalPreset(80)" class="px-2 py-1 rounded-lg bg-white border border-teal-200 hover:bg-teal-100 text-[11px] font-bold text-teal-800">80pt</button>
+                                    </div>
+                                </div>
+
+                                <div class="pt-2.5 border-t border-teal-200/70 space-y-2">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <span class="text-xs font-extrabold text-teal-900 uppercase tracking-wide">Ukuran Font Sebagian Teks</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <input type="text" inputmode="numeric" data-num-format="int" id="custom-label-partial-size" value="28" min="8" max="140"
+                                                class="w-16 px-2 py-1 bg-white border border-teal-200 rounded-lg text-xs font-extrabold text-slate-900 text-center tabular-nums">
+                                            <span class="text-xs font-bold text-slate-500">pt</span>
+                                            <button type="button" onclick="applyCustomLabelPartialFontSize()"
+                                                class="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-bold shadow-xs transition">
+                                                Terapkan ke Teks Terpilih
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-1.5">
+                                        <span class="text-[10px] font-bold text-teal-800 uppercase mr-1">Cepat:</span>
+                                        <button type="button" onclick="applyCustomLabelPartialFontSize(18)" class="px-2 py-0.5 rounded bg-white border border-teal-200 hover:bg-teal-100 text-[11px] font-bold text-teal-800">18pt</button>
+                                        <button type="button" onclick="applyCustomLabelPartialFontSize(24)" class="px-2 py-0.5 rounded bg-white border border-teal-200 hover:bg-teal-100 text-[11px] font-bold text-teal-800">24pt</button>
+                                        <button type="button" onclick="applyCustomLabelPartialFontSize(36)" class="px-2 py-0.5 rounded bg-white border border-teal-200 hover:bg-teal-100 text-[11px] font-bold text-teal-800">36pt</button>
+                                        <button type="button" onclick="applyCustomLabelPartialFontSize(48)" class="px-2 py-0.5 rounded bg-white border border-teal-200 hover:bg-teal-100 text-[11px] font-bold text-teal-800">48pt</button>
+                                        <button type="button" onclick="applyCustomLabelPartialFontSize(72)" class="px-2 py-0.5 rounded bg-white border border-teal-200 hover:bg-teal-100 text-[11px] font-bold text-teal-800">72pt</button>
+                                    </div>
+                                    <div id="custom-label-line-pills" class="flex flex-wrap gap-1.5 pt-1"></div>
+                                </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-3">
@@ -2795,8 +2906,8 @@ function doPost(e) {
                                 </div>
                                 <div>
                                     <label for="custom-label-copies" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Jumlah Cetak (Copy)</label>
-                                    <input type="number" id="custom-label-copies" value="1" min="1" max="100" oninput="renderPrintLabelPreview()"
-                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <input type="text" inputmode="numeric" data-num-format="int" id="custom-label-copies" value="1" min="1" max="100" oninput="renderPrintLabelPreview()"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
                                 </div>
                             </div>
 
@@ -3003,7 +3114,7 @@ function doPost(e) {
                                     <label for="cc-qty-fisik" class="text-xs font-bold text-slate-700">Qty Fisik <span class="text-rose-500">*</span></label>
                                     <span class="text-[11px] text-slate-400">bisa tambah cepat</span>
                                 </div>
-                                <input type="number" id="cc-qty-fisik" min="0" placeholder="0" required
+                                <input type="text" inputmode="numeric" data-num-format="int" id="cc-qty-fisik" min="0" placeholder="0" required
                                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition tabular-nums">
                                 <div id="cc-quick-qty" class="flex flex-wrap gap-1.5 mt-2">
                                     <!-- Diisi dinamis dari Setting -->
@@ -3492,7 +3603,7 @@ function doPost(e) {
                                     <label for="qc-create-qty-order" class="text-xs font-bold text-slate-700">Qty Order <span class="text-rose-500">*</span></label>
                                     <span class="text-[11px] text-slate-400">tap cepat atau ketik</span>
                                 </div>
-                                <input type="number" id="qc-create-qty-order" min="1" placeholder="0" required
+                                <input type="text" inputmode="numeric" data-num-format="int" id="qc-create-qty-order" min="1" placeholder="0" required
                                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition tabular-nums">
                                 <div class="flex flex-wrap gap-1.5 mt-2">
                                     <button type="button" onclick="addQcQuickOrderQty(1)" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 text-xs font-bold tabular-nums transition">+1</button>
@@ -3890,7 +4001,7 @@ function doPost(e) {
                                     <div class="flex items-center justify-between mb-1.5">
                                         <label for="admin-resi-qty" class="text-xs font-bold text-slate-700">Jumlah Resi <span class="text-rose-500">*</span></label>
                                     </div>
-                                    <input type="number" id="admin-resi-qty" min="1" placeholder="0" required
+                                    <input type="text" inputmode="numeric" data-num-format="int" id="admin-resi-qty" min="1" placeholder="0" required
                                         class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition tabular-nums">
                                     <div id="admin-resi-quick-qty" class="flex flex-wrap gap-1.5 mt-2">
                                         <!-- Diisi dinamis dari Setting -->
@@ -4162,7 +4273,7 @@ function doPost(e) {
 
                                 <div>
                                     <label for="sb-qty" class="block text-xs font-bold text-slate-700 mb-1.5">Qty (pcs) <span class="text-rose-500">*</span></label>
-                                    <input type="number" id="sb-qty" min="1" placeholder="0" required
+                                    <input type="text" inputmode="numeric" data-num-format="int" id="sb-qty" min="1" placeholder="0" required
                                         class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition tabular-nums">
                                 </div>
 
@@ -4513,7 +4624,7 @@ function doPost(e) {
                                     </div>
                                     <div>
                                         <label for="drv-exp-km" class="block text-xs font-bold text-slate-700 mb-1">Kilometer (KM) <span class="text-rose-500">*</span></label>
-                                        <input type="number" id="drv-exp-km" min="0" required placeholder="Contoh: 45210"
+                                        <input type="text" inputmode="numeric" data-num-format="int" id="drv-exp-km" min="0" required placeholder="Contoh: 45.210"
                                             class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                     </div>
                                 </div>
@@ -4545,17 +4656,17 @@ function doPost(e) {
                                 <div class="grid grid-cols-3 gap-2.5">
                                     <div>
                                         <label for="drv-exp-tol" class="block text-xs font-bold text-slate-700 mb-1">Tol (Rp)</label>
-                                        <input type="number" id="drv-exp-tol" min="0" value="0" oninput="updateDriverExpenseDraftTotal()"
+                                        <input type="text" inputmode="numeric" data-num-format="int" id="drv-exp-tol" min="0" value="0" oninput="updateDriverExpenseDraftTotal()"
                                             class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                     </div>
                                     <div>
                                         <label for="drv-exp-bensin" class="block text-xs font-bold text-slate-700 mb-1">Bensin (Rp)</label>
-                                        <input type="number" id="drv-exp-bensin" min="0" value="0" oninput="updateDriverExpenseDraftTotal()"
+                                        <input type="text" inputmode="numeric" data-num-format="int" id="drv-exp-bensin" min="0" value="0" oninput="updateDriverExpenseDraftTotal()"
                                             class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                     </div>
                                     <div>
                                         <label for="drv-exp-parkir" class="block text-xs font-bold text-slate-700 mb-1">Parkir (Rp)</label>
-                                        <input type="number" id="drv-exp-parkir" min="0" value="0" oninput="updateDriverExpenseDraftTotal()"
+                                        <input type="text" inputmode="numeric" data-num-format="int" id="drv-exp-parkir" min="0" value="0" oninput="updateDriverExpenseDraftTotal()"
                                             class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                     </div>
                                 </div>
@@ -4907,7 +5018,7 @@ function doPost(e) {
                                             <label for="ret-off-qty" class="text-xs font-bold text-slate-700">Qty Waste <span class="text-rose-500">*</span></label>
                                             <span class="text-[11px] text-slate-400">tap cepat di bawah</span>
                                         </div>
-                                        <input type="number" id="ret-off-qty" min="1" required placeholder="0"
+                                        <input type="text" inputmode="numeric" data-num-format="int" id="ret-off-qty" min="1" required placeholder="0"
                                             class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-extrabold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition tabular-nums">
                                         <div id="ret-off-quick-qty" class="flex flex-wrap gap-1.5 mt-2"></div>
                                     </div>
@@ -5022,9 +5133,13 @@ function doPost(e) {
                                 </div>
                             </div>
 
-                            <!-- Preview & Print Area Dokumen Berita Acara -->
-                            <div class="bg-slate-100/90 border border-dashed border-slate-300 rounded-2xl p-3 sm:p-5 overflow-x-auto">
-                                <div id="return-berita-acara-print-sheet" class="bg-white text-black mx-auto shadow-sm border border-slate-300 p-6 sm:p-10 max-w-[794px] min-h-[540px] text-[13px] leading-relaxed" style="font-family: 'Times New Roman', Georgia, serif;">
+                            <!-- Preview & Print Area Dokumen Berita Acara (Ukuran Kertas A4 Portrait) -->
+                            <div id="return-berita-acara-paper-wrap" class="bg-slate-100/90 border border-dashed border-slate-300 rounded-2xl p-3 sm:p-5 overflow-x-auto">
+                                <div class="no-print flex items-center justify-between text-[11px] font-bold text-slate-500 mb-2 max-w-[210mm] mx-auto px-1">
+                                    <span>Pratinjau Dokumen Siap Cetak</span>
+                                    <span class="px-2 py-0.5 rounded bg-white border border-slate-200 text-rose-700">Kertas A4 Portrait (210 × 297 mm) • Fit Halaman</span>
+                                </div>
+                                <div id="return-berita-acara-print-sheet" class="bg-white text-black mx-auto shadow-sm border border-slate-300 p-6 sm:p-[12mm] w-full max-w-[210mm] min-h-[297mm] box-border text-[12.5px] leading-relaxed" style="font-family: 'Times New Roman', Georgia, serif;">
                                     <!-- Di-render dinamis oleh renderReturnBeritaAcaraPreview() -->
                                 </div>
                             </div>
@@ -5117,7 +5232,7 @@ function doPost(e) {
                                         <label for="ret-on-qty" class="text-xs font-bold text-slate-700">Qty Retur <span class="text-rose-500">*</span></label>
                                         <span class="text-[11px] text-slate-400">tap cepat di bawah</span>
                                     </div>
-                                    <input type="number" id="ret-on-qty" min="1" required placeholder="0"
+                                    <input type="text" inputmode="numeric" data-num-format="int" id="ret-on-qty" min="1" required placeholder="0"
                                         class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-extrabold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition tabular-nums">
                                     <div id="ret-on-quick-qty" class="flex flex-wrap gap-1.5 mt-2"></div>
                                 </div>
@@ -5226,15 +5341,15 @@ function doPost(e) {
                             <div class="flex flex-wrap items-center gap-2 bg-white/15 border border-white/20 rounded-xl p-2.5 text-xs shrink-0">
                                 <div>
                                     <span class="block text-[10px] text-teal-100 font-semibold">Batas Near Exp (Hari)</span>
-                                    <input type="number" id="inv-cfg-near-exp" min="1" value="90" onchange="updateInventoryThresholds()" class="w-16 mt-0.5 px-2 py-1 rounded-lg bg-white text-slate-900 font-bold text-xs tabular-nums">
+                                    <input type="text" inputmode="numeric" data-num-format="int" id="inv-cfg-near-exp" min="1" value="90" onchange="updateInventoryThresholds()" class="w-16 mt-0.5 px-2 py-1 rounded-lg bg-white text-slate-900 font-bold text-xs tabular-nums">
                                 </div>
                                 <div>
                                     <span class="block text-[10px] text-teal-100 font-semibold">Dead Stock (Hari)</span>
-                                    <input type="number" id="inv-cfg-dead-days" min="1" value="90" onchange="updateInventoryThresholds()" class="w-16 mt-0.5 px-2 py-1 rounded-lg bg-white text-slate-900 font-bold text-xs tabular-nums">
+                                    <input type="text" inputmode="numeric" data-num-format="int" id="inv-cfg-dead-days" min="1" value="90" onchange="updateInventoryThresholds()" class="w-16 mt-0.5 px-2 py-1 rounded-lg bg-white text-slate-900 font-bold text-xs tabular-nums">
                                 </div>
                                 <div>
                                     <span class="block text-[10px] text-teal-100 font-semibold">Over DOI (Hari)</span>
-                                    <input type="number" id="inv-cfg-over-doi" min="1" value="90" onchange="updateInventoryThresholds()" class="w-16 mt-0.5 px-2 py-1 rounded-lg bg-white text-slate-900 font-bold text-xs tabular-nums">
+                                    <input type="text" inputmode="numeric" data-num-format="int" id="inv-cfg-over-doi" min="1" value="90" onchange="updateInventoryThresholds()" class="w-16 mt-0.5 px-2 py-1 rounded-lg bg-white text-slate-900 font-bold text-xs tabular-nums">
                                 </div>
                             </div>
                         </div>
@@ -5314,9 +5429,9 @@ function doPost(e) {
 
                     <!-- Main Audit Table -->
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto overflow-y-auto max-h-[590px]">
                             <table class="w-full text-left border-collapse">
-                                <thead>
+                                <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,0.9)]">
                                     <tr id="inv-table-head-row" class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
                                         <th class="py-3.5 px-4">SKU &amp; Produk</th>
                                         <th class="py-3.5 px-3">No. Rack</th>
@@ -5423,9 +5538,9 @@ function doPost(e) {
                             </div>
                             <span id="kpi-table-count-badge" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold">0 Staff</span>
                         </div>
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto overflow-y-auto max-h-[600px]">
                             <table class="w-full text-left border-collapse">
-                                <thead>
+                                <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,0.9)]">
                                     <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
                                         <th class="py-3.5 px-4">Staff &amp; Posisi</th>
                                         <th class="py-3.5 px-3">Output Utama Posisi</th>
@@ -6219,8 +6334,8 @@ function doPost(e) {
                     </div>
                     <div>
                         <label for="barang-barcode-copies" class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Jumlah Cetak (Copy)</label>
-                        <input type="number" id="barang-barcode-copies" value="1" min="1" max="100" oninput="renderMasterBarangBarcodePreview()"
-                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        <input type="text" inputmode="numeric" data-num-format="int" id="barang-barcode-copies" value="1" min="1" max="100" oninput="renderMasterBarangBarcodePreview()"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
                     </div>
                 </div>
 
@@ -6346,7 +6461,7 @@ function doPost(e) {
                         <label for="qc-proses-qty" class="text-xs font-bold text-slate-700">Qty Proses <span class="text-rose-500">*</span></label>
                         <span class="text-[11px] text-slate-400 tabular-nums" id="qc-proses-qty-hint">Qty Order: 0 pcs</span>
                     </div>
-                    <input type="number" id="qc-proses-qty" min="1" required placeholder="0" oninput="handleQcProsesQtyChange()"
+                    <input type="text" inputmode="numeric" data-num-format="int" id="qc-proses-qty" min="1" required placeholder="0" oninput="handleQcProsesQtyChange()"
                         class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 tabular-nums">
                     <p id="qc-over-qty-warning" class="hidden text-[11px] font-bold text-rose-600 mt-1.5 flex items-center gap-1">
                         <i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0"></i>
@@ -6618,7 +6733,7 @@ function doPost(e) {
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label for="inv-modal-stock" class="block text-xs font-bold text-slate-700 mb-1">Stock Sistem (Qty)</label>
-                        <input type="number" id="inv-modal-stock" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 tabular-nums">
+                        <input type="text" inputmode="numeric" data-num-format="int" data-allow-negative="1" id="inv-modal-stock" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 tabular-nums">
                     </div>
                     <div>
                         <label for="inv-modal-rack" class="block text-xs font-bold text-slate-700 mb-1">No. Rack</label>
@@ -6628,17 +6743,17 @@ function doPost(e) {
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label for="inv-modal-min" class="block text-xs font-bold text-slate-700 mb-1">Min Stock</label>
-                        <input type="number" id="inv-modal-min" min="0" value="5" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold tabular-nums">
+                        <input type="text" inputmode="numeric" data-num-format="int" id="inv-modal-min" min="0" value="5" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold tabular-nums">
                     </div>
                     <div>
                         <label for="inv-modal-max" class="block text-xs font-bold text-slate-700 mb-1">Max Stock</label>
-                        <input type="number" id="inv-modal-max" min="0" value="100" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold tabular-nums">
+                        <input type="text" inputmode="numeric" data-num-format="int" id="inv-modal-max" min="0" value="100" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold tabular-nums">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label for="inv-modal-avg-out" class="block text-xs font-bold text-slate-700 mb-1">Avg Keluar / Hari</label>
-                        <input type="number" id="inv-modal-avg-out" min="0" step="0.1" value="1" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold tabular-nums">
+                        <input type="text" inputmode="decimal" data-num-format="decimal" id="inv-modal-avg-out" min="0" step="0.1" value="1" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold tabular-nums">
                     </div>
                     <div>
                         <label for="inv-modal-last-move" class="block text-xs font-bold text-slate-700 mb-1">Tgl Pergerakan Terakhir</label>
@@ -6914,6 +7029,7 @@ function doPost(e) {
 
         // 2. ATURAN PEMETAAN POSISI -> MENU YANG TERBUKA OTOMATIS
         const ALL_MENU_IDS = MASTER_MENUS.map(m => m.id);
+        let seededMenuIds = [...ALL_MENU_IDS];
         let ROLE_PERMISSIONS = {
             'Manager': [...ALL_MENU_IDS],
             'SPV': [...ALL_MENU_IDS],
@@ -7015,16 +7131,16 @@ function doPost(e) {
             return s;
         }
 
-        // Isi dengan URL Web App Google Apps Script Anda (berakhiran /exec) agar SEMUA perangkat
+        // URL Web App Google Apps Script default agar SEMUA perangkat & link statis (termasuk GitHub)
         // langsung terhubung ke database Google Sheet tanpa perlu mengisi manual di menu Setting.
-        const DEFAULT_APPS_SCRIPT_URL = '';
+        const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2toAvc5Ee_UWZ1rFO2k5n3VBZjCHccLiyGhTrze97SEAnfhWH8qAeDOGBT-DPHygcHg/exec';
 
         let setupConfig = {
-            sheetName: '',
+            sheetName: 'Gudang Utama Jakarta - Master DB',
             appsScriptUrl: DEFAULT_APPS_SCRIPT_URL,
-            spreadsheetId: '',
-            isConnected: false,
-            lastUpdated: '-'
+            spreadsheetId: 'AKfycbz2toAvc5Ee_UWZ1rFO2k5n3VBZjCHccLiyGhTrze97SEAnfhWH8qAeDOGBT-DPHygcHg',
+            isConnected: true,
+            lastUpdated: 'Terpasang Otomatis'
         };
 
         const DEFAULT_PIC_ROLE_FILTERS = {
@@ -7372,6 +7488,203 @@ function doPost(e) {
             return new Date().toTimeString().slice(0, 5);
         }
 
+        function refreshLucideIcons(rootEl) {
+            if (typeof lucide === 'undefined' || !lucide || typeof lucide.createIcons !== 'function') return;
+            const target = (rootEl && rootEl.nodeType === 1) ? rootEl : document;
+            try {
+                if (target !== document) {
+                    if (typeof target.querySelectorAll === 'function' && target.querySelectorAll('i[data-lucide]').length === 0) return;
+                    lucide.createIcons({ root: target });
+                } else {
+                    lucide.createIcons();
+                }
+            } catch (e) {
+                try { lucide.createIcons(); } catch (_) {}
+            }
+        }
+
+        // ---------- Format Angka Global pada Semua Textbox Numerik ----------
+        function parseFormattedNumber(raw, allowDecimal = false, allowNegative = false) {
+            if (typeof raw === 'number') return Number.isFinite(raw) ? raw : NaN;
+            let s = String(raw ?? '').trim();
+            if (!s) return NaN;
+
+            let neg = false;
+            if (s.startsWith('-')) {
+                if (allowNegative) neg = true;
+                s = s.slice(1);
+            }
+            s = s.replace(/\s+/g, '');
+            if (!s || s === ',' || s === '.') return NaN;
+
+            if (allowDecimal) {
+                if (s.includes(',')) {
+                    s = s.replace(/\./g, '').replace(',', '.');
+                } else {
+                    const dots = (s.match(/\./g) || []).length;
+                    if (dots > 1 || /^\d{1,3}(\.\d{3})+$/.test(s)) {
+                        s = s.replace(/\./g, '');
+                    }
+                }
+                const cleaned = s.replace(/[^0-9.]/g, '');
+                if (!cleaned || cleaned === '.') return NaN;
+                const val = parseFloat((neg ? '-' : '') + cleaned);
+                return Number.isFinite(val) ? val : NaN;
+            }
+
+            const digits = s.replace(/[^\d]/g, '');
+            if (!digits) return NaN;
+            const val = parseInt((neg ? '-' : '') + digits, 10);
+            return Number.isFinite(val) ? val : NaN;
+        }
+
+        function formatIntGroupId(digitsStr) {
+            const clean = String(digitsStr || '').replace(/[^\d]/g, '');
+            if (!clean) return '';
+            const trimmed = clean.replace(/^0+(?=\d)/, '');
+            return trimmed.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function formatNumberTextboxString(raw, allowDecimal = false, allowNegative = false) {
+            if (raw === null || raw === undefined) return '';
+            if (typeof raw === 'number') {
+                if (!Number.isFinite(raw)) return '';
+                const neg = allowNegative && raw < 0;
+                const absStr = String(Math.abs(raw));
+                if (allowDecimal && absStr.includes('.')) {
+                    const [intPart, decPart] = absStr.split('.');
+                    return (neg ? '-' : '') + formatIntGroupId(intPart || '0') + ',' + decPart;
+                }
+                return (neg ? '-' : '') + formatIntGroupId(String(allowDecimal ? Math.abs(raw) : Math.round(Math.abs(raw))));
+            }
+
+            let s = String(raw).trim();
+            if (!s) return '';
+            const neg = allowNegative && s.startsWith('-');
+            if (s.startsWith('-')) s = s.slice(1);
+
+            if (allowDecimal) {
+                if (!s.includes(',') && /^\d+\.\d+$/.test(s) && !/^\d{1,3}(\.\d{3})+$/.test(s)) {
+                    s = s.replace('.', ',');
+                }
+                const commaIdx = s.indexOf(',');
+                if (commaIdx !== -1) {
+                    const intDigits = s.slice(0, commaIdx).replace(/[^\d]/g, '');
+                    const decDigits = s.slice(commaIdx + 1).replace(/[^\d]/g, '').slice(0, 4);
+                    const fmtInt = intDigits ? formatIntGroupId(intDigits) : '0';
+                    return (neg ? '-' : '') + fmtInt + ',' + decDigits;
+                }
+                const intDigits = s.replace(/[^\d]/g, '');
+                if (!intDigits) return neg ? '-' : '';
+                return (neg ? '-' : '') + formatIntGroupId(intDigits);
+            }
+
+            const intDigits = s.replace(/[^\d]/g, '');
+            if (!intDigits) return neg ? '-' : '';
+            return (neg ? '-' : '') + formatIntGroupId(intDigits);
+        }
+
+        function getNumericInputEl(elOrId) {
+            return typeof elOrId === 'string' ? document.getElementById(elOrId) : elOrId;
+        }
+
+        function getNumericInputValue(elOrId, fallback = NaN) {
+            const el = getNumericInputEl(elOrId);
+            if (!el) return fallback;
+            const allowDecimal = el.dataset && el.dataset.numFormat === 'decimal';
+            const allowNegative = el.dataset && el.dataset.allowNegative === '1';
+            const parsed = parseFormattedNumber(el.value, allowDecimal, allowNegative);
+            return Number.isFinite(parsed) ? parsed : fallback;
+        }
+
+        function setNumericInputValue(elOrId, value) {
+            const el = getNumericInputEl(elOrId);
+            if (!el) return;
+            if (value === '' || value === null || value === undefined) {
+                el.value = '';
+                return;
+            }
+            const allowDecimal = el.dataset && el.dataset.numFormat === 'decimal';
+            const allowNegative = el.dataset && el.dataset.allowNegative === '1';
+            el.value = formatNumberTextboxString(value, allowDecimal, allowNegative);
+        }
+
+        function applyNumericFormattingToElement(el, normalizeIncomplete = false) {
+            if (!el || !el.dataset || !el.dataset.numFormat) return;
+            const allowDecimal = el.dataset.numFormat === 'decimal';
+            const allowNegative = el.dataset.allowNegative === '1';
+            const raw = String(el.value ?? '');
+            if (!raw.trim()) {
+                el.value = '';
+                return;
+            }
+
+            let selStart = typeof el.selectionStart === 'number' ? el.selectionStart : raw.length;
+            let tokensBefore = 0;
+            for (let i = 0; i < selStart && i < raw.length; i++) {
+                const ch = raw[i];
+                if (/\d/.test(ch) || (allowDecimal && ch === ',') || (allowNegative && ch === '-' && i === 0)) {
+                    tokensBefore++;
+                }
+            }
+
+            let formatted = formatNumberTextboxString(raw, allowDecimal, allowNegative);
+            if (normalizeIncomplete) {
+                if (formatted === '-' || formatted === ',' || formatted === '-,') formatted = '';
+                else if (formatted.endsWith(',')) formatted = formatted.slice(0, -1);
+            }
+
+            if (el.value !== formatted) {
+                el.value = formatted;
+                if (document.activeElement === el && typeof el.setSelectionRange === 'function') {
+                    let pos = 0;
+                    let seen = 0;
+                    while (pos < formatted.length && seen < tokensBefore) {
+                        const ch = formatted[pos];
+                        if (/\d/.test(ch) || (allowDecimal && ch === ',') || (allowNegative && ch === '-' && pos === 0)) {
+                            seen++;
+                        }
+                        pos++;
+                    }
+                    try { el.setSelectionRange(pos, pos); } catch (_) {}
+                }
+            }
+        }
+
+        let numericInputFormattersInitialized = false;
+        function initNumericInputFormatters() {
+            document.querySelectorAll('input[data-num-format]').forEach(el => applyNumericFormattingToElement(el, true));
+            if (numericInputFormattersInitialized) return;
+            numericInputFormattersInitialized = true;
+
+            document.addEventListener('keydown', function(e) {
+                const el = e.target;
+                if (!el || el.tagName !== 'INPUT' || !el.dataset || !el.dataset.numFormat) return;
+                if (el.dataset.numFormat === 'decimal' && e.key === '.') {
+                    e.preventDefault();
+                    if (!el.value.includes(',')) {
+                        const s = typeof el.selectionStart === 'number' ? el.selectionStart : el.value.length;
+                        const end = typeof el.selectionEnd === 'number' ? el.selectionEnd : s;
+                        el.value = el.value.slice(0, s) + ',' + el.value.slice(end);
+                        try { el.setSelectionRange(s + 1, s + 1); } catch (_) {}
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                }
+            });
+
+            document.addEventListener('input', function(e) {
+                const el = e.target;
+                if (!el || el.tagName !== 'INPUT' || !el.dataset || !el.dataset.numFormat) return;
+                applyNumericFormattingToElement(el, false);
+            }, true);
+
+            document.addEventListener('blur', function(e) {
+                const el = e.target;
+                if (!el || el.tagName !== 'INPUT' || !el.dataset || !el.dataset.numFormat) return;
+                applyNumericFormattingToElement(el, true);
+            }, true);
+        }
+
         function ensureFullAccessRoles() {
             if (!Array.isArray(ROLE_PERMISSIONS['Manager'])) {
                 ROLE_PERMISSIONS['Manager'] = [...ALL_MENU_IDS];
@@ -7386,6 +7699,16 @@ function doPost(e) {
             }
             if (Array.isArray(ROLE_PERMISSIONS['Inventory']) && !ROLE_PERMISSIONS['Inventory'].includes('inventory')) {
                 ROLE_PERMISSIONS['Inventory'].push('inventory');
+            }
+            // Migrasi sekali jalan untuk menu baru "return" agar muncul pada data Pengaturan lama
+            if (!Array.isArray(seededMenuIds)) seededMenuIds = [];
+            if (!seededMenuIds.includes('return')) {
+                ['Manager', 'SPV', 'Admin', 'Operator', 'Inventory', 'Qc'].forEach(r => {
+                    if (Array.isArray(ROLE_PERMISSIONS[r]) && !ROLE_PERMISSIONS[r].includes('return')) {
+                        ROLE_PERMISSIONS[r].push('return');
+                    }
+                });
+                seededMenuIds.push('return');
             }
         }
 
@@ -7413,6 +7736,7 @@ function doPost(e) {
                 ['driverVehicles', JSON.stringify(driverVehicles)],
                 ['inventoryConfig', JSON.stringify(inventoryConfig)],
                 ['picRoleFilters', JSON.stringify(picRoleFilters)],
+                ['seededMenuIds', JSON.stringify(seededMenuIds)],
                 ['rolePermissions', JSON.stringify(ROLE_PERMISSIONS)]
             ];
         }
@@ -7483,6 +7807,7 @@ function doPost(e) {
                 returnOnlineReasons,
                 returnOfflineEntries,
                 returnOnlineEntries,
+                seededMenuIds,
                 rolePermissions: ROLE_PERMISSIONS
             };
         }
@@ -7581,6 +7906,11 @@ function doPost(e) {
                     if (Array.isArray(saved.returnOnlineReasons)) returnOnlineReasons = normalizeReturnOnlineReasons(saved.returnOnlineReasons);
                     if (Array.isArray(saved.returnOfflineEntries)) returnOfflineEntries = saved.returnOfflineEntries;
                     if (Array.isArray(saved.returnOnlineEntries)) returnOnlineEntries = saved.returnOnlineEntries;
+                    if (Array.isArray(saved.seededMenuIds)) {
+                        seededMenuIds = saved.seededMenuIds;
+                    } else if (saved.rolePermissions && typeof saved.rolePermissions === 'object') {
+                        seededMenuIds = ALL_MENU_IDS.filter(id => id !== 'return');
+                    }
                     if (saved.rolePermissions && typeof saved.rolePermissions === 'object') ROLE_PERMISSIONS = saved.rolePermissions;
                 }
                 if (!setupConfig.appsScriptUrl) {
@@ -7605,9 +7935,13 @@ function doPost(e) {
             // Buang sisa konfigurasi demo lama
             if (String(setupConfig.appsScriptUrl || '').includes('WMSProDefaultDatabaseSyncExecURL')) setupConfig.appsScriptUrl = '';
             if (String(setupConfig.spreadsheetId || '').includes('WMSProMasterWarehouseDatabaseSheetID')) setupConfig.spreadsheetId = '';
-            if (setupConfig.sheetName === 'Gudang Utama Jakarta - Master DB') setupConfig.sheetName = '';
-            if (setupConfig.lastUpdated === 'Terpasang Otomatis') setupConfig.lastUpdated = '-';
-            if (!setupConfig.appsScriptUrl && DEFAULT_APPS_SCRIPT_URL) setupConfig.appsScriptUrl = DEFAULT_APPS_SCRIPT_URL;
+            if (setupConfig.sheetName === 'Gudang Utama Jakarta - Master DB' && !setupConfig.appsScriptUrl) setupConfig.sheetName = '';
+            if (setupConfig.lastUpdated === 'Terpasang Otomatis' && !setupConfig.appsScriptUrl) setupConfig.lastUpdated = '-';
+            if (!setupConfig.appsScriptUrl && DEFAULT_APPS_SCRIPT_URL) {
+                setupConfig.appsScriptUrl = DEFAULT_APPS_SCRIPT_URL;
+                if (!setupConfig.sheetName) setupConfig.sheetName = 'Gudang Utama Jakarta - Master DB';
+                if (!setupConfig.lastUpdated || setupConfig.lastUpdated === '-') setupConfig.lastUpdated = 'Terpasang Otomatis';
+            }
             setupConfig.isConnected = Boolean(getScriptUrl());
 
             syncSetupFormInputs();
@@ -7729,36 +8063,43 @@ function doPost(e) {
             const localUrl = getScriptUrl();
             try {
                 const res = await fetch('/api/sheet-config', { cache: 'no-store' });
-                if (!res.ok) return false;
-                const data = await res.json();
-                const serverCfg = data && data.config ? data.config : null;
-                const serverUrl = String(serverCfg?.appsScriptUrl || '').trim();
+                if (res.ok) {
+                    const data = await res.json();
+                    const serverCfg = data && data.config ? data.config : null;
+                    const serverUrl = String(serverCfg?.appsScriptUrl || '').trim();
 
-                if (serverUrl && isValidAppsScriptUrl(serverUrl)) {
-                    // Selalu sinkronkan URL global dari server agar device baru langsung terhubung otomatis
-                    if (localUrl !== serverUrl || !setupConfig.appsScriptUrl) {
-                        applySharedSheetConfig(serverCfg, true);
-                    } else {
-                        if (serverCfg.sheetName && !setupConfig.sheetName) setupConfig.sheetName = serverCfg.sheetName;
-                        if (serverCfg.spreadsheetId && !setupConfig.spreadsheetId) setupConfig.spreadsheetId = serverCfg.spreadsheetId;
-                        syncSetupFormInputs();
-                        updateSetupConnectionUI();
+                    if (serverUrl && isValidAppsScriptUrl(serverUrl)) {
+                        // Selalu sinkronkan URL global dari server agar device baru langsung terhubung otomatis
+                        if (localUrl !== serverUrl || !setupConfig.appsScriptUrl) {
+                            applySharedSheetConfig(serverCfg, true);
+                        } else {
+                            if (serverCfg.sheetName && !setupConfig.sheetName) setupConfig.sheetName = serverCfg.sheetName;
+                            if (serverCfg.spreadsheetId && !setupConfig.spreadsheetId) setupConfig.spreadsheetId = serverCfg.spreadsheetId;
+                            syncSetupFormInputs();
+                            updateSetupConnectionUI();
+                        }
+                        return true;
                     }
-                    return true;
-                }
 
-                // Jika server belum punya konfigurasi tetapi device ini sudah terpasang sebelumnya, bagikan otomatis ke server
-                if (localUrl && isValidAppsScriptUrl(localUrl)) {
-                    await saveSheetConfigToServer({
-                        appsScriptUrl: localUrl,
-                        sheetName: setupConfig.sheetName,
-                        spreadsheetId: setupConfig.spreadsheetId,
-                        lastUpdated: setupConfig.lastUpdated
-                    }, false);
-                    return true;
+                    // Jika server belum punya konfigurasi tetapi device ini sudah terpasang sebelumnya, bagikan otomatis ke server
+                    if (localUrl && isValidAppsScriptUrl(localUrl)) {
+                        await saveSheetConfigToServer({
+                            appsScriptUrl: localUrl,
+                            sheetName: setupConfig.sheetName,
+                            spreadsheetId: setupConfig.spreadsheetId,
+                            lastUpdated: setupConfig.lastUpdated
+                        }, false);
+                        return true;
+                    }
                 }
             } catch {
-                // Abaikan jika server sedang offline
+                // Hosting statis (misal GitHub Pages) tidak memiliki endpoint /api/sheet-config: lanjutkan dengan default URL
+            }
+            if (!setupConfig.appsScriptUrl && DEFAULT_APPS_SCRIPT_URL) {
+                setupConfig.appsScriptUrl = DEFAULT_APPS_SCRIPT_URL;
+                setupConfig.isConnected = true;
+                syncSetupFormInputs();
+                updateSetupConnectionUI();
             }
             return Boolean(getScriptUrl());
         }
@@ -7990,7 +8331,14 @@ function doPost(e) {
 
         // ---------- Tarik data terbaru dari Google Sheet ----------
         function sheetRows(sheets, name) {
-            const t = sheets[name];
+            if (!sheets || typeof sheets !== 'object') return null;
+            let t = sheets[name];
+            if (!Array.isArray(t)) {
+                const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                const targetNorm = norm(name);
+                const matchedKey = Object.keys(sheets).find(k => norm(k) === targetNorm);
+                if (matchedKey) t = sheets[matchedKey];
+            }
             if (!Array.isArray(t)) return null;
             return t.slice(1).filter(r => Array.isArray(r) && r[0] !== '' && r[0] !== null && r[0] !== undefined);
         }
@@ -8010,6 +8358,7 @@ function doPost(e) {
 
         function refreshCurrentView() {
             const map = {
+                home: renderHomeMenuGrid,
                 dispatch: () => {
                     refreshDispatchOfflineShopOptions();
                     renderDispatchOfflineList();
@@ -8040,12 +8389,17 @@ function doPost(e) {
                 inventory: initInventoryView,
                 kpi: initKpiView,
                 setting: initSettingView,
-                user: renderUserTable
+                user: () => {
+                    renderUserTable();
+                    if (!document.getElementById('role-manager-modal')?.classList.contains('hidden')) {
+                        renderExistingRolesList();
+                    }
+                }
             };
             try {
                 const fn = map[currentRoute];
                 if (fn) fn();
-                lucide.createIcons();
+                refreshLucideIcons(document.getElementById('app-shell'));
             } catch (e) {}
         }
 
@@ -8120,7 +8474,7 @@ function doPost(e) {
                 rows = sheetRows(sheets, 'MasterBarang');
                 if (rows && rows.length > 0) {
                     rows = purgeDemoRows('MasterBarang', rows);
-                    masterBarangData = rows.filter(r => r[0] && r[1]).map(r => ({
+                    masterBarangData = rows.filter(r => String(r[0] ?? '').trim() !== '' && String(r[1] ?? '').trim() !== '').map(r => ({
                         sku: String(r[0]).trim().toUpperCase(),
                         name: String(r[1]).trim(),
                         barcode: str(r[2]),
@@ -8161,11 +8515,20 @@ function doPost(e) {
                     if (map.picRoleFilters && typeof map.picRoleFilters === 'object') {
                         picRoleFilters = { ...DEFAULT_PIC_ROLE_FILTERS, ...map.picRoleFilters };
                     }
+                    if (Array.isArray(map.seededMenuIds)) {
+                        seededMenuIds = map.seededMenuIds;
+                    } else if (map.rolePermissions && typeof map.rolePermissions === 'object') {
+                        seededMenuIds = ALL_MENU_IDS.filter(id => id !== 'return');
+                    }
                     if (map.rolePermissions && typeof map.rolePermissions === 'object') ROLE_PERMISSIONS = map.rolePermissions;
                 } else {
                     syncConfigToSheet();
                 }
+                const hadReturnBeforeMigrate = Array.isArray(seededMenuIds) && seededMenuIds.includes('return');
                 ensureFullAccessRoles();
+                if (!hadReturnBeforeMigrate && seededMenuIds.includes('return')) {
+                    syncConfigToSheet();
+                }
 
                 // 5. Data transaksi (tab yang belum ada di Sheet dibiarkan, tab kosong = data kosong)
                 const apply = (name, mapper, setter, newestFirst = true) => {
@@ -8370,6 +8733,7 @@ function doPost(e) {
                 setupConfig.lastUpdated = new Date().toLocaleString('id-ID');
                 saveAppStateToLocal();
                 updateSetupConnectionUI();
+                if (currentUser) renderHomeMenuGrid();
                 refreshCurrentView();
                 if (!silent) showToast('Data terbaru berhasil dimuat dari Google Sheet!', 'success');
                 return true;
@@ -8418,8 +8782,8 @@ function doPost(e) {
         function addQcQuickOrderQty(delta) {
             const input = document.getElementById('qc-create-qty-order');
             if (!input) return;
-            const cur = parseInt(input.value, 10) || 0;
-            input.value = Math.max(1, cur + Number(delta || 0));
+            const cur = getNumericInputValue(input, 0) || 0;
+            setNumericInputValue(input, Math.max(1, cur + Number(delta || 0)));
             input.focus();
         }
 
@@ -8711,7 +9075,7 @@ function doPost(e) {
         document.getElementById('qc-create-jobtask-form')?.addEventListener('submit', function(e) {
             e.preventDefault();
             const requestFrom = document.getElementById('qc-create-request-from').value.trim();
-            const qtyOrder = parseInt(document.getElementById('qc-create-qty-order').value, 10);
+            const qtyOrder = getNumericInputValue('qc-create-qty-order', 0);
 
             if (!requestFrom) {
                 showToast('Isi kolom Request Dari terlebih dahulu.', 'warning');
@@ -8779,8 +9143,8 @@ function doPost(e) {
             document.getElementById('qc-modal-job-req').textContent = `Req: ${job.requestFrom}`;
             document.getElementById('qc-modal-job-prod').textContent = `${job.sku} — ${job.name}`;
             document.getElementById('qc-modal-job-qty-order').textContent = job.qtyOrder;
-            document.getElementById('qc-proses-qty-hint').textContent = `Qty Order: ${job.qtyOrder} pcs`;
-            document.getElementById('qc-proses-qty').value = job.qtyOrder;
+            document.getElementById('qc-proses-qty-hint').textContent = `Qty Order: ${Number(job.qtyOrder || 0).toLocaleString('id-ID')} pcs`;
+            setNumericInputValue('qc-proses-qty', job.qtyOrder);
             document.getElementById('qc-damage-reason').value = '';
 
             // Isi combobox Nama QC sesuai pengaturan filter posisi PIC di Setting
@@ -8804,13 +9168,13 @@ function doPost(e) {
             const modal = document.getElementById('qc-proses-modal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            lucide.createIcons();
+            refreshLucideIcons(modal);
         }
 
         function confirmQcProsesYes() {
             document.getElementById('qc-proses-confirm-step').classList.add('hidden');
             document.getElementById('qc-proses-detail-form').classList.remove('hidden');
-            lucide.createIcons();
+            refreshLucideIcons(document.getElementById('qc-proses-modal'));
         }
 
         function closeQcProsesModal() {
@@ -8820,7 +9184,7 @@ function doPost(e) {
         }
 
         function updateQcDamageBoxVisibility() {
-            const qtyInput = parseInt(document.getElementById('qc-proses-qty')?.value, 10) || 0;
+            const qtyInput = getNumericInputValue('qc-proses-qty', 0) || 0;
             const hasRemainder = qtyInput > 0 && qtyInput < currentQcActiveOrderQty;
             const damageBox = document.getElementById('qc-damage-reason-box');
             if (!damageBox) return;
@@ -8851,7 +9215,7 @@ function doPost(e) {
             const remBoxEl = document.getElementById('qc-remainder-allocation-box');
             if (!qtyInputEl) return;
 
-            const val = parseInt(qtyInputEl.value, 10) || 0;
+            const val = getNumericInputValue(qtyInputEl, 0) || 0;
             const isOver = val > currentQcActiveOrderQty;
             const isLess = val > 0 && val < currentQcActiveOrderQty;
 
@@ -8877,7 +9241,7 @@ function doPost(e) {
             }
 
             updateQcDamageBoxVisibility();
-            lucide.createIcons();
+            refreshLucideIcons(remBoxEl);
         }
 
         function setQcCondition(cond) {
@@ -8894,7 +9258,7 @@ function doPost(e) {
                 bagusBtn.className = 'py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-semibold text-sm flex items-center justify-center gap-2 transition';
             }
 
-            const qtyVal = parseInt(document.getElementById('qc-proses-qty')?.value, 10) || 0;
+            const qtyVal = getNumericInputValue('qc-proses-qty', 0) || 0;
             if (qtyVal > 0 && qtyVal < currentQcActiveOrderQty) {
                 setQcRemainderCondition(cond === 'Bagus' ? 'Rusak' : 'Bagus');
             } else {
@@ -8906,7 +9270,7 @@ function doPost(e) {
             e.preventDefault();
             const jobId = document.getElementById('qc-proses-job-id').value;
             const qcOfficer = document.getElementById('qc-proses-officer').value;
-            const qtyInput = parseInt(document.getElementById('qc-proses-qty').value, 10);
+            const qtyInput = getNumericInputValue('qc-proses-qty', 0);
             const condition = selectedQcCondition || 'Bagus';
             const notes = document.getElementById('qc-damage-reason').value.trim();
 
@@ -9546,8 +9910,8 @@ function doPost(e) {
         function addCycleCountQuickQty(delta) {
             const input = document.getElementById('cc-qty-fisik');
             if (!input) return;
-            const cur = parseInt(input.value || '0', 10) || 0;
-            input.value = cur + delta;
+            const cur = getNumericInputValue(input, 0) || 0;
+            setNumericInputValue(input, Math.max(0, cur + Number(delta || 0)));
             input.focus();
         }
 
@@ -9863,7 +10227,7 @@ function doPost(e) {
                 showToast('Pilih produk dari Master Barang terlebih dahulu.', 'warning');
                 return;
             }
-            const qty = parseInt(document.getElementById('cc-qty-fisik').value, 10);
+            const qty = getNumericInputValue('cc-qty-fisik', NaN);
             if (isNaN(qty) || qty < 0) {
                 showToast('Masukkan Qty Fisik yang valid.', 'warning');
                 return;
@@ -10000,7 +10364,7 @@ function doPost(e) {
                     <span class="text-[10px] sm:text-[11px] font-medium text-slate-400 leading-tight line-clamp-1 mt-0.5">${menu.subtitle}</span>
                 </button>
             `).join('');
-            lucide.createIcons();
+            refreshLucideIcons(grid);
         }
 
         const ALL_VIEW_IDS = [
@@ -10013,14 +10377,14 @@ function doPost(e) {
             'view-qc', 'view-qc-report', 'view-laporan',
             'view-admin', 'view-admin-input-resi', 'view-admin-input-resi-report',
             'view-admin-salah-barang', 'view-admin-salah-barang-report',
-            'view-driver', 'view-inventory', 'view-kpi',
+            'view-driver', 'view-return', 'view-inventory', 'view-kpi',
             'view-module-placeholder'
         ];
 
         function hideAllViews() {
             ALL_VIEW_IDS.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.classList.add('hidden');
+                if (el && !el.classList.contains('hidden')) el.classList.add('hidden');
             });
         }
 
@@ -10216,90 +10580,119 @@ function doPost(e) {
             if (typeof hideAllSearchDropdowns === 'function') hideAllSearchDropdowns();
             hideAllViews();
 
+            let activeViewEl = null;
             if (route === 'home') {
-                document.getElementById('view-home').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-home');
+                activeViewEl?.classList.remove('hidden');
                 renderHomeMenuGrid();
             } else if (route === 'setting') {
-                document.getElementById('view-setup').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-setup');
+                activeViewEl?.classList.remove('hidden');
                 initSettingView();
             } else if (route === 'user') {
-                document.getElementById('view-user').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-user');
+                activeViewEl?.classList.remove('hidden');
                 renderUserTable();
             } else if (route === 'dispatch') {
-                document.getElementById('view-dispatch').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-dispatch');
+                activeViewEl?.classList.remove('hidden');
                 initDispatchView();
             } else if (route === 'dispatch-report') {
-                document.getElementById('view-dispatch-report').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-dispatch-report');
+                activeViewEl?.classList.remove('hidden');
                 initDispatchReportView();
             } else if (route === 'expedisi') {
-                document.getElementById('view-expedisi').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-expedisi');
+                activeViewEl?.classList.remove('hidden');
                 renderExpedisiList();
             } else if (route === 'absen') {
-                document.getElementById('view-absen').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-absen');
+                activeViewEl?.classList.remove('hidden');
                 initAbsenView();
             } else if (route === 'absen-report') {
-                document.getElementById('view-absen-report').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-absen-report');
+                activeViewEl?.classList.remove('hidden');
                 initAbsenReportView();
             } else if (route === 'overtime') {
-                document.getElementById('view-overtime').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-overtime');
+                activeViewEl?.classList.remove('hidden');
                 initOvertimeView();
             } else if (route === 'overtime-report') {
-                document.getElementById('view-overtime-report').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-overtime-report');
+                activeViewEl?.classList.remove('hidden');
                 initOvertimeReportView();
             } else if (route === 'master_barang') {
-                document.getElementById('view-master-barang').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-master-barang');
+                activeViewEl?.classList.remove('hidden');
                 renderMasterBarangTable();
             } else if (route === 'project') {
-                document.getElementById('view-project').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-project');
+                activeViewEl?.classList.remove('hidden');
                 renderProjectList();
             } else if (route === 'print_label') {
-                document.getElementById('view-print-label').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-print-label');
+                activeViewEl?.classList.remove('hidden');
                 initPrintLabelView();
             } else if (route === 'opname') {
-                document.getElementById('view-cycle-count').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-cycle-count');
+                activeViewEl?.classList.remove('hidden');
                 initCycleCountView();
             } else if (route === 'cycle-count-report') {
-                document.getElementById('view-cycle-count-report').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-cycle-count-report');
+                activeViewEl?.classList.remove('hidden');
                 initCycleCountReportView();
             } else if (route === 'qc') {
-                document.getElementById('view-qc').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-qc');
+                activeViewEl?.classList.remove('hidden');
                 initQcView();
             } else if (route === 'qc-report') {
-                document.getElementById('view-qc-report').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-qc-report');
+                activeViewEl?.classList.remove('hidden');
                 initQcReportView();
             } else if (route === 'laporan') {
-                document.getElementById('view-laporan').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-laporan');
+                activeViewEl?.classList.remove('hidden');
                 initLaporanTerpaduView();
             } else if (route === 'admin') {
-                document.getElementById('view-admin').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-admin');
+                activeViewEl?.classList.remove('hidden');
                 initAdminHubView();
             } else if (route === 'admin-input-resi') {
-                document.getElementById('view-admin-input-resi').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-admin-input-resi');
+                activeViewEl?.classList.remove('hidden');
                 initAdminInputResiView();
             } else if (route === 'admin-input-resi-report') {
-                document.getElementById('view-admin-input-resi-report').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-admin-input-resi-report');
+                activeViewEl?.classList.remove('hidden');
                 initAdminInputResiReportView();
             } else if (route === 'admin-salah-barang') {
-                document.getElementById('view-admin-salah-barang').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-admin-salah-barang');
+                activeViewEl?.classList.remove('hidden');
                 initAdminSalahBarangView();
             } else if (route === 'admin-salah-barang-report') {
-                document.getElementById('view-admin-salah-barang-report').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-admin-salah-barang-report');
+                activeViewEl?.classList.remove('hidden');
                 initAdminSalahBarangReportView();
             } else if (route === 'driver') {
-                document.getElementById('view-driver').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-driver');
+                activeViewEl?.classList.remove('hidden');
                 initDriverView();
             } else if (route === 'return') {
-                document.getElementById('view-return').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-return');
+                activeViewEl?.classList.remove('hidden');
                 initReturnView();
             } else if (route === 'inventory') {
-                document.getElementById('view-inventory').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-inventory');
+                activeViewEl?.classList.remove('hidden');
                 initInventoryView();
             } else if (route === 'kpi') {
-                document.getElementById('view-kpi').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-kpi');
+                activeViewEl?.classList.remove('hidden');
                 initKpiView();
             } else {
                 const menuObj = MASTER_MENUS.find(m => m.id === route);
-                document.getElementById('view-module-placeholder').classList.remove('hidden');
+                activeViewEl = document.getElementById('view-module-placeholder');
+                activeViewEl?.classList.remove('hidden');
                 if (menuObj) {
                     document.getElementById('placeholder-title').textContent = menuObj.title;
                     document.getElementById('placeholder-desc').textContent = menuObj.desc;
@@ -10308,8 +10701,8 @@ function doPost(e) {
                     iconBox.innerHTML = `<span class="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/15"></span><i data-lucide="${menuObj.icon}" class="relative z-10 w-8 h-8"></i>`;
                 }
             }
-            lucide.createIcons();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            refreshLucideIcons(activeViewEl);
+            window.scrollTo(0, 0);
         }
 
         // ==========================================
@@ -10558,7 +10951,7 @@ function doPost(e) {
                     </tr>
                 `;
             }).join('');
-            lucide.createIcons();
+            refreshLucideIcons(tbody);
         }
 
         function openUserModal(editId = null) {
@@ -10790,8 +11183,8 @@ function doPost(e) {
         function addDispatchQuickQty(amount) {
             const qtyInput = document.getElementById('dispatch-qty');
             if (!qtyInput) return;
-            const current = parseInt(qtyInput.value, 10) || 0;
-            qtyInput.value = Math.max(1, current + Number(amount || 0));
+            const current = getNumericInputValue(qtyInput, 0) || 0;
+            setNumericInputValue(qtyInput, Math.max(1, current + Number(amount || 0)));
             qtyInput.focus();
         }
 
@@ -10912,8 +11305,8 @@ function doPost(e) {
         function addDispatchOfflineQuickKoli(amount) {
             const el = document.getElementById('dispatch-offline-koli');
             if (!el) return;
-            const cur = parseInt(el.value, 10) || 0;
-            el.value = Math.max(1, cur + Number(amount || 0));
+            const cur = getNumericInputValue(el, 0) || 0;
+            setNumericInputValue(el, Math.max(1, cur + Number(amount || 0)));
             el.focus();
         }
 
@@ -11304,7 +11697,7 @@ function doPost(e) {
             const date = document.getElementById('dispatch-date').value || getTodayISO();
             const packer = document.getElementById('dispatch-packer').value;
             const expedisi = document.getElementById('dispatch-expedisi').value;
-            const qty = parseInt(document.getElementById('dispatch-qty').value, 10);
+            const qty = getNumericInputValue('dispatch-qty', 0);
 
             if (!packer || !expedisi || !qty || qty < 1) {
                 showToast('Lengkapi Packer, Expedisi, dan Jumlah Resi.', 'warning');
@@ -11321,18 +11714,18 @@ function doPost(e) {
 
             document.getElementById('dispatch-packer').value = '';
             document.getElementById('dispatch-expedisi').value = '';
-            document.getElementById('dispatch-qty').value = '';
+            setNumericInputValue('dispatch-qty', '');
             dispatchTodayExpFilter = 'ALL';
             renderDispatchQuickChips();
             renderDispatchStatsAndList();
-            showToast(`Entri resi ${packer} (${expedisi}: ${qty}) berhasil disimpan!`, 'success');
+            showToast(`Entri resi ${packer} (${expedisi}: ${qty.toLocaleString('id-ID')}) berhasil disimpan!`, 'success');
         });
 
         document.getElementById('dispatch-offline-form')?.addEventListener('submit', function(e) {
             e.preventDefault();
             const date = document.getElementById('dispatch-offline-date')?.value || getTodayISO();
             const shopName = (document.getElementById('dispatch-offline-shop')?.value || '').trim();
-            const koli = parseInt(document.getElementById('dispatch-offline-koli')?.value || '0', 10);
+            const koli = getNumericInputValue('dispatch-offline-koli', 0);
             const note = (document.getElementById('dispatch-offline-note')?.value || '').trim();
             const dispatchPhoto = dispatchOfflineDraftPhoto || '';
 
@@ -11377,7 +11770,7 @@ function doPost(e) {
             sheetUpsertItem('DispatchOffline', item);
 
             document.getElementById('dispatch-offline-shop').value = '';
-            document.getElementById('dispatch-offline-koli').value = '';
+            setNumericInputValue('dispatch-offline-koli', '');
             document.getElementById('dispatch-offline-note').value = '';
             clearDispatchOfflinePhoto();
             renderDispatchOfflineShopChips();
@@ -12432,7 +12825,7 @@ function doPost(e) {
         function setOvertimeQuickHours(h) {
             const input = document.getElementById('overtime-hours');
             if (!input) return;
-            input.value = h;
+            setNumericInputValue(input, h);
             input.focus();
         }
 
@@ -12606,7 +12999,7 @@ function doPost(e) {
                 staffRole = parsed.role;
             }
             const reason = document.getElementById('overtime-reason').value;
-            const hours = parseFloat(document.getElementById('overtime-hours').value);
+            const hours = getNumericInputValue('overtime-hours', 0);
             const note = document.getElementById('overtime-note').value.trim();
 
             if (!staffName || !reason || !hours || hours <= 0) {
@@ -12624,7 +13017,7 @@ function doPost(e) {
 
             clearOvertimeStaffSelection();
             document.getElementById('overtime-reason').value = '';
-            document.getElementById('overtime-hours').value = '';
+            setNumericInputValue('overtime-hours', '');
             document.getElementById('overtime-note').value = '';
             overtimeTodayReasonFilter = 'ALL';
             renderOvertimeQuickChips();
@@ -13097,14 +13490,49 @@ function doPost(e) {
             }
         }
 
+        let masterBarangRenderLimit = 120;
+        let masterBarangAutoPullAttempted = false;
+        let masterBarangLastFilteredLen = 0;
+
+        function loadMoreMasterBarang(step = 120) {
+            if (step === 'all') masterBarangRenderLimit = Math.max(masterBarangData.length, 999999);
+            else masterBarangRenderLimit += Number(step || 120);
+            renderMasterBarangTable();
+        }
+
+        function initMasterBarangScrollLoader() {
+            const onScrollLoad = (el) => {
+                if (!el || masterBarangLastFilteredLen <= masterBarangRenderLimit) return;
+                if (el.scrollTop + el.clientHeight >= el.scrollHeight - 180) {
+                    loadMoreMasterBarang(120);
+                }
+            };
+            const tblScroll = document.getElementById('barang-table-scroll');
+            const gridScroll = document.getElementById('barang-grid-container');
+            if (tblScroll && !tblScroll.dataset.scrollBound) {
+                tblScroll.dataset.scrollBound = '1';
+                tblScroll.addEventListener('scroll', () => onScrollLoad(tblScroll), { passive: true });
+            }
+            if (gridScroll && !gridScroll.dataset.scrollBound) {
+                gridScroll.dataset.scrollBound = '1';
+                gridScroll.addEventListener('scroll', () => onScrollLoad(gridScroll), { passive: true });
+            }
+        }
+
         function renderMasterBarangTable() {
             const tbody = document.getElementById('master-barang-table-body');
             const gridWrap = document.getElementById('barang-grid-container');
+            const pagBar = document.getElementById('barang-pagination-bar');
             const badge = document.getElementById('barang-count-badge');
             const warningBadge = document.getElementById('barang-warning-badge');
             const searchInput = document.getElementById('barang-search-input');
             const clearBtn = document.getElementById('clear-barang-search-btn');
             if (!tbody) return;
+
+            if (masterBarangData.length === 0 && getScriptUrl() && !isPulling && !masterBarangAutoPullAttempted) {
+                masterBarangAutoPullAttempted = true;
+                pullAllDataFromGoogleSheet(true).catch(() => {});
+            }
 
             updateMasterBarangSortUI();
             populateBarangBrandFilterAndChips();
@@ -13132,10 +13560,10 @@ function doPost(e) {
             });
 
             const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-            setText('barang-stat-total', totalAll);
-            setText('barang-stat-healthy', healthyAll);
-            setText('barang-stat-warning', warningAll);
-            setText('barang-stat-expired', expiredAll);
+            setText('barang-stat-total', totalAll.toLocaleString('id-ID'));
+            setText('barang-stat-healthy', healthyAll.toLocaleString('id-ID'));
+            setText('barang-stat-warning', warningAll.toLocaleString('id-ID'));
+            setText('barang-stat-expired', expiredAll.toLocaleString('id-ID'));
 
             const kpiMap = {
                 ALL: 'border-purple-500 ring-2 ring-purple-500/15',
@@ -13180,7 +13608,7 @@ function doPost(e) {
             const resetBtn = document.getElementById('barang-reset-filters-btn');
             if (resetBtn) resetBtn.classList.toggle('hidden', !hasFilter);
 
-            if (badge) badge.textContent = `${filtered.length} SKU`;
+            if (badge) badge.textContent = `${filtered.length.toLocaleString('id-ID')} SKU`;
 
             const warningCount = filtered.filter(b => {
                 const rackMissing = isMasterBarangRackMissing(b.noRack);
@@ -13190,8 +13618,9 @@ function doPost(e) {
 
             if (warningBadge) {
                 if (warningCount > 0) {
-                    warningBadge.innerHTML = `<i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i><span>${warningCount} Perlu Perhatian</span>`;
+                    warningBadge.innerHTML = `<i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i><span>${warningCount.toLocaleString('id-ID')} Perlu Perhatian</span>`;
                     warningBadge.classList.remove('hidden');
+                    refreshLucideIcons(warningBadge);
                 } else {
                     warningBadge.classList.add('hidden');
                     warningBadge.innerHTML = '';
@@ -13203,77 +13632,22 @@ function doPost(e) {
                 if (gridWrap) {
                     gridWrap.innerHTML = `<div class="col-span-full bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center text-slate-400 text-sm">Tidak ada data barang yang sesuai filter.</div>`;
                 }
-                lucide.createIcons();
+                if (pagBar) {
+                    pagBar.classList.add('hidden');
+                    pagBar.innerHTML = '';
+                }
                 return;
             }
 
-            tbody.innerHTML = filtered.map(b => {
-                const safeSkuAttr = escapeHtmlText(b.sku).replace(/'/g, '&#39;');
-                const rackMissing = isMasterBarangRackMissing(b.noRack);
-                const diffDays = getMasterBarangExpiryDiffDays(b.expiredDate);
-                const isExpired = diffDays !== null && diffDays < 0;
-                const isNearExpiry = diffDays !== null && diffDays >= 0 && diffDays <= 90;
-                const brandGrad = getBarangBrandGradient(b.brand);
-                const brandInit = escapeHtmlText((b.brand || 'B').slice(0, 2).toUpperCase());
+            initMasterBarangScrollLoader();
+            masterBarangLastFilteredLen = filtered.length;
+            const effectiveLimit = q.length > 0 ? Math.max(masterBarangRenderLimit, 300) : masterBarangRenderLimit;
+            const visibleRows = filtered.length <= 250 ? filtered : filtered.slice(0, effectiveLimit);
+            const isTableMode = barangViewMode !== 'grid';
 
-                const rackHtml = rackMissing
-                    ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80" title="Lokasi No Rack belum diisi"><i data-lucide="alert-triangle" class="w-3 h-3 shrink-0"></i><span>Rak Kosong</span></span>`
-                    : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/70 font-mono text-xs font-bold"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtmlText(b.noRack)}</span></span>`;
-
-                let expiryBadgeHtml = '';
-                if (isExpired) {
-                    expiryBadgeHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 border border-rose-200" title="Sudah melewati Expired Date (${Math.abs(diffDays)} hari lalu)"><i data-lucide="alert-circle" class="w-3 h-3 shrink-0"></i><span>Expired</span></span>`;
-                } else if (isNearExpiry) {
-                    const expLabel = diffDays === 0 ? 'Exp Hari Ini' : `Exp ${diffDays}h`;
-                    expiryBadgeHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title="Expired Date dalam ${diffDays} hari"><i data-lucide="clock" class="w-3 h-3 shrink-0"></i><span>${expLabel}</span></span>`;
-                } else if (diffDays !== null) {
-                    expiryBadgeHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">Aman</span>`;
-                }
-
-                const expiryHtml = b.expiredDate
-                    ? `<div class="flex flex-wrap items-center gap-1.5 font-medium text-slate-700"><span>${formatDateIndo(b.expiredDate)}</span>${expiryBadgeHtml}</div>`
-                    : `<span class="text-xs text-slate-400">-</span>`;
-
-                return `
-                <tr class="hover:bg-purple-50/35 transition">
-                    <td class="py-3.5 px-5">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-100/80 text-purple-800 border border-purple-200/80 font-mono text-xs font-extrabold">${escapeHtmlText(b.sku)}</span>
-                    </td>
-                    <td class="py-3.5 px-5">
-                        <div class="flex items-center gap-2.5">
-                            <span class="w-7 h-7 rounded-lg bg-gradient-to-br ${brandGrad} text-white text-[10px] font-black flex items-center justify-center shrink-0 shadow-2xs">${brandInit}</span>
-                            <span class="font-bold text-slate-900">${escapeHtmlText(b.name)}</span>
-                        </div>
-                    </td>
-                    <td class="py-3.5 px-5">
-                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-mono text-xs font-semibold">
-                            <i data-lucide="barcode" class="w-3.5 h-3.5 text-slate-400"></i>
-                            <span>${escapeHtmlText(b.barcode || '-')}</span>
-                        </span>
-                    </td>
-                    <td class="py-3.5 px-5">
-                        <span class="px-2.5 py-1 rounded-full bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200/70 text-xs font-bold">${escapeHtmlText(b.brand || '-')}</span>
-                    </td>
-                    <td class="py-3.5 px-5">${rackHtml}</td>
-                    <td class="py-3.5 px-5 text-xs text-slate-600">${expiryHtml}</td>
-                    <td class="py-3.5 px-5 text-right whitespace-nowrap">
-                        <button type="button" onclick="openMasterBarangPrintBarcodeModal('${safeSkuAttr}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 mr-1 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-lg text-xs font-bold shadow-2xs transition" title="Print Barcode">
-                            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
-                            <span>Print Barcode</span>
-                        </button>
-                        <button type="button" onclick="openBarangModal('${safeSkuAttr}')" class="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition" title="Edit">
-                            <i data-lucide="pencil" class="w-4 h-4"></i>
-                        </button>
-                        <button type="button" onclick="deleteMasterBarang('${safeSkuAttr}')" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-            }).join('');
-
-            if (gridWrap) {
-                gridWrap.innerHTML = filtered.map(b => {
+            if (isTableMode) {
+                if (gridWrap) gridWrap.innerHTML = '';
+                tbody.innerHTML = visibleRows.map(b => {
                     const safeSkuAttr = escapeHtmlText(b.sku).replace(/'/g, '&#39;');
                     const rackMissing = isMasterBarangRackMissing(b.noRack);
                     const diffDays = getMasterBarangExpiryDiffDays(b.expiredDate);
@@ -13282,71 +13656,154 @@ function doPost(e) {
                     const brandGrad = getBarangBrandGradient(b.brand);
                     const brandInit = escapeHtmlText((b.brand || 'B').slice(0, 2).toUpperCase());
 
-                    const stripeClass = isExpired
-                        ? 'from-rose-500 to-pink-500'
-                        : (rackMissing || isNearExpiry)
-                            ? 'from-amber-400 to-orange-500'
-                            : 'from-emerald-400 to-teal-500';
+                    const rackHtml = rackMissing
+                        ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80" title="Lokasi No Rack belum diisi"><i data-lucide="alert-triangle" class="w-3 h-3 shrink-0"></i><span>Rak Kosong</span></span>`
+                        : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/70 font-mono text-xs font-bold"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtmlText(b.noRack)}</span></span>`;
 
-                    const statusBadge = isExpired
-                        ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">Expired</span>`
-                        : isNearExpiry
-                            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">${diffDays === 0 ? 'Exp Hari Ini' : `Exp ${diffDays}h`}</span>`
-                            : rackMissing
-                                ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Rak Kosong</span>`
-                                : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">Aman</span>`;
+                    let expiryBadgeHtml = '';
+                    if (isExpired) {
+                        expiryBadgeHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 border border-rose-200" title="Sudah melewati Expired Date (${Math.abs(diffDays)} hari lalu)"><i data-lucide="alert-circle" class="w-3 h-3 shrink-0"></i><span>Expired</span></span>`;
+                    } else if (isNearExpiry) {
+                        const expLabel = diffDays === 0 ? 'Exp Hari Ini' : `Exp ${diffDays}h`;
+                        expiryBadgeHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title="Expired Date dalam ${diffDays} hari"><i data-lucide="clock" class="w-3 h-3 shrink-0"></i><span>${expLabel}</span></span>`;
+                    } else if (diffDays !== null) {
+                        expiryBadgeHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">Aman</span>`;
+                    }
+
+                    const expiryHtml = b.expiredDate
+                        ? `<div class="flex flex-wrap items-center gap-1.5 font-medium text-slate-700"><span>${formatDateIndo(b.expiredDate)}</span>${expiryBadgeHtml}</div>`
+                        : `<span class="text-xs text-slate-400">-</span>`;
 
                     return `
-                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-purple-300 transition overflow-hidden flex flex-col">
-                            <div class="h-1.5 w-full bg-gradient-to-r ${stripeClass}"></div>
-                            <div class="p-4 flex-1 flex flex-col justify-between gap-3">
-                                <div class="space-y-2">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-800 font-mono text-xs font-extrabold">${escapeHtmlText(b.sku)}</span>
-                                        ${statusBadge}
-                                    </div>
-                                    <div class="flex items-start gap-2.5">
-                                        <span class="w-8 h-8 rounded-xl bg-gradient-to-br ${brandGrad} text-white text-xs font-black flex items-center justify-center shrink-0 shadow-2xs">${brandInit}</span>
-                                        <div class="min-w-0">
-                                            <h4 class="text-sm font-extrabold text-slate-900 leading-snug line-clamp-2">${escapeHtmlText(b.name)}</h4>
-                                            <span class="text-xs font-bold text-fuchsia-700">${escapeHtmlText(b.brand || '-')}</span>
+                    <tr class="hover:bg-purple-50/35 transition">
+                        <td class="py-3.5 px-5">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-100/80 text-purple-800 border border-purple-200/80 font-mono text-xs font-extrabold">${escapeHtmlText(b.sku)}</span>
+                        </td>
+                        <td class="py-3.5 px-5">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-7 h-7 rounded-lg bg-gradient-to-br ${brandGrad} text-white text-[10px] font-black flex items-center justify-center shrink-0 shadow-2xs">${brandInit}</span>
+                                <span class="font-bold text-slate-900">${escapeHtmlText(b.name)}</span>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-5">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-mono text-xs font-semibold">
+                                <i data-lucide="barcode" class="w-3.5 h-3.5 text-slate-400"></i>
+                                <span>${escapeHtmlText(b.barcode || '-')}</span>
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-5">
+                            <span class="px-2.5 py-1 rounded-full bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200/70 text-xs font-bold">${escapeHtmlText(b.brand || '-')}</span>
+                        </td>
+                        <td class="py-3.5 px-5">${rackHtml}</td>
+                        <td class="py-3.5 px-5 text-xs text-slate-600">${expiryHtml}</td>
+                        <td class="py-3.5 px-5 text-right whitespace-nowrap">
+                            <button type="button" onclick="openMasterBarangPrintBarcodeModal('${safeSkuAttr}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 mr-1 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-lg text-xs font-bold shadow-2xs transition" title="Print Barcode">
+                                <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                                <span>Print Barcode</span>
+                            </button>
+                            <button type="button" onclick="openBarangModal('${safeSkuAttr}')" class="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition" title="Edit">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" onclick="deleteMasterBarang('${safeSkuAttr}')" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                }).join('');
+                refreshLucideIcons(tbody);
+            } else {
+                tbody.innerHTML = '';
+                if (gridWrap) {
+                    gridWrap.innerHTML = visibleRows.map(b => {
+                        const safeSkuAttr = escapeHtmlText(b.sku).replace(/'/g, '&#39;');
+                        const rackMissing = isMasterBarangRackMissing(b.noRack);
+                        const diffDays = getMasterBarangExpiryDiffDays(b.expiredDate);
+                        const isExpired = diffDays !== null && diffDays < 0;
+                        const isNearExpiry = diffDays !== null && diffDays >= 0 && diffDays <= 90;
+                        const brandGrad = getBarangBrandGradient(b.brand);
+                        const brandInit = escapeHtmlText((b.brand || 'B').slice(0, 2).toUpperCase());
+
+                        const stripeClass = isExpired
+                            ? 'from-rose-500 to-pink-500'
+                            : (rackMissing || isNearExpiry)
+                                ? 'from-amber-400 to-orange-500'
+                                : 'from-emerald-400 to-teal-500';
+
+                        const statusBadge = isExpired
+                            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">Expired</span>`
+                            : isNearExpiry
+                                ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">${diffDays === 0 ? 'Exp Hari Ini' : `Exp ${diffDays}h`}</span>`
+                                : rackMissing
+                                    ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Rak Kosong</span>`
+                                    : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">Aman</span>`;
+
+                        return `
+                            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-purple-300 transition overflow-hidden flex flex-col">
+                                <div class="h-1.5 w-full bg-gradient-to-r ${stripeClass}"></div>
+                                <div class="p-4 flex-1 flex flex-col justify-between gap-3">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-800 font-mono text-xs font-extrabold">${escapeHtmlText(b.sku)}</span>
+                                            ${statusBadge}
+                                        </div>
+                                        <div class="flex items-start gap-2.5">
+                                            <span class="w-8 h-8 rounded-xl bg-gradient-to-br ${brandGrad} text-white text-xs font-black flex items-center justify-center shrink-0 shadow-2xs">${brandInit}</span>
+                                            <div class="min-w-0">
+                                                <h4 class="text-sm font-extrabold text-slate-900 leading-snug line-clamp-2">${escapeHtmlText(b.name)}</h4>
+                                                <span class="text-xs font-bold text-fuchsia-700">${escapeHtmlText(b.brand || '-')}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs">
-                                    <div>
-                                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Barcode</span>
-                                        <span class="font-mono font-bold text-slate-800 truncate block">${escapeHtmlText(b.barcode || '-')}</span>
+                                    <div class="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase block">Barcode</span>
+                                            <span class="font-mono font-bold text-slate-800 truncate block">${escapeHtmlText(b.barcode || '-')}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase block">No. Rak</span>
+                                            <span class="font-mono font-extrabold ${rackMissing ? 'text-amber-700' : 'text-indigo-700'}">${rackMissing ? 'Rak Kosong' : escapeHtmlText(b.noRack)}</span>
+                                        </div>
+                                        <div class="col-span-2 pt-1 border-t border-slate-200/60 flex items-center justify-between">
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase">Expired Date</span>
+                                            <span class="font-bold text-slate-700">${b.expiredDate ? formatDateIndo(b.expiredDate) : '-'}</span>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <span class="text-[10px] font-bold text-slate-400 uppercase block">No. Rak</span>
-                                        <span class="font-mono font-extrabold ${rackMissing ? 'text-amber-700' : 'text-indigo-700'}">${rackMissing ? 'Rak Kosong' : escapeHtmlText(b.noRack)}</span>
-                                    </div>
-                                    <div class="col-span-2 pt-1 border-t border-slate-200/60 flex items-center justify-between">
-                                        <span class="text-[10px] font-bold text-slate-400 uppercase">Expired Date</span>
-                                        <span class="font-bold text-slate-700">${b.expiredDate ? formatDateIndo(b.expiredDate) : '-'}</span>
-                                    </div>
-                                </div>
 
-                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                                    <button type="button" onclick="openMasterBarangPrintBarcodeModal('${safeSkuAttr}')" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-xl text-xs font-bold shadow-2xs transition">
-                                        <i data-lucide="printer" class="w-3.5 h-3.5"></i>
-                                        <span>Print Barcode</span>
-                                    </button>
-                                    <button type="button" onclick="openBarangModal('${safeSkuAttr}')" class="p-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl transition" title="Edit">
-                                        <i data-lucide="pencil" class="w-4 h-4"></i>
-                                    </button>
-                                    <button type="button" onclick="deleteMasterBarang('${safeSkuAttr}')" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition" title="Hapus">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                    </button>
+                                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                                        <button type="button" onclick="openMasterBarangPrintBarcodeModal('${safeSkuAttr}')" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-xl text-xs font-bold shadow-2xs transition">
+                                            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                                            <span>Print Barcode</span>
+                                        </button>
+                                        <button type="button" onclick="openBarangModal('${safeSkuAttr}')" class="p-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl transition" title="Edit">
+                                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                                        </button>
+                                        <button type="button" onclick="deleteMasterBarang('${safeSkuAttr}')" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition" title="Hapus">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+                            </div>`;
+                    }).join('');
+                    refreshLucideIcons(gridWrap);
+                }
             }
-            lucide.createIcons();
+
+            if (pagBar) {
+                if (filtered.length > 10) {
+                    pagBar.classList.remove('hidden');
+                    const scrollInfo = visibleRows.length < filtered.length
+                        ? `Tampilan maksimal 10 barang per layar · Scroll ke bawah untuk memuat sisa (${visibleRows.length.toLocaleString('id-ID')} / ${filtered.length.toLocaleString('id-ID')} SKU)`
+                        : `Tampilan maksimal 10 barang per layar · Scroll untuk melihat seluruh ${filtered.length.toLocaleString('id-ID')} SKU`;
+                    pagBar.innerHTML = `
+                        <span class="text-xs font-semibold text-slate-600 tabular-nums">${scrollInfo}</span>
+                        ${visibleRows.length < filtered.length ? `<button type="button" onclick="loadMoreMasterBarang('all')" class="px-3 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold transition">Muat Semua Sekaligus</button>` : ''}
+                    `;
+                } else {
+                    pagBar.classList.add('hidden');
+                    pagBar.innerHTML = '';
+                }
+            }
         }
 
         function clearBarangSearch() {
@@ -13692,12 +14149,12 @@ function doPost(e) {
                 const hasBarcode = prod.barcode && prod.barcode !== '-';
                 sourceSel.value = hasBarcode ? 'barcode' : 'sku';
             }
-            if (copiesEl) copiesEl.value = 1;
+            if (copiesEl) setNumericInputValue(copiesEl, 1);
 
             renderMasterBarangBarcodePreview();
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            lucide.createIcons();
+            refreshLucideIcons(modal);
         }
 
         function closeMasterBarangPrintBarcodeModal() {
@@ -13716,7 +14173,7 @@ function doPost(e) {
             const prod = currentPrintBarcodeBarang;
             const source = document.getElementById('barang-barcode-source')?.value || 'barcode';
             const size = document.getElementById('barang-barcode-size')?.value || '50x30';
-            const copies = Math.min(Math.max(parseInt(document.getElementById('barang-barcode-copies')?.value, 10) || 1, 1), 100);
+            const copies = Math.min(Math.max(getNumericInputValue('barang-barcode-copies', 1) || 1, 1), 100);
 
             const codeValue = (source === 'sku' || !prod.barcode || prod.barcode === '-') ? prod.sku : prod.barcode;
             const [wMm, hMm] = size.split('x').map(Number);
@@ -14979,12 +15436,20 @@ function doPost(e) {
         // ==========================================
         let currentPrintLabelMode = 'so';
         let selectedLabelCartonProduct = null;
+        let customLabelFontMode = 'auto'; // 'auto' | 'manual'
+        let customLabelGlobalFontPt = 48;
+        let customLabelPartialSelection = { start: 0, end: 0 };
 
         function initPrintLabelView() {
             const soDate = document.getElementById('so-label-date');
             if (soDate && !soDate.value) soDate.value = getTodayISO();
             const picInput = document.getElementById('label-pic-input');
             if (picInput && !picInput.value && currentUser) picInput.value = currentUser.username;
+            ['so-label-copies', 'label-qty-input', 'label-copies-input', 'label-width-mm', 'label-height-mm', 'custom-label-copies', 'custom-label-font-size', 'custom-label-partial-size'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && typeof applyNumericFormattingToElement === 'function') applyNumericFormattingToElement(el, true);
+            });
+            renderCustomLabelLinePills();
             switchPrintLabelMode(currentPrintLabelMode);
         }
 
@@ -15085,8 +15550,8 @@ function doPost(e) {
                 const [longSide, shortSide] = preset.split('x').map(Number);
                 const w = orient === 'portrait' ? Math.min(longSide, shortSide) : Math.max(longSide, shortSide);
                 const h = orient === 'portrait' ? Math.max(longSide, shortSide) : Math.min(longSide, shortSide);
-                document.getElementById('label-width-mm').value = w;
-                document.getElementById('label-height-mm').value = h;
+                setNumericInputValue('label-width-mm', w);
+                setNumericInputValue('label-height-mm', h);
             }
             renderPrintLabelPreview();
         }
@@ -15096,20 +15561,20 @@ function doPost(e) {
             const wEl = document.getElementById('label-width-mm');
             const hEl = document.getElementById('label-height-mm');
             if (wEl && hEl) {
-                const curW = parseInt(wEl.value, 10) || 148;
-                const curH = parseInt(hEl.value, 10) || 105;
+                const curW = Math.round(getNumericInputValue(wEl, 148)) || 148;
+                const curH = Math.round(getNumericInputValue(hEl, 105)) || 105;
                 const longSide = Math.max(curW, curH);
                 const shortSide = Math.min(curW, curH);
-                wEl.value = orient === 'portrait' ? shortSide : longSide;
-                hEl.value = orient === 'portrait' ? longSide : shortSide;
+                setNumericInputValue(wEl, orient === 'portrait' ? shortSide : longSide);
+                setNumericInputValue(hEl, orient === 'portrait' ? longSide : shortSide);
             }
             renderPrintLabelPreview();
         }
 
         function onCustomPaperSizeInput() {
             document.getElementById('label-paper-preset').value = 'custom';
-            const curW = parseInt(document.getElementById('label-width-mm')?.value, 10) || 148;
-            const curH = parseInt(document.getElementById('label-height-mm')?.value, 10) || 105;
+            const curW = Math.round(getNumericInputValue('label-width-mm', 148)) || 148;
+            const curH = Math.round(getNumericInputValue('label-height-mm', 105)) || 105;
             const orientEl = document.getElementById('label-carton-orientation');
             if (orientEl) {
                 orientEl.value = curH > curW ? 'portrait' : 'landscape';
@@ -15638,8 +16103,216 @@ function doPost(e) {
             }
         }
 
+        function stripCustomLabelSizeTags(text) {
+            let prev = String(text ?? '');
+            let next = prev.replace(/\[(\d{1,3})pt\]([\s\S]*?)\[\/\1pt\]/gi, '$2');
+            while (next !== prev) {
+                prev = next;
+                next = prev.replace(/\[(\d{1,3})pt\]([\s\S]*?)\[\/\1pt\]/gi, '$2');
+            }
+            return next;
+        }
+
+        function renderCustomLabelInlineHtml(text) {
+            const raw = String(text ?? '');
+            const re = /\[(\d{1,3})pt\]([\s\S]*?)\[\/\1pt\]/gi;
+            let html = '';
+            let lastIdx = 0;
+            let m;
+            while ((m = re.exec(raw)) !== null) {
+                if (m.index > lastIdx) {
+                    html += escapeHtmlText(raw.slice(lastIdx, m.index));
+                }
+                const pt = Math.max(8, Math.min(160, parseInt(m[1], 10) || 28));
+                const inner = stripCustomLabelSizeTags(m[2]);
+                html += `<span class="custom-a6-partial-span" style="font-size: ${pt}pt; line-height: 1.08;">${escapeHtmlText(inner)}</span>`;
+                lastIdx = re.lastIndex;
+            }
+            if (lastIdx < raw.length) {
+                html += escapeHtmlText(raw.slice(lastIdx));
+            }
+            return html;
+        }
+
+        function setCustomLabelFontMode(mode) {
+            customLabelFontMode = mode === 'manual' ? 'manual' : 'auto';
+            const autoBtn = document.getElementById('custom-font-mode-auto');
+            const manBtn = document.getElementById('custom-font-mode-manual');
+            const wrap = document.getElementById('custom-label-global-font-wrap');
+            if (autoBtn) {
+                autoBtn.className = customLabelFontMode === 'auto'
+                    ? 'px-2.5 py-1 rounded-md bg-teal-600 text-white transition'
+                    : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+            }
+            if (manBtn) {
+                manBtn.className = customLabelFontMode === 'manual'
+                    ? 'px-2.5 py-1 rounded-md bg-teal-600 text-white transition'
+                    : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+            }
+            if (wrap) wrap.classList.toggle('hidden', customLabelFontMode !== 'manual');
+            if (customLabelFontMode === 'manual') {
+                const cur = Math.round(getNumericInputValue('custom-label-font-size', customLabelGlobalFontPt));
+                customLabelGlobalFontPt = Math.max(10, Math.min(140, cur || 48));
+                const rng = document.getElementById('custom-label-font-range');
+                if (rng) rng.value = Math.min(120, customLabelGlobalFontPt);
+                setNumericInputValue('custom-label-font-size', customLabelGlobalFontPt);
+            }
+            renderPrintLabelPreview();
+        }
+
+        function syncCustomLabelGlobalFontInput(val) {
+            const pt = Math.max(10, Math.min(140, Math.round(Number(val) || 48)));
+            customLabelGlobalFontPt = pt;
+            const rng = document.getElementById('custom-label-font-range');
+            if (rng) rng.value = Math.min(120, pt);
+            setNumericInputValue('custom-label-font-size', pt);
+            if (customLabelFontMode !== 'manual') {
+                setCustomLabelFontMode('manual');
+                return;
+            }
+            renderPrintLabelPreview();
+        }
+
+        function onCustomLabelGlobalFontNumberInput() {
+            const val = getNumericInputValue('custom-label-font-size', NaN);
+            if (!Number.isFinite(val) || val < 8) return;
+            const pt = Math.max(10, Math.min(140, Math.round(val)));
+            customLabelGlobalFontPt = pt;
+            const rng = document.getElementById('custom-label-font-range');
+            if (rng) rng.value = Math.min(120, pt);
+            if (customLabelFontMode !== 'manual') {
+                setCustomLabelFontMode('manual');
+                return;
+            }
+            renderPrintLabelPreview();
+        }
+
+        function applyCustomLabelGlobalPreset(pt) {
+            const clamped = Math.max(10, Math.min(140, Math.round(Number(pt) || 48)));
+            customLabelGlobalFontPt = clamped;
+            setNumericInputValue('custom-label-font-size', clamped);
+            const rng = document.getElementById('custom-label-font-range');
+            if (rng) rng.value = Math.min(120, clamped);
+            setCustomLabelFontMode('manual');
+        }
+
+        function onCustomLabelTextInput() {
+            const ta = document.getElementById('custom-label-text');
+            if (ta && typeof ta.selectionStart === 'number') {
+                customLabelPartialSelection = { start: ta.selectionStart, end: ta.selectionEnd };
+            }
+            renderCustomLabelLinePills();
+            renderPrintLabelPreview();
+        }
+
+        function renderCustomLabelLinePills() {
+            const wrap = document.getElementById('custom-label-line-pills');
+            const ta = document.getElementById('custom-label-text');
+            if (!wrap || !ta) return;
+            const lines = String(ta.value || '').split(/\r?\n/);
+            const pills = lines.map((line, idx) => {
+                if (!line.trim()) return '';
+                const m = line.trim().match(/^\[(\d{1,3})pt\]([\s\S]*)\[\/\1pt\]$/i);
+                const ptBadge = m ? `${m[1]}pt` : (customLabelFontMode === 'manual' ? `${customLabelGlobalFontPt}pt` : 'Auto');
+                const preview = stripCustomLabelSizeTags(line).trim();
+                const shortTxt = preview.length > 18 ? preview.slice(0, 18) + '…' : preview;
+                return `<button type="button" onclick="applyCustomLabelLineFontSize(${idx})"
+                    title="Terapkan ukuran sebagian ke Baris ${idx + 1}"
+                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-bold transition ${m ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-slate-700 border-teal-200 hover:bg-teal-100'}">
+                    <span>B${idx + 1}: ${escapeHtmlText(shortTxt)}</span>
+                    <span class="px-1 py-0.2 rounded text-[10px] ${m ? 'bg-white/20 text-white' : 'bg-teal-50 text-teal-700'}">${escapeHtmlText(ptBadge)}</span>
+                </button>`;
+            }).filter(Boolean);
+            wrap.innerHTML = pills.join('');
+        }
+
+        function applyCustomLabelLineFontSize(lineIdx, explicitPt) {
+            const ta = document.getElementById('custom-label-text');
+            if (!ta) return;
+            const rawPt = explicitPt !== undefined ? Number(explicitPt) : getNumericInputValue('custom-label-partial-size', 28);
+            const pt = Math.max(8, Math.min(140, Math.round(rawPt || 28)));
+            if (explicitPt !== undefined) setNumericInputValue('custom-label-partial-size', pt);
+            const lines = String(ta.value || '').split(/\r?\n/);
+            if (lineIdx < 0 || lineIdx >= lines.length) return;
+            const clean = stripCustomLabelSizeTags(lines[lineIdx]).trim();
+            if (!clean) return;
+            lines[lineIdx] = `[${pt}pt]${clean}[/${pt}pt]`;
+            ta.value = lines.join('\n');
+            renderCustomLabelLinePills();
+            renderPrintLabelPreview();
+        }
+
+        function applyCustomLabelPartialFontSize(presetPt) {
+            const ta = document.getElementById('custom-label-text');
+            if (!ta) return;
+            let pt = presetPt !== undefined && presetPt !== null
+                ? Math.max(8, Math.min(140, Math.round(Number(presetPt) || 28)))
+                : Math.max(8, Math.min(140, Math.round(getNumericInputValue('custom-label-partial-size', 28) || 28)));
+            setNumericInputValue('custom-label-partial-size', pt);
+
+            let start = typeof ta.selectionStart === 'number' ? ta.selectionStart : 0;
+            let end = typeof ta.selectionEnd === 'number' ? ta.selectionEnd : 0;
+            if (start === end && customLabelPartialSelection && customLabelPartialSelection.end > customLabelPartialSelection.start && customLabelPartialSelection.end <= ta.value.length) {
+                start = customLabelPartialSelection.start;
+                end = customLabelPartialSelection.end;
+            }
+
+            if (end > start) {
+                const beforeRaw = ta.value.slice(0, start);
+                const selectedRaw = ta.value.slice(start, end);
+                const afterRaw = ta.value.slice(end);
+                const clean = stripCustomLabelSizeTags(selectedRaw);
+                if (!clean.trim()) {
+                    showToast('Teks terpilih kosong.', 'warning');
+                    return;
+                }
+                const openTagMatch = beforeRaw.match(/\[(\d{1,3})pt\]$/i);
+                const closeTagMatch = openTagMatch ? afterRaw.match(new RegExp(`^\\[\\/${openTagMatch[1]}pt\\]`, 'i')) : null;
+                let nextBefore = beforeRaw;
+                let nextAfter = afterRaw;
+                if (openTagMatch && closeTagMatch) {
+                    nextBefore = beforeRaw.slice(0, -openTagMatch[0].length);
+                    nextAfter = afterRaw.slice(closeTagMatch[0].length);
+                }
+                const replacement = `[${pt}pt]${clean}[/${pt}pt]`;
+                ta.value = nextBefore + replacement + nextAfter;
+                const newStart = nextBefore.length;
+                const newEnd = newStart + replacement.length;
+                customLabelPartialSelection = { start: newStart, end: newEnd };
+                ta.focus();
+                try { ta.setSelectionRange(newStart, newEnd); } catch (_) {}
+                renderCustomLabelLinePills();
+                renderPrintLabelPreview();
+                return;
+            }
+
+            // Jika belum ada blok teks, terapkan ke baris tempat kursor berada
+            const upToCursor = ta.value.slice(0, start);
+            const lineIdx = upToCursor.split(/\r?\n/).length - 1;
+            const lines = ta.value.split(/\r?\n/);
+            if (lines[lineIdx] && lines[lineIdx].trim()) {
+                applyCustomLabelLineFontSize(lineIdx, pt);
+                showToast(`Ukuran ${pt}pt diterapkan ke baris ${lineIdx + 1}.`, 'success');
+                return;
+            }
+            showToast('Blok sebagian teks dulu atau klik salah satu tombol baris (B1, B2...) di bawah.', 'warning');
+        }
+
+        function resetCustomLabelPartialSizes() {
+            const ta = document.getElementById('custom-label-text');
+            if (!ta) return;
+            ta.value = stripCustomLabelSizeTags(ta.value);
+            customLabelPartialSelection = { start: 0, end: 0 };
+            renderCustomLabelLinePills();
+            renderPrintLabelPreview();
+            showToast('Ukuran font sebagian teks di-reset ke seragam.', 'info');
+        }
+
         function computeCustomA6FallbackPt(text, isLand) {
-            const raw = String(text || '').trim() || 'LABEL CUSTOM';
+            if (customLabelFontMode === 'manual') {
+                return Math.max(10, Math.min(140, Math.round(customLabelGlobalFontPt || 48)));
+            }
+            const raw = stripCustomLabelSizeTags(text).trim() || 'LABEL CUSTOM';
             const lines = raw.split(/\r?\n/);
             const maxChars = Math.max(...lines.map(l => l.length), 1);
             const innerW = isLand ? 124 : 82; // mm
@@ -15652,8 +16325,9 @@ function doPost(e) {
         function formatCustomA6DisplayText(text, isLand) {
             const raw = String(text || '').trim() || 'LABEL CUSTOM';
             if (isLand) return raw;
-            // Saat posisi Portrait tanpa newline manual, susun kata menjadi baris bertumpuk vertikal agar mengisi kertas 105 × 148 mm dengan maksimal
-            if (!raw.includes('\n')) {
+            const hasPartialTags = /\[(\d{1,3})pt\][\s\S]*?\[\/\1pt\]/i.test(raw);
+            // Saat posisi Portrait tanpa newline manual dan tanpa tag ukuran sebagian, susun kata menjadi baris bertumpuk vertikal
+            if (!raw.includes('\n') && !hasPartialTags) {
                 const words = raw.split(/\s+/).filter(Boolean);
                 if (words.length >= 2 && words.length <= 6) {
                     return words.join('\n');
@@ -15675,7 +16349,7 @@ function doPost(e) {
                     <div class="custom-a6-inner-box"
                         style="width: 100%; height: 100%; box-sizing: border-box; ${borderStyle} padding: ${isLand ? '4.5mm 6mm' : '6mm 4.5mm'}; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                         <div class="custom-a6-text-fit"
-                            style="width: 100%; font-size: ${initPt}pt; font-weight: 900; text-transform: uppercase; text-align: center; line-height: ${isLand ? '1.1' : '1.14'}; letter-spacing: ${isLand ? '0.02em' : '0.01em'}; white-space: pre-line; word-break: normal; overflow-wrap: normal;">${escapeHtmlText(displayText)}</div>
+                            style="width: 100%; font-size: ${initPt}pt; font-weight: 900; text-transform: uppercase; text-align: center; line-height: ${isLand ? '1.1' : '1.14'}; letter-spacing: ${isLand ? '0.02em' : '0.01em'}; white-space: pre-line; word-break: normal; overflow-wrap: break-word;">${renderCustomLabelInlineHtml(displayText)}</div>
                     </div>
                 </div>
             `;
@@ -15684,6 +16358,14 @@ function doPost(e) {
         function fitCustomA6LabelText() {
             const sheetArea = document.getElementById('print-label-sheet-area');
             if (!sheetArea) return;
+            if (customLabelFontMode === 'manual') {
+                const pt = Math.max(10, Math.min(140, Math.round(customLabelGlobalFontPt || 48)));
+                sheetArea.querySelectorAll('.custom-a6-text-fit').forEach(el => {
+                    el.style.fontSize = pt + 'pt';
+                    el.style.overflowWrap = 'break-word';
+                });
+                return;
+            }
             const firstBox = sheetArea.querySelector('.custom-a6-inner-box');
             const firstText = sheetArea.querySelector('.custom-a6-text-fit');
             if (!firstBox || !firstText) return;
@@ -15796,7 +16478,7 @@ function doPost(e) {
                 const orient = document.getElementById('so-label-orientation')?.value || 'landscape';
                 const paper = document.getElementById('so-label-paper')?.value || 'tj105_sheet';
                 const showBorder = document.getElementById('so-label-border')?.checked !== false;
-                const copies = Math.min(Math.max(parseInt(document.getElementById('so-label-copies')?.value, 10) || 1, 1), 150);
+                const copies = Math.min(Math.max(Math.round(getNumericInputValue('so-label-copies', 1)) || 1, 1), 150);
 
                 if (paper === 'tj105_sheet') {
                     updateDynamicPrintPageStyle('204mm 172mm');
@@ -15845,14 +16527,15 @@ function doPost(e) {
                 }
             } else if (currentPrintLabelMode === 'carton') {
                 const orient = document.getElementById('label-carton-orientation')?.value || 'landscape';
-                const w = parseInt(document.getElementById('label-width-mm')?.value, 10) || (orient === 'portrait' ? 105 : 148);
-                const h = parseInt(document.getElementById('label-height-mm')?.value, 10) || (orient === 'portrait' ? 148 : 105);
+                const w = Math.round(getNumericInputValue('label-width-mm', orient === 'portrait' ? 105 : 148)) || (orient === 'portrait' ? 105 : 148);
+                const h = Math.round(getNumericInputValue('label-height-mm', orient === 'portrait' ? 148 : 105)) || (orient === 'portrait' ? 148 : 105);
                 updateDynamicPrintPageStyle(`${w}mm ${h}mm`);
 
-                const qty = (document.getElementById('label-qty-input')?.value || '1').trim();
+                const qtyNum = Math.max(1, Math.round(getNumericInputValue('label-qty-input', 1)) || 1);
+                const qty = qtyNum.toLocaleString('id-ID');
                 const pic = (document.getElementById('label-pic-input')?.value || '-').trim() || '-';
                 const exp = document.getElementById('label-exp-input')?.value ? formatDateIndo(document.getElementById('label-exp-input').value) : '-';
-                const copies = Math.min(Math.max(parseInt(document.getElementById('label-copies-input')?.value, 10) || 1, 1), 30);
+                const copies = Math.min(Math.max(Math.round(getNumericInputValue('label-copies-input', 1)) || 1, 1), 30);
 
                 if (badge) {
                     badge.textContent = `Carton A6 ${orient === 'portrait' ? 'Portrait' : 'Landscape'} (${w} × ${h} mm) • ${copies} Copy`;
@@ -15888,7 +16571,7 @@ function doPost(e) {
                 const text = document.getElementById('custom-label-text')?.value || 'LABEL CUSTOM';
                 const orient = document.getElementById('custom-label-orientation')?.value || 'landscape';
                 const showBorder = document.getElementById('custom-label-border')?.checked !== false;
-                const copies = Math.min(Math.max(parseInt(document.getElementById('custom-label-copies')?.value, 10) || 1, 1), 30);
+                const copies = Math.min(Math.max(Math.round(getNumericInputValue('custom-label-copies', 1)) || 1, 1), 30);
 
                 const isLand = orient === 'landscape';
                 const w = isLand ? 148 : 105;
@@ -15920,27 +16603,35 @@ function doPost(e) {
                 document.getElementById('so-label-team').value = '';
                 document.getElementById('so-label-orientation').value = 'landscape';
                 document.getElementById('so-label-paper').value = 'tj105_sheet';
-                document.getElementById('so-label-copies').value = 30;
+                setNumericInputValue('so-label-copies', 30);
                 const borderCb = document.getElementById('so-label-border');
                 if (borderCb) borderCb.checked = true;
             } else if (currentPrintLabelMode === 'carton') {
                 clearLabelProductSearch();
-                document.getElementById('label-qty-input').value = 1;
-                document.getElementById('label-copies-input').value = 1;
+                setNumericInputValue('label-qty-input', 1);
+                setNumericInputValue('label-copies-input', 1);
                 const orientEl = document.getElementById('label-carton-orientation');
                 const presetEl = document.getElementById('label-paper-preset');
                 const wEl = document.getElementById('label-width-mm');
                 const hEl = document.getElementById('label-height-mm');
                 if (orientEl) orientEl.value = 'landscape';
                 if (presetEl) presetEl.value = '148x105';
-                if (wEl) wEl.value = 148;
-                if (hEl) hEl.value = 105;
+                setNumericInputValue(wEl, 148);
+                setNumericInputValue(hEl, 105);
             } else {
                 document.getElementById('custom-label-text').value = 'AREA HOLDING QC';
                 document.getElementById('custom-label-orientation').value = 'landscape';
-                document.getElementById('custom-label-copies').value = 1;
+                setNumericInputValue('custom-label-copies', 1);
                 const customBorderCb = document.getElementById('custom-label-border');
                 if (customBorderCb) customBorderCb.checked = true;
+                customLabelGlobalFontPt = 48;
+                setNumericInputValue('custom-label-font-size', 48);
+                setNumericInputValue('custom-label-partial-size', 28);
+                const rng = document.getElementById('custom-label-font-range');
+                if (rng) rng.value = 48;
+                customLabelPartialSelection = { start: 0, end: 0 };
+                setCustomLabelFontMode('auto');
+                renderCustomLabelLinePills();
             }
             renderPrintLabelPreview();
             showToast('Form label di-reset.', 'info');
@@ -16127,8 +16818,8 @@ function doPost(e) {
         function addAdminResiQuickQty(delta) {
             const input = document.getElementById('admin-resi-qty');
             if (!input) return;
-            const cur = parseInt(input.value || '0', 10) || 0;
-            input.value = cur + delta;
+            const cur = Math.round(getNumericInputValue(input, 0)) || 0;
+            setNumericInputValue(input, Math.max(0, cur + delta));
             input.focus();
         }
 
@@ -16204,7 +16895,7 @@ function doPost(e) {
             const matchedUser = getAdminPickerUsers().find(u => u.username.toLowerCase() === (selectedPicker || typedPicker).toLowerCase());
             const picker = matchedUser ? matchedUser.username : (selectedPicker || typedPicker);
             const expedisi = document.getElementById('admin-resi-expedisi').value;
-            const qty = parseInt(document.getElementById('admin-resi-qty').value, 10);
+            const qty = Math.round(getNumericInputValue('admin-resi-qty', 0));
 
             if (!picker || !expedisi || !qty || qty < 1) {
                 showToast('Lengkapi Nama Picker, Nama Expedisi, dan Jumlah Resi.', 'warning');
@@ -16221,10 +16912,10 @@ function doPost(e) {
 
             clearAdminResiPickerSelection();
             document.getElementById('admin-resi-expedisi').value = '';
-            document.getElementById('admin-resi-qty').value = '';
+            setNumericInputValue('admin-resi-qty', '');
             renderAdminResiQuickExpedisiChips();
             renderAdminResiStatsAndList();
-            showToast(`Input resi ${picker} (${expedisi}: ${qty}) berhasil disimpan!`, 'success');
+            showToast(`Input resi ${picker} (${expedisi}: ${qty.toLocaleString('id-ID')}) berhasil disimpan!`, 'success');
         });
 
         function renderAdminResiStatsAndList() {
@@ -16269,7 +16960,7 @@ function doPost(e) {
                         </div>
                     `;
                 }).join('');
-            lucide.createIcons();
+            refreshLucideIcons(container);
         }
 
         function deleteAdminResiEntry(id) {
@@ -16582,7 +17273,7 @@ function doPost(e) {
             const typedPicker = document.getElementById('sb-picker-search').value.trim();
             const matchedUser = getAdminPickerUsers().find(u => u.username.toLowerCase() === (selectedPicker || typedPicker).toLowerCase());
             const picker = matchedUser ? matchedUser.username : (selectedPicker || typedPicker);
-            const qty = parseInt(document.getElementById('sb-qty').value, 10);
+            const qty = Math.round(getNumericInputValue('sb-qty', 0));
             const reason = document.getElementById('sb-reason').value;
             if (!selectedSalahBarangProduct || !picker || !qty || qty < 1 || !reason) {
                 showToast('Lengkapi Barang, Nama Picker, Qty, dan Alasan.', 'warning');
@@ -16599,7 +17290,7 @@ function doPost(e) {
             postToGoogleSheet('SalahBarang', ['ID', 'Tanggal', 'Jam', 'Kode SKU', 'Barcode', 'Nama Barang', 'Nama Picker', 'Qty', 'Alasan', 'Admin Input'], [[newId, date, nowTime, selectedSalahBarangProduct.sku, selectedSalahBarangProduct.barcode || '-', selectedSalahBarangProduct.name, picker, qty, reason, createdBy]], 'insert');
             resetSalahBarangProductSelection();
             clearSalahBarangPickerSelection();
-            document.getElementById('sb-qty').value = '';
+            setNumericInputValue('sb-qty', '');
             document.getElementById('sb-reason').value = '';
             syncSalahBarangReasonTiles();
             renderSalahBarangDailyList();
@@ -18803,9 +19494,9 @@ function doPost(e) {
         }
 
         function updateDriverExpenseDraftTotal() {
-            const tol = Math.max(0, Number(document.getElementById('drv-exp-tol')?.value || 0));
-            const bensin = Math.max(0, Number(document.getElementById('drv-exp-bensin')?.value || 0));
-            const parkir = Math.max(0, Number(document.getElementById('drv-exp-parkir')?.value || 0));
+            const tol = Math.max(0, getNumericInputValue('drv-exp-tol', 0) || 0);
+            const bensin = Math.max(0, getNumericInputValue('drv-exp-bensin', 0) || 0);
+            const parkir = Math.max(0, getNumericInputValue('drv-exp-parkir', 0) || 0);
             const total = tol + bensin + parkir;
             const el = document.getElementById('drv-exp-draft-total');
             if (el) el.textContent = `Rp ${total.toLocaleString('id-ID')}`;
@@ -18859,10 +19550,10 @@ function doPost(e) {
             const date = document.getElementById('drv-exp-date')?.value || getTodayISO();
             const driverName = document.getElementById('drv-exp-driver')?.value || '';
             const vehicle = document.getElementById('drv-exp-vehicle')?.value || '-';
-            const km = Number(document.getElementById('drv-exp-km')?.value || 0);
-            const tol = Math.max(0, Number(document.getElementById('drv-exp-tol')?.value || 0));
-            const bensin = Math.max(0, Number(document.getElementById('drv-exp-bensin')?.value || 0));
-            const parkir = Math.max(0, Number(document.getElementById('drv-exp-parkir')?.value || 0));
+            const km = getNumericInputValue('drv-exp-km', NaN);
+            const tol = Math.max(0, getNumericInputValue('drv-exp-tol', 0) || 0);
+            const bensin = Math.max(0, getNumericInputValue('drv-exp-bensin', 0) || 0);
+            const parkir = Math.max(0, getNumericInputValue('drv-exp-parkir', 0) || 0);
             const note = (document.getElementById('drv-exp-note')?.value || '').trim();
             const photo = driverDraftPhotos.expense || '';
 
@@ -18894,10 +19585,10 @@ function doPost(e) {
             saveAppStateToLocal();
             sheetUpsertItem('DriverExpense', item);
 
-            document.getElementById('drv-exp-km').value = '';
-            document.getElementById('drv-exp-tol').value = '0';
-            document.getElementById('drv-exp-bensin').value = '0';
-            document.getElementById('drv-exp-parkir').value = '0';
+            setNumericInputValue('drv-exp-km', '');
+            setNumericInputValue('drv-exp-tol', 0);
+            setNumericInputValue('drv-exp-bensin', 0);
+            setNumericInputValue('drv-exp-parkir', 0);
             document.getElementById('drv-exp-note').value = '';
             updateDriverExpenseDraftTotal();
             clearDriverDraftPhoto('expense');
@@ -19144,12 +19835,9 @@ function doPost(e) {
         let currentInventoryControlTab = 'ALL';
 
         function initInventoryView() {
-            const nearEl = document.getElementById('inv-cfg-near-exp');
-            const deadEl = document.getElementById('inv-cfg-dead-days');
-            const doiEl = document.getElementById('inv-cfg-over-doi');
-            if (nearEl) nearEl.value = inventoryConfig.nearExpiryDays || 90;
-            if (deadEl) deadEl.value = inventoryConfig.deadStockDays || 90;
-            if (doiEl) doiEl.value = inventoryConfig.overDoiDays || 90;
+            setNumericInputValue('inv-cfg-near-exp', inventoryConfig.nearExpiryDays || 90);
+            setNumericInputValue('inv-cfg-dead-days', inventoryConfig.deadStockDays || 90);
+            setNumericInputValue('inv-cfg-over-doi', inventoryConfig.overDoiDays || 90);
             renderInventoryControlView();
         }
 
@@ -19159,12 +19847,12 @@ function doPost(e) {
         }
 
         function updateInventoryThresholds() {
-            const nearEl = document.getElementById('inv-cfg-near-exp');
-            const deadEl = document.getElementById('inv-cfg-dead-days');
-            const doiEl = document.getElementById('inv-cfg-over-doi');
-            inventoryConfig.nearExpiryDays = Math.max(1, parseInt(nearEl?.value || '90', 10) || 90);
-            inventoryConfig.deadStockDays = Math.max(1, parseInt(deadEl?.value || '90', 10) || 90);
-            inventoryConfig.overDoiDays = Math.max(1, parseInt(doiEl?.value || '90', 10) || 90);
+            inventoryConfig.nearExpiryDays = Math.max(1, Math.round(getNumericInputValue('inv-cfg-near-exp', 90)) || 90);
+            inventoryConfig.deadStockDays = Math.max(1, Math.round(getNumericInputValue('inv-cfg-dead-days', 90)) || 90);
+            inventoryConfig.overDoiDays = Math.max(1, Math.round(getNumericInputValue('inv-cfg-over-doi', 90)) || 90);
+            setNumericInputValue('inv-cfg-near-exp', inventoryConfig.nearExpiryDays);
+            setNumericInputValue('inv-cfg-dead-days', inventoryConfig.deadStockDays);
+            setNumericInputValue('inv-cfg-over-doi', inventoryConfig.overDoiDays);
             saveAppStateToLocal();
             syncConfigToSheet();
             renderInventoryControlView();
@@ -19470,7 +20158,7 @@ function doPost(e) {
             if (!tbody) return;
             if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-slate-400">Tidak ada SKU pada kontrol audit ini. ${masterBarangData.length === 0 ? 'Tambahkan Master Barang atau Import Stock CSV terlebih dahulu.' : ''}</td></tr>`;
-                lucide.createIcons();
+                refreshLucideIcons(tbody);
                 return;
             }
 
@@ -19527,7 +20215,7 @@ function doPost(e) {
                     </tr>
                 `;
             }).join('');
-            lucide.createIcons();
+            refreshLucideIcons(tbody);
         }
 
         function assignInventorySkuRack(sku) {
@@ -19542,11 +20230,11 @@ function doPost(e) {
 
             document.getElementById('inv-modal-sku').value = skuKey;
             document.getElementById('inv-modal-sku-subtitle').textContent = `${skuKey} — ${auditItem.name}`;
-            document.getElementById('inv-modal-stock').value = auditItem.stock;
+            setNumericInputValue('inv-modal-stock', auditItem.stock);
             document.getElementById('inv-modal-rack').value = auditItem.noRack || '';
-            document.getElementById('inv-modal-min').value = auditItem.minStock;
-            document.getElementById('inv-modal-max').value = auditItem.maxStock;
-            document.getElementById('inv-modal-avg-out').value = auditItem.avgDailyOut;
+            setNumericInputValue('inv-modal-min', auditItem.minStock);
+            setNumericInputValue('inv-modal-max', auditItem.maxStock);
+            setNumericInputValue('inv-modal-avg-out', auditItem.avgDailyOut);
             document.getElementById('inv-modal-last-move').value = auditItem.lastMovementDate || '';
             document.getElementById('inv-modal-expired').value = auditItem.earliestExpiry || '';
 
@@ -19555,7 +20243,7 @@ function doPost(e) {
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
             }
-            lucide.createIcons();
+            refreshLucideIcons(modal);
         }
 
         function closeInventoryStockModal() {
@@ -19571,11 +20259,11 @@ function doPost(e) {
             const skuKey = String(document.getElementById('inv-modal-sku').value || '').trim().toUpperCase();
             if (!skuKey) return;
 
-            const stock = Number(document.getElementById('inv-modal-stock').value || 0);
+            const stock = getNumericInputValue('inv-modal-stock', 0) || 0;
             const rack = String(document.getElementById('inv-modal-rack').value || '').trim().toUpperCase() || '-';
-            const minStock = Math.max(0, Number(document.getElementById('inv-modal-min').value || 0));
-            const maxStock = Math.max(0, Number(document.getElementById('inv-modal-max').value || 0));
-            const avgDailyOut = Math.max(0, Number(document.getElementById('inv-modal-avg-out').value || 0));
+            const minStock = Math.max(0, getNumericInputValue('inv-modal-min', 0) || 0);
+            const maxStock = Math.max(0, getNumericInputValue('inv-modal-max', 0) || 0);
+            const avgDailyOut = Math.max(0, getNumericInputValue('inv-modal-avg-out', 0) || 0);
             const lastMovementDate = document.getElementById('inv-modal-last-move').value || '';
             const expiredDate = document.getElementById('inv-modal-expired').value || '';
 
@@ -20120,7 +20808,7 @@ function doPost(e) {
                     </tr>
                 `;
             }).join('');
-            lucide.createIcons();
+            refreshLucideIcons(document.getElementById('view-kpi'));
         }
 
         function filterKpiByRoleCard(role) {
@@ -20239,7 +20927,7 @@ function doPost(e) {
                     ? 'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm whitespace-nowrap'
                     : 'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-50 whitespace-nowrap';
             }
-            lucide.createIcons();
+            refreshLucideIcons(document.getElementById('view-return'));
         }
 
         function renderReturnHeroSummary() {
@@ -20362,8 +21050,8 @@ function doPost(e) {
         function addReturnOfflineQuickQty(val) {
             const el = document.getElementById('ret-off-qty');
             if (!el) return;
-            const cur = parseInt(el.value || '0', 10) || 0;
-            el.value = cur + val;
+            const cur = Math.round(getNumericInputValue(el, 0)) || 0;
+            setNumericInputValue(el, cur + val);
             el.focus();
         }
 
@@ -20400,7 +21088,7 @@ function doPost(e) {
         document.getElementById('return-offline-form')?.addEventListener('submit', function(e) {
             e.preventDefault();
             const date = document.getElementById('ret-off-date')?.value || getTodayISO();
-            const qty = parseInt(document.getElementById('ret-off-qty')?.value || '0', 10);
+            const qty = Math.round(getNumericInputValue('ret-off-qty', 0));
             const reason = (document.getElementById('ret-off-reason')?.value || '').trim();
             const note = (document.getElementById('ret-off-note')?.value || '').trim();
 
@@ -20435,13 +21123,13 @@ function doPost(e) {
             sheetUpsertItem('ReturOffline', item);
 
             resetReturnOfflineProductSelection();
-            document.getElementById('ret-off-qty').value = '';
+            setNumericInputValue('ret-off-qty', '');
             document.getElementById('ret-off-reason').value = '';
             document.getElementById('ret-off-note').value = '';
             renderReturnOfflineQuickReasons();
             renderReturnHeroSummary();
             renderReturnOfflineListAndBa();
-            showToast(`Waste ${item.sku} (${item.qty} pcs) masuk ke list Berita Acara!`, 'success');
+            showToast(`Waste ${item.sku} (${item.qty.toLocaleString('id-ID')} pcs) masuk ke list Berita Acara!`, 'success');
         });
 
         function getFilteredReturnOfflineEntries() {
@@ -20519,7 +21207,7 @@ function doPost(e) {
                     }).join('');
             }
             renderReturnBeritaAcaraPreview();
-            lucide.createIcons();
+            refreshLucideIcons(container);
         }
 
         function renderReturnBeritaAcaraPreview() {
@@ -20582,42 +21270,44 @@ function doPost(e) {
                     Pada hari ini, telah dilakukan serah terima barang dari pihak gudang kepada pihak penerima sesuai dengan kondisi barang sebagai berikut:
                 </p>
 
-                <table style="width:100%; border-collapse:collapse; margin-bottom:14px; font-size:12.5px;">
+                <table style="width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:14px; font-size:12px;">
                     <thead>
                         <tr style="background-color:#d9d9d9; font-weight:700; font-family: Arial, Helvetica, sans-serif;">
-                            <th style="border:1px solid #000; padding:6px 8px; text-align:center; width:38px;">No</th>
-                            <th style="border:1px solid #000; padding:6px 8px; text-align:center; width:130px;">Barcode</th>
-                            <th style="border:1px solid #000; padding:6px 10px; text-align:center;">Nama Barang</th>
-                            <th style="border:1px solid #000; padding:6px 8px; text-align:center; width:64px;">Qty</th>
-                            <th style="border:1px solid #000; padding:6px 8px; text-align:center; width:175px;">Keterangan</th>
+                            <th style="border:1px solid #000; padding:6px 4px; text-align:center; width:6%;">No</th>
+                            <th style="border:1px solid #000; padding:6px 8px; text-align:center; width:20%;">Barcode</th>
+                            <th style="border:1px solid #000; padding:6px 10px; text-align:center; width:40%;">Nama Barang</th>
+                            <th style="border:1px solid #000; padding:6px 4px; text-align:center; width:10%;">Qty</th>
+                            <th style="border:1px solid #000; padding:6px 8px; text-align:center; width:24%;">Keterangan</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${rowsHtml}
                         <tr>
                             <td colspan="3" style="border:1px solid #000; padding:6px 10px; text-align:right; font-weight:700; font-family: Arial, Helvetica, sans-serif;">TOTAL</td>
-                            <td style="border:1px solid #000; padding:6px 8px; text-align:center; font-weight:700;">${totalQty.toLocaleString('id-ID')}</td>
+                            <td style="border:1px solid #000; padding:6px 4px; text-align:center; font-weight:700;">${totalQty.toLocaleString('id-ID')}</td>
                             <td style="border:1px solid #000; padding:6px 8px;"></td>
                         </tr>
                     </tbody>
                 </table>
 
-                <p style="margin:0 0 28px 0; font-size:13px;">
-                    Demikian Berita Acara Serah Terima Barang ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya. Kedua belah pihak menyatakan bahwa jumlah dan kondisi barang di atas telah sesuai dan diperiksa bersama pada saat serah terima.
-                </p>
+                <div class="ba-signature-block">
+                    <p style="margin:0 0 22px 0; font-size:12.5px;">
+                        Demikian Berita Acara Serah Terima Barang ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya. Kedua belah pihak menyatakan bahwa jumlah dan kondisi barang di atas telah sesuai dan diperiksa bersama pada saat serah terima.
+                    </p>
 
-                <table style="width:100%; border-collapse:collapse; text-align:center; font-family: Arial, Helvetica, sans-serif; font-size:13px; margin-top:18px;">
-                    <tr>
-                        <td style="width:33.33%; font-weight:700; padding-bottom:64px;">Persetujuan,</td>
-                        <td style="width:33.33%; font-weight:700; padding-bottom:64px;">Menyerahkan</td>
-                        <td style="width:33.33%; font-weight:700; padding-bottom:64px;">Menerima,</td>
-                    </tr>
-                    <tr>
-                        <td style="padding-top:4px;">${sigText(approver)}</td>
-                        <td style="padding-top:4px;">${sigText(handover)}</td>
-                        <td style="padding-top:4px;">${sigText(receiver)}</td>
-                    </tr>
-                </table>
+                    <table style="width:100%; border-collapse:collapse; table-layout:fixed; text-align:center; font-family: Arial, Helvetica, sans-serif; font-size:12.5px; margin-top:12px;">
+                        <tr>
+                            <td style="width:33.33%; font-weight:700; padding-bottom:52px;">Persetujuan,</td>
+                            <td style="width:33.33%; font-weight:700; padding-bottom:52px;">Menyerahkan</td>
+                            <td style="width:33.33%; font-weight:700; padding-bottom:52px;">Menerima,</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-top:4px;">${sigText(approver)}</td>
+                            <td style="padding-top:4px;">${sigText(handover)}</td>
+                            <td style="padding-top:4px;">${sigText(receiver)}</td>
+                        </tr>
+                    </table>
+                </div>
             `;
         }
 
@@ -20629,7 +21319,7 @@ function doPost(e) {
             }
             const styleEl = document.getElementById('dynamic-print-page-style');
             const prevCss = styleEl ? styleEl.textContent : '';
-            if (styleEl) styleEl.textContent = '@media print { @page { size: A4 portrait; margin: 10mm; } }';
+            if (styleEl) styleEl.textContent = '@page { size: A4 portrait; margin: 12mm; }';
             document.body.classList.add('printing-berita-acara');
             const cleanup = () => {
                 document.body.classList.remove('printing-berita-acara');
@@ -20799,8 +21489,8 @@ function doPost(e) {
         function addReturnOnlineQuickQty(val) {
             const el = document.getElementById('ret-on-qty');
             if (!el) return;
-            const cur = parseInt(el.value || '0', 10) || 0;
-            el.value = cur + val;
+            const cur = Math.round(getNumericInputValue(el, 0)) || 0;
+            setNumericInputValue(el, cur + val);
             el.focus();
         }
 
@@ -20842,7 +21532,7 @@ function doPost(e) {
         document.getElementById('return-online-form')?.addEventListener('submit', function(e) {
             e.preventDefault();
             const date = document.getElementById('ret-on-date')?.value || getTodayISO();
-            const qty = parseInt(document.getElementById('ret-on-qty')?.value || '0', 10);
+            const qty = Math.round(getNumericInputValue('ret-on-qty', 0));
             const reason = (document.getElementById('ret-on-reason')?.value || '').trim();
             const note = (document.getElementById('ret-on-note')?.value || '').trim();
 
@@ -20877,13 +21567,13 @@ function doPost(e) {
             sheetUpsertItem('ReturOnline', item);
 
             resetReturnOnlineProductSelection();
-            document.getElementById('ret-on-qty').value = '';
+            setNumericInputValue('ret-on-qty', '');
             document.getElementById('ret-on-reason').value = '';
             document.getElementById('ret-on-note').value = '';
             renderReturnOnlineReasonChips();
             renderReturnHeroSummary();
             renderReturnOnlineList();
-            showToast(`Retur paket ${item.sku} (${item.qty} pcs) berhasil disimpan!`, 'success');
+            showToast(`Retur paket ${item.sku} (${item.qty.toLocaleString('id-ID')} pcs) berhasil disimpan!`, 'success');
         });
 
         function getFilteredReturnOnlineEntries() {
@@ -20944,7 +21634,7 @@ function doPost(e) {
                         </div>
                     `;
                 }).join('');
-            lucide.createIcons();
+            refreshLucideIcons(wrap);
         }
 
         function exportReturnOnlineExcel() {
@@ -21112,7 +21802,19 @@ function doPost(e) {
             const gotFromLink = consumeUrlSheetConfigParam();
             initBackExitGuard();
             initAutoHideDropdowns();
-            lucide.createIcons();
+            initNumericInputFormatters();
+            const customLabelTa = document.getElementById('custom-label-text');
+            if (customLabelTa) {
+                ['mouseup', 'keyup', 'select'].forEach(ev => {
+                    customLabelTa.addEventListener(ev, () => {
+                        if (typeof customLabelTa.selectionStart === 'number') {
+                            customLabelPartialSelection = { start: customLabelTa.selectionStart, end: customLabelTa.selectionEnd };
+                        }
+                    });
+                });
+            }
+            renderCustomLabelLinePills();
+            refreshLucideIcons();
             renderSyncChip();
             // Ambil konfigurasi Apps Script global dari server agar device baru (Desktop & HP) otomatis terhubung
             await syncSheetConfigWithServer();
