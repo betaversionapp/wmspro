@@ -566,7 +566,7 @@
                             </div>
                         </div>
 
-                        <div id="setting-local-reset-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                        <div id="setting-local-reset-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 max-h-[260px] overflow-y-auto pr-1">
                             <!-- Di-render via JS -->
                         </div>
                     </div>
@@ -854,7 +854,7 @@ function doPost(e) {
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto overflow-y-auto max-h-[580px]">
+                    <div class="overflow-x-auto overflow-y-auto max-h-[225px]">
                         <table class="w-full text-left border-collapse">
                             <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,0.9)]">
                                 <tr class="bg-slate-50 border-b border-slate-200/80 text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -1092,7 +1092,7 @@ function doPost(e) {
                                 class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold">Semua Tgl</button>
                         </div>
 
-                        <div id="dispatch-offline-list" class="space-y-3 max-h-[540px] overflow-y-auto pr-1">
+                        <div id="dispatch-offline-list" class="space-y-3 max-h-[330px] overflow-y-auto pr-1">
                             <!-- Di-render via JS -->
                         </div>
                     </div>
@@ -1203,7 +1203,7 @@ function doPost(e) {
                         </div>
 
                         <!-- Daftar Entri Resi -->
-                        <div id="dispatch-entries-list" class="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
+                        <div id="dispatch-entries-list" class="space-y-2.5 max-h-[240px] overflow-y-auto pr-1">
                             <!-- Di-render via JS -->
                         </div>
                     </div>
@@ -1311,7 +1311,7 @@ function doPost(e) {
                             </div>
                             <h3 class="text-sm font-extrabold text-slate-900">Resi per Expedisi</h3>
                         </div>
-                        <div id="report-expedisi-bars" class="space-y-3.5"></div>
+                        <div id="report-expedisi-bars" class="space-y-3.5 max-h-[165px] overflow-y-auto pr-1"></div>
                     </div>
 
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6">
@@ -1321,7 +1321,7 @@ function doPost(e) {
                             </div>
                             <h3 class="text-sm font-extrabold text-slate-900">Resi per Packer</h3>
                         </div>
-                        <div id="report-packer-bars" class="space-y-3.5"></div>
+                        <div id="report-packer-bars" class="space-y-3.5 max-h-[165px] overflow-y-auto pr-1"></div>
                     </div>
                 </div>
 
@@ -1331,7 +1331,7 @@ function doPost(e) {
                         <h3 class="text-sm font-extrabold text-slate-900">Rincian Data Dispatch</h3>
                         <span id="report-table-count" class="text-xs font-semibold text-slate-500 tabular-nums">0 data</span>
                     </div>
-                    <div class="overflow-x-auto max-h-[380px] overflow-y-auto">
+                    <div class="overflow-x-auto max-h-[175px] overflow-y-auto">
                         <table class="w-full text-left border-collapse">
                             <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                                 <tr>
@@ -1386,7 +1386,7 @@ function doPost(e) {
                         </button>
                     </form>
 
-                    <div id="expedisi-list-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                    <div id="expedisi-list-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-[210px] overflow-y-auto pr-1">
                         <!-- Daftar expedisi unique & terurut A-Z -->
                     </div>
                 </div>
@@ -1584,7 +1584,7 @@ function doPost(e) {
                                     </button>
                                 </div>
 
-                                <div id="absen-entries-list" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+                                <div id="absen-entries-list" class="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
                                     <!-- Item riwayat absen di-render via JS -->
                                 </div>
                             </div>
@@ -1600,7 +1600,7 @@ function doPost(e) {
                                     <span id="absen-roster-summary" class="text-xs font-semibold text-slate-500 tabular-nums">0 staff</span>
                                 </div>
 
-                                <div id="absen-roster-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[480px] overflow-y-auto pr-1">
+                                <div id="absen-roster-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[220px] overflow-y-auto pr-1">
                                     <!-- Kartu status per staff di-render via JS -->
                                 </div>
                             </div>
@@ -1754,7 +1754,7 @@ function doPost(e) {
                                 <h3 class="text-sm font-extrabold text-slate-900">Peringkat Absen per Staff</h3>
                                 <span class="text-xs font-semibold text-slate-500">Urutan Terbanyak</span>
                             </div>
-                            <div id="absen-report-staff-bars" class="space-y-3.5">
+                            <div id="absen-report-staff-bars" class="space-y-3.5 max-h-[165px] overflow-y-auto pr-1">
                                 <!-- Grafik batang nama staff di-render via JS -->
                             </div>
                         </div>
@@ -1764,7 +1764,7 @@ function doPost(e) {
                                 <h3 class="text-sm font-extrabold text-slate-900">Rekap Berdasarkan Reason</h3>
                                 <span class="text-xs font-semibold text-slate-500">Distribusi Kategori</span>
                             </div>
-                            <div id="absen-report-reason-bars" class="space-y-3.5">
+                            <div id="absen-report-reason-bars" class="space-y-3.5 max-h-[165px] overflow-y-auto pr-1">
                                 <!-- Grafik batang reason di-render via JS -->
                             </div>
                         </div>
@@ -1776,9 +1776,9 @@ function doPost(e) {
                             <h3 class="text-sm font-extrabold text-slate-900">Detail Catatan Absensi Periode Ini</h3>
                             <span id="absen-report-table-count" class="text-xs font-bold text-slate-500 tabular-nums">0 data</span>
                         </div>
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto overflow-y-auto max-h-[210px]">
                             <table class="w-full text-left border-collapse">
-                                <thead>
+                                <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,0.9)]">
                                     <tr class="bg-slate-50/90 border-b border-slate-200 text-[11px] font-bold text-slate-500">
                                         <th class="py-3 px-4">Tanggal &amp; Jam</th>
                                         <th class="py-3 px-4">Nama Staff</th>
@@ -1973,7 +1973,7 @@ function doPost(e) {
                         </div>
 
                         <!-- Daftar Entri Overtime -->
-                        <div id="overtime-entries-list" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+                        <div id="overtime-entries-list" class="space-y-2.5 max-h-[290px] overflow-y-auto pr-1">
                             <!-- Di-render via JS -->
                         </div>
                     </div>
@@ -2084,7 +2084,7 @@ function doPost(e) {
                             </div>
                             <span class="text-[11px] font-semibold text-slate-400">Jam</span>
                         </div>
-                        <div id="overtime-report-staff-bars" class="space-y-3.5"></div>
+                        <div id="overtime-report-staff-bars" class="space-y-3.5 max-h-[165px] overflow-y-auto pr-1"></div>
                     </div>
 
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6">
@@ -2094,7 +2094,7 @@ function doPost(e) {
                             </div>
                             <h3 class="text-sm font-extrabold text-slate-900">Rekap Berdasarkan Reason</h3>
                         </div>
-                        <div id="overtime-report-reason-bars" class="space-y-3.5"></div>
+                        <div id="overtime-report-reason-bars" class="space-y-3.5 max-h-[165px] overflow-y-auto pr-1"></div>
                     </div>
                 </div>
 
@@ -2104,7 +2104,7 @@ function doPost(e) {
                         <h3 class="text-sm font-extrabold text-slate-900">Rincian Data Overtime</h3>
                         <span id="overtime-report-table-count" class="text-xs font-semibold text-slate-500 tabular-nums">0 data</span>
                     </div>
-                    <div class="overflow-x-auto max-h-[380px] overflow-y-auto">
+                    <div class="overflow-x-auto max-h-[175px] overflow-y-auto">
                         <table class="w-full text-left border-collapse">
                             <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                                 <tr>
@@ -2299,7 +2299,7 @@ function doPost(e) {
 
                 <!-- TAMPILAN 1: TABEL MASTER BARANG -->
                 <div id="barang-table-container" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                    <div id="barang-table-scroll" class="overflow-x-auto overflow-y-auto max-h-[590px]">
+                    <div id="barang-table-scroll" class="overflow-x-auto overflow-y-auto max-h-[215px]">
                         <table class="w-full text-left border-collapse">
                             <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,0.9)]">
                                 <tr class="bg-gradient-to-r from-slate-50 via-purple-50/50 to-fuchsia-50/40 border-b border-slate-200/80 text-xs font-bold text-slate-600 uppercase tracking-wider">
@@ -2328,7 +2328,7 @@ function doPost(e) {
                 </div>
 
                 <!-- TAMPILAN 2: GRID KARTU KATALOG BARANG -->
-                <div id="barang-grid-container" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[780px] overflow-y-auto pr-1">
+                <div id="barang-grid-container" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[250px] overflow-y-auto pr-1">
                     <!-- Kartu barang di-render dinamis -->
                 </div>
 
@@ -2537,9 +2537,9 @@ function doPost(e) {
 
                 <!-- MODE 2: TABEL LISTVIEW DETAIL -->
                 <div id="project-list-container" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto overflow-y-auto max-h-[265px]">
                         <table class="w-full text-left border-collapse">
-                            <thead>
+                            <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,0.9)]">
                                 <tr class="bg-gradient-to-r from-slate-50 to-indigo-50/40 border-b border-slate-200/80 text-xs font-bold text-slate-600 uppercase tracking-wider">
                                     <th class="py-3.5 px-5">Job / Project</th>
                                     <th class="py-3.5 px-4">PIC</th>
@@ -3192,7 +3192,7 @@ function doPost(e) {
                                 class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition">
                         </div>
 
-                        <div id="cc-today-list" class="space-y-2.5 max-h-[560px] overflow-y-auto pr-1">
+                        <div id="cc-today-list" class="space-y-2.5 max-h-[275px] overflow-y-auto pr-1">
                             <!-- Diisi dinamis -->
                         </div>
                     </div>
@@ -3294,9 +3294,9 @@ function doPost(e) {
                     </div>
 
                     <!-- Tabel Laporan Dinamis sesuai Tab -->
-                    <div class="overflow-x-auto border border-slate-200/80 rounded-xl">
+                    <div class="overflow-x-auto overflow-y-auto max-h-[185px] border border-slate-200/80 rounded-xl">
                         <table class="w-full text-left border-collapse">
-                            <thead id="qc-report-table-head"></thead>
+                            <thead id="qc-report-table-head" class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,0.9)]"></thead>
                             <tbody id="qc-report-table-body" class="divide-y divide-slate-100 text-xs"></tbody>
                         </table>
                     </div>
@@ -3400,15 +3400,15 @@ function doPost(e) {
 
                     <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
                         <div class="text-xs font-extrabold text-slate-900 uppercase tracking-wide mb-3">Distribusi Qty per Gudang</div>
-                        <div id="cc-report-gudang-bars" class="space-y-3"></div>
+                        <div id="cc-report-gudang-bars" class="space-y-3 max-h-[165px] overflow-y-auto pr-1"></div>
                     </div>
                 </div>
 
                 <!-- Tabel Hasil -->
                 <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto overflow-y-auto max-h-[185px]">
                         <table class="w-full text-left border-collapse">
-                            <thead>
+                            <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,0.9)]">
                                 <tr class="bg-slate-50 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                                     <th class="py-3 px-4">TANGGAL &amp; JAM</th>
                                     <th class="py-3 px-4">GUDANG SUMBER</th>
@@ -3641,7 +3641,7 @@ function doPost(e) {
                                 class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition">
                         </div>
 
-                        <div id="qc-create-list-container" class="space-y-2.5 max-h-[460px] overflow-y-auto pr-0.5"></div>
+                        <div id="qc-create-list-container" class="space-y-2.5 max-h-[275px] overflow-y-auto pr-0.5"></div>
                     </div>
                 </div>
 
@@ -3674,7 +3674,7 @@ function doPost(e) {
                                 class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition">
                         </div>
 
-                        <div id="qc-proses-list-container" class="space-y-2.5"></div>
+                        <div id="qc-proses-list-container" class="space-y-2.5 max-h-[295px] overflow-y-auto pr-0.5"></div>
                     </div>
                 </div>
 
@@ -3714,7 +3714,7 @@ function doPost(e) {
                             </div>
                         </div>
 
-                        <div id="qc-transfer-list-container" class="space-y-2.5"></div>
+                        <div id="qc-transfer-list-container" class="space-y-2.5 max-h-[355px] overflow-y-auto pr-0.5"></div>
                     </div>
                 </div>
             </section>
@@ -3885,7 +3885,7 @@ function doPost(e) {
                             </div>
                             <span id="admin-hub-recent-count" class="text-xs font-bold text-slate-500 tabular-nums">0 aktivitas</span>
                         </div>
-                        <div id="admin-hub-recent-list" class="space-y-2">
+                        <div id="admin-hub-recent-list" class="space-y-2 max-h-[210px] overflow-y-auto pr-1">
                             <!-- Rendered dynamically via JS -->
                         </div>
                     </div>
@@ -4025,7 +4025,7 @@ function doPost(e) {
                                     <p id="admin-resi-count-badge" class="text-xs text-slate-500 mt-0.5 tabular-nums">0 Data</p>
                                 </div>
                             </div>
-                            <div id="admin-resi-entries-list" class="space-y-2.5 max-h-[480px] overflow-y-auto pr-1"></div>
+                            <div id="admin-resi-entries-list" class="space-y-2.5 max-h-[235px] overflow-y-auto pr-1"></div>
                         </div>
                     </div>
                 </div>
@@ -4136,11 +4136,11 @@ function doPost(e) {
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
                         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
                             <h3 class="text-sm font-extrabold text-slate-900 mb-4">Resi per Expedisi</h3>
-                            <div id="admin-resi-rep-expedisi-bars" class="space-y-3.5"></div>
+                            <div id="admin-resi-rep-expedisi-bars" class="space-y-3.5 max-h-[165px] overflow-y-auto pr-1"></div>
                         </div>
                         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
                             <h3 class="text-sm font-extrabold text-slate-900 mb-4">Resi per Picker</h3>
-                            <div id="admin-resi-rep-picker-bars" class="space-y-3.5"></div>
+                            <div id="admin-resi-rep-picker-bars" class="space-y-3.5 max-h-[165px] overflow-y-auto pr-1"></div>
                         </div>
                     </div>
                 </div>
@@ -4303,7 +4303,7 @@ function doPost(e) {
                                     <p id="sb-count-badge" class="text-xs text-slate-500 mt-0.5 tabular-nums">0 Data</p>
                                 </div>
                             </div>
-                            <div id="sb-daily-list" class="space-y-2.5 max-h-[540px] overflow-y-auto pr-1"></div>
+                            <div id="sb-daily-list" class="space-y-2.5 max-h-[275px] overflow-y-auto pr-1"></div>
                         </div>
                     </div>
                 </div>
@@ -4414,15 +4414,15 @@ function doPost(e) {
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
                         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
                             <h3 class="text-sm font-extrabold text-slate-900 mb-4">Salah Barang per Produk</h3>
-                            <div id="sb-rep-product-bars" class="space-y-3.5"></div>
+                            <div id="sb-rep-product-bars" class="space-y-3.5 max-h-[165px] overflow-y-auto pr-1"></div>
                         </div>
                         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
                             <h3 class="text-sm font-extrabold text-slate-900 mb-4">Salah Barang per Picker</h3>
-                            <div id="sb-rep-picker-bars" class="space-y-3.5"></div>
+                            <div id="sb-rep-picker-bars" class="space-y-3.5 max-h-[165px] overflow-y-auto pr-1"></div>
                         </div>
                         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
                             <h3 class="text-sm font-extrabold text-slate-900 mb-4">Rekap per Alasan</h3>
-                            <div id="sb-rep-reason-bars" class="space-y-3.5"></div>
+                            <div id="sb-rep-reason-bars" class="space-y-3.5 max-h-[165px] overflow-y-auto pr-1"></div>
                         </div>
                     </div>
                 </div>
@@ -4559,7 +4559,7 @@ function doPost(e) {
                                     <p class="text-xs text-slate-500">Klik <strong>Proses Kirim</strong>, foto barang loading &amp; dokumen, titik GPS serta waktu pickup otomatis tersimpan.</p>
                                 </div>
                             </div>
-                            <div id="driver-pickup-list-container" class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            <div id="driver-pickup-list-container" class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-[340px] overflow-y-auto">
                                 <!-- Di-render via JS -->
                             </div>
                         </div>
@@ -4572,7 +4572,7 @@ function doPost(e) {
                                     <p class="text-xs text-slate-500">Pilih shop saat tiba di lokasi, unggah foto unloading &amp; dokumen TTD penerima — status otomatis <strong>Close</strong>.</p>
                                 </div>
                             </div>
-                            <div id="driver-unloading-list-container" class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            <div id="driver-unloading-list-container" class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-[340px] overflow-y-auto">
                                 <!-- Di-render via JS -->
                             </div>
                         </div>
@@ -4586,7 +4586,7 @@ function doPost(e) {
                                 </div>
                                 <span id="driver-closed-badge" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-xs font-extrabold tabular-nums">0 Close</span>
                             </div>
-                            <div id="driver-closed-list-container" class="p-4 sm:p-5 space-y-3 max-h-[460px] overflow-y-auto">
+                            <div id="driver-closed-list-container" class="p-4 sm:p-5 space-y-3 max-h-[330px] overflow-y-auto">
                                 <!-- Di-render via JS -->
                             </div>
                         </div>
@@ -4714,7 +4714,7 @@ function doPost(e) {
                                     <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Daftar Laporan KM &amp; Biaya</h3>
                                     <input type="month" id="drv-exp-filter-month" onchange="renderDriverExpenseList()" class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700">
                                 </div>
-                                <div id="drv-expense-list-container" class="divide-y divide-slate-100 max-h-[580px] overflow-y-auto"></div>
+                                <div id="drv-expense-list-container" class="divide-y divide-slate-100 max-h-[315px] overflow-y-auto"></div>
                             </div>
                         </div>
                     </div>
@@ -4861,7 +4861,7 @@ function doPost(e) {
                                 <div class="p-4 border-b border-slate-100 flex items-center justify-between gap-2">
                                     <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Riwayat Pemeriksaan Kendaraan</h3>
                                 </div>
-                                <div id="drv-vehicle-list-container" class="divide-y divide-slate-100 max-h-[600px] overflow-y-auto"></div>
+                                <div id="drv-vehicle-list-container" class="divide-y divide-slate-100 max-h-[315px] overflow-y-auto"></div>
                             </div>
                         </div>
                     </div>
@@ -5080,7 +5080,7 @@ function doPost(e) {
                                             class="flex-1 min-w-[140px] px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500">
                                     </div>
                                 </div>
-                                <div id="ret-off-list-container" class="divide-y divide-slate-100 max-h-[440px] overflow-y-auto p-3 space-y-2"></div>
+                                <div id="ret-off-list-container" class="divide-y divide-slate-100 max-h-[285px] overflow-y-auto p-3 space-y-2"></div>
                             </div>
                         </div>
 
@@ -5288,7 +5288,7 @@ function doPost(e) {
                                         class="flex-1 min-w-[160px] px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                 </div>
                             </div>
-                            <div id="ret-on-list-container" class="divide-y divide-slate-100 max-h-[650px] overflow-y-auto p-4 space-y-2.5"></div>
+                            <div id="ret-on-list-container" class="divide-y divide-slate-100 max-h-[310px] overflow-y-auto p-4 space-y-2.5"></div>
                         </div>
                     </div>
                 </div>
@@ -5429,7 +5429,7 @@ function doPost(e) {
 
                     <!-- Main Audit Table -->
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                        <div class="overflow-x-auto overflow-y-auto max-h-[590px]">
+                        <div class="overflow-x-auto overflow-y-auto max-h-[250px]">
                             <table class="w-full text-left border-collapse">
                                 <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,0.9)]">
                                     <tr id="inv-table-head-row" class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
@@ -5526,7 +5526,7 @@ function doPost(e) {
                             <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-wide">Ringkasan KPI Per Posisi</h3>
                             <span class="text-xs text-slate-500">Klik posisi untuk melihat detail personel</span>
                         </div>
-                        <div id="kpi-position-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5"></div>
+                        <div id="kpi-position-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 max-h-[185px] overflow-y-auto pr-1"></div>
                     </div>
 
                     <!-- Scoreboard Individu Semua Posisi -->
@@ -5538,7 +5538,7 @@ function doPost(e) {
                             </div>
                             <span id="kpi-table-count-badge" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold">0 Staff</span>
                         </div>
-                        <div class="overflow-x-auto overflow-y-auto max-h-[600px]">
+                        <div class="overflow-x-auto overflow-y-auto max-h-[225px]">
                             <table class="w-full text-left border-collapse">
                                 <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,0.9)]">
                                     <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
@@ -5805,7 +5805,7 @@ function doPost(e) {
                         </span>
                         <span id="detail-project-checklist-count" class="text-xs font-bold text-slate-500">0/0 selesai</span>
                     </div>
-                    <div id="detail-project-checklist-items" class="space-y-2">
+                    <div id="detail-project-checklist-items" class="space-y-2 max-h-[160px] overflow-y-auto pr-1">
                         <!-- Di-render dinamis -->
                     </div>
                     <div class="flex items-center gap-2 pt-1">
@@ -5908,7 +5908,7 @@ function doPost(e) {
                     </div>
                     <div id="new-role-menus-checkboxes" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
                 </form>
-                <div id="existing-roles-list" class="space-y-3"></div>
+                <div id="existing-roles-list" class="space-y-3 max-h-[260px] overflow-y-auto pr-1"></div>
             </div>
         </div>
     </div>
@@ -5945,7 +5945,7 @@ function doPost(e) {
                     <label class="flex items-center gap-2 text-xs font-medium"><input type="checkbox" id="new-menu-auto-all" checked> Otomatis buka untuk Manager &amp; SPV</label>
                     <button type="submit" class="w-full py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold">Tambah Menu</button>
                 </form>
-                <div id="existing-menus-list" class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden"></div>
+                <div id="existing-menus-list" class="divide-y divide-slate-100 border border-slate-200 rounded-xl max-h-[190px] overflow-y-auto"></div>
             </div>
         </div>
     </div>
@@ -5969,7 +5969,7 @@ function doPost(e) {
                     <input type="text" id="new-reason-name" required placeholder="Tambah reason baru..." class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500">
                     <button type="submit" class="px-4 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition whitespace-nowrap shrink-0">Tambah</button>
                 </form>
-                <div id="existing-reasons-list" class="divide-y divide-slate-100 border border-slate-200 rounded-xl max-h-64 overflow-y-auto"></div>
+                <div id="existing-reasons-list" class="divide-y divide-slate-100 border border-slate-200 rounded-xl max-h-[175px] overflow-y-auto"></div>
             </div>
         </div>
     </div>
@@ -5985,7 +5985,7 @@ function doPost(e) {
                     <input type="text" id="new-overtime-reason-name" required placeholder="Tambah reason lembur..." class="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
                     <button type="submit" class="px-4 py-2 bg-amber-500 text-white rounded-xl text-xs font-bold">Tambah</button>
                 </form>
-                <div id="existing-overtime-reasons-list" class="divide-y divide-slate-100 border border-slate-200 rounded-xl max-h-60 overflow-y-auto"></div>
+                <div id="existing-overtime-reasons-list" class="divide-y divide-slate-100 border border-slate-200 rounded-xl max-h-[175px] overflow-y-auto"></div>
             </div>
         </div>
     </div>
@@ -13790,11 +13790,11 @@ function doPost(e) {
             }
 
             if (pagBar) {
-                if (filtered.length > 10) {
+                if (filtered.length > 3) {
                     pagBar.classList.remove('hidden');
                     const scrollInfo = visibleRows.length < filtered.length
-                        ? `Tampilan maksimal 10 barang per layar · Scroll ke bawah untuk memuat sisa (${visibleRows.length.toLocaleString('id-ID')} / ${filtered.length.toLocaleString('id-ID')} SKU)`
-                        : `Tampilan maksimal 10 barang per layar · Scroll untuk melihat seluruh ${filtered.length.toLocaleString('id-ID')} SKU`;
+                        ? `Tampilan maksimal 3 barang per layar · Scroll ke bawah untuk memuat sisa (${visibleRows.length.toLocaleString('id-ID')} / ${filtered.length.toLocaleString('id-ID')} SKU)`
+                        : `Tampilan maksimal 3 barang per layar · Scroll untuk melihat seluruh ${filtered.length.toLocaleString('id-ID')} SKU`;
                     pagBar.innerHTML = `
                         <span class="text-xs font-semibold text-slate-600 tabular-nums">${scrollInfo}</span>
                         ${visibleRows.length < filtered.length ? `<button type="button" onclick="loadMoreMasterBarang('all')" class="px-3 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold transition">Muat Semua Sekaligus</button>` : ''}
@@ -14668,7 +14668,7 @@ function doPost(e) {
                                 </button>
                             </div>
                         </div>
-                        <div class="p-3 ${shouldAutoMinimize ? 'space-y-2' : 'space-y-3'} flex-1">
+                        <div class="p-3 ${shouldAutoMinimize ? 'space-y-2' : 'space-y-3'} flex-1 max-h-[360px] overflow-y-auto">
                             ${cardsHtml}
                         </div>
                     </div>
@@ -16686,7 +16686,7 @@ function doPost(e) {
                     badge: `${i.qty} pcs`,
                     route: 'admin-salah-barang'
                 }))
-            ].sort((a, b) => String(b.time).localeCompare(String(a.time))).slice(0, 5);
+            ].sort((a, b) => String(b.time).localeCompare(String(a.time))).slice(0, 20);
 
             const countEl = document.getElementById('admin-hub-recent-count');
             if (countEl) countEl.textContent = `${todayResi.length + todaySb.length} aktivitas`;
