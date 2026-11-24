@@ -30,6 +30,13 @@ function sanitizeText(val, maxLen = 120) {
   return val.trim().slice(0, maxLen);
 }
 
+function isValidSpreadsheetId(raw) {
+  if (typeof raw !== 'string') return false;
+  const trimmed = raw.trim();
+  if (!trimmed) return true;
+  return /^[A-Za-z0-9_-]{10,120}$/.test(trimmed);
+}
+
 function parseConfigFile(filePath, baseDir) {
   if (!filePath.startsWith(baseDir + path.sep)) {
     throw new Error('Invalid config storage path');
@@ -38,10 +45,11 @@ function parseConfigFile(filePath, baseDir) {
   const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const url = sanitizeText(parsed.appsScriptUrl, 500);
   if (url && !isValidAppsScriptUrl(url)) return null;
+  const spreadsheetId = sanitizeText(parsed.spreadsheetId, 120);
   return {
     appsScriptUrl: url,
     sheetName: sanitizeText(parsed.sheetName, 120),
-    spreadsheetId: sanitizeText(parsed.spreadsheetId, 120),
+    spreadsheetId: isValidSpreadsheetId(spreadsheetId) ? spreadsheetId : '',
     lastUpdated: sanitizeText(parsed.lastUpdated, 80) || '-'
   };
 }
@@ -54,18 +62,19 @@ function readSharedSheetConfig() {
   for (const [filePath, baseDir] of candidates) {
     try {
       const cfg = parseConfigFile(filePath, baseDir);
-      if (cfg && cfg.appsScriptUrl) return cfg;
+      if (cfg && (cfg.appsScriptUrl || cfg.spreadsheetId)) return cfg;
     } catch {
       // Ignore unreadable candidate
     }
   }
 
   const envUrl = sanitizeText(process.env.WMS_APPS_SCRIPT_URL || '', 500);
-  if (envUrl && isValidAppsScriptUrl(envUrl)) {
+  const envSid = sanitizeText(process.env.WMS_SPREADSHEET_ID || '', 120);
+  if ((envUrl && isValidAppsScriptUrl(envUrl)) || (envSid && isValidSpreadsheetId(envSid))) {
     return {
-      appsScriptUrl: envUrl,
+      appsScriptUrl: isValidAppsScriptUrl(envUrl) ? envUrl : '',
       sheetName: sanitizeText(process.env.WMS_SHEET_NAME || '', 120),
-      spreadsheetId: sanitizeText(process.env.WMS_SPREADSHEET_ID || '', 120),
+      spreadsheetId: isValidSpreadsheetId(envSid) ? envSid : '',
       lastUpdated: 'Server Env'
     };
   }
@@ -108,6 +117,31 @@ app.get('/vendor/xlsx.full.min.js', (_req, res) => {
   res.sendFile(path.join(__dirname, 'node_modules/xlsx/dist/xlsx.full.min.js'));
 });
 
+app.get('/api/firebase-config', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  const fbPath = path.resolve(__dirname, 'firebase-applet-config.json');
+  if (!fbPath.startsWith(__dirname + path.sep) || !fs.existsSync(fbPath)) {
+    return res.status(404).json({ ok: false, error: 'Firebase config not found' });
+  }
+  try {
+    const raw = JSON.parse(fs.readFileSync(fbPath, 'utf8'));
+    return res.json({
+      ok: true,
+      config: {
+        projectId: sanitizeText(raw.projectId, 120),
+        appId: sanitizeText(raw.appId, 160),
+        apiKey: sanitizeText(raw.apiKey, 160),
+        authDomain: sanitizeText(raw.authDomain, 160),
+        storageBucket: sanitizeText(raw.storageBucket, 160),
+        messagingSenderId: sanitizeText(raw.messagingSenderId, 80),
+        oAuthClientId: sanitizeText(raw.oAuthClientId, 180)
+      }
+    });
+  } catch {
+    return res.status(500).json({ ok: false, error: 'Invalid Firebase config' });
+  }
+});
+
 app.get('/api/sheet-config', (_req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   const config = readSharedSheetConfig();
@@ -122,10 +156,17 @@ app.post('/api/sheet-config', (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const clear = body.clear === true;
   const rawUrl = sanitizeText(body.appsScriptUrl, 500);
+  const rawSid = sanitizeText(body.spreadsheetId, 120);
 
   if (!clear) {
-    if (!rawUrl || !isValidAppsScriptUrl(rawUrl)) {
+    if (rawUrl && !isValidAppsScriptUrl(rawUrl)) {
       return res.status(400).json({ ok: false, error: 'URL Google Apps Script tidak valid (harus https://script.google.com/macros/...)' });
+    }
+    if (rawSid && !isValidSpreadsheetId(rawSid)) {
+      return res.status(400).json({ ok: false, error: 'Format Spreadsheet ID tidak valid' });
+    }
+    if (!rawUrl && !rawSid) {
+      return res.status(400).json({ ok: false, error: 'Masukkan URL Apps Script atau pilih Google Spreadsheet ID' });
     }
   }
 
@@ -134,7 +175,7 @@ app.post('/api/sheet-config', (req, res) => {
     : {
         appsScriptUrl: rawUrl,
         sheetName: sanitizeText(body.sheetName, 120),
-        spreadsheetId: sanitizeText(body.spreadsheetId, 120),
+        spreadsheetId: rawSid,
         lastUpdated: sanitizeText(body.lastUpdated, 80) || new Date().toLocaleString('id-ID')
       };
 
