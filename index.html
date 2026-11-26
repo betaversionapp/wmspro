@@ -332,6 +332,8 @@
                 margin: 0 !important;
                 padding: 0 !important;
                 max-width: none !important;
+                max-height: none !important;
+                height: auto !important;
                 width: auto !important;
                 min-height: 0 !important;
                 border: none !important;
@@ -3046,7 +3048,7 @@ function doPost(e) {
                                         </button>
                                     </div>
 
-                                    <div id="label-product-dropdown" class="hidden absolute z-30 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl max-h-56 overflow-y-auto divide-y divide-slate-100"></div>
+                                    <div id="label-product-dropdown" class="hidden absolute z-30 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl max-h-[180px] overflow-y-auto divide-y divide-slate-100"></div>
                                 </div>
 
                                 <!-- Detail Barang Terpilih (Otomatis dari Master Barang) -->
@@ -3119,8 +3121,9 @@ function doPost(e) {
                                     </div>
                                     <div class="flex items-center gap-2 pt-1 border-t border-slate-200/70">
                                         <label for="carton-rack-default-qty" class="text-[11px] font-bold text-slate-600 whitespace-nowrap">Qty Default:</label>
-                                        <input type="text" inputmode="numeric" data-num-format="int" id="carton-rack-default-qty" value="1"
-                                            class="w-20 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
+                                        <input type="text" inputmode="text" id="carton-rack-default-qty" value="1" placeholder="0 / - / kosong"
+                                            oninput="onCartonRackDefaultQtyInput()"
+                                            class="w-24 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 text-center placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
                                         <button type="button" onclick="applyCartonRackDefaultQty()"
                                             class="px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-[11px] font-bold transition whitespace-nowrap">
                                             Terapkan ke Rak
@@ -3128,8 +3131,8 @@ function doPost(e) {
                                     </div>
                                 </div>
 
-                                <!-- Scrollable Checklist Item per Rak (max ~3 item tampil, sisanya scroll) -->
-                                <div id="carton-rack-items-list" class="max-h-[210px] overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl bg-white">
+                                <!-- Scrollable Checklist Item per Rak (max 3 item tampil, sisanya scroll) -->
+                                <div id="carton-rack-items-list" class="max-h-[228px] overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl bg-white">
                                     <div class="p-4 text-center text-xs text-slate-400">Pilih No. Rack untuk menampilkan daftar item.</div>
                                 </div>
                             </div>
@@ -17127,10 +17130,12 @@ function doPost(e) {
             if (soDate && !soDate.value) soDate.value = getTodayISO();
             const picInput = document.getElementById('label-pic-input');
             if (picInput && !picInput.value && currentUser) picInput.value = currentUser.username;
-            ['so-label-copies', 'label-qty-input', 'label-copies-input', 'label-width-mm', 'label-height-mm', 'carton-rack-default-qty', 'custom-label-copies', 'custom-label-font-size', 'custom-label-partial-size'].forEach(id => {
+            ['so-label-copies', 'label-qty-input', 'label-copies-input', 'label-width-mm', 'label-height-mm', 'custom-label-copies', 'custom-label-font-size', 'custom-label-partial-size'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el && typeof applyNumericFormattingToElement === 'function') applyNumericFormattingToElement(el, true);
             });
+            const defRackQtyEl = document.getElementById('carton-rack-default-qty');
+            if (defRackQtyEl) defRackQtyEl.value = normalizeCartonRackQtyDisplay(defRackQtyEl.value);
             populateCartonRackOptions();
             renderCartonRackChecklist();
             switchCartonSubMode(cartonPrintSubMode, false);
@@ -17247,15 +17252,41 @@ function doPost(e) {
             }
         }
 
+        function normalizeCartonRackQtyDisplay(rawVal) {
+            const raw = String(rawVal ?? '').trim();
+            if (raw === '') return '';
+            if (raw === '-') return '-';
+            const digits = raw.replace(/[^\d]/g, '');
+            if (!digits) return '';
+            const num = parseInt(digits, 10);
+            if (!Number.isFinite(num)) return '';
+            return num === 0 ? '0' : num.toLocaleString('id-ID');
+        }
+
+        function getCartonRackDefaultQtyString() {
+            const el = document.getElementById('carton-rack-default-qty');
+            if (!el) return '1';
+            return normalizeCartonRackQtyDisplay(el.value);
+        }
+
+        function onCartonRackDefaultQtyInput() {
+            const el = document.getElementById('carton-rack-default-qty');
+            if (!el) return;
+            const normalized = normalizeCartonRackQtyDisplay(el.value);
+            if (el.value !== normalized) el.value = normalized;
+        }
+
         function onCartonRackChange() {
             const sel = document.getElementById('carton-rack-select');
             selectedCartonRack = sel ? sel.value : '';
             cartonRackCheckedSkus.clear();
             const filterEl = document.getElementById('carton-rack-item-filter');
             if (filterEl) filterEl.value = '';
-            const defQty = Math.max(1, Math.round(getNumericInputValue('carton-rack-default-qty', 1)) || 1);
+            const defQtyStr = getCartonRackDefaultQtyString();
             getCartonRackItems(selectedCartonRack, '').forEach(b => {
-                if (!cartonRackQtyMap[b.sku]) cartonRackQtyMap[b.sku] = defQty;
+                if (!Object.prototype.hasOwnProperty.call(cartonRackQtyMap, b.sku)) {
+                    cartonRackQtyMap[b.sku] = defQtyStr;
+                }
             });
             renderCartonRackChecklist();
             renderPrintLabelPreview();
@@ -17305,10 +17336,12 @@ function doPost(e) {
                 return;
             }
 
-            const defQty = Math.max(1, Math.round(getNumericInputValue('carton-rack-default-qty', 1)) || 1);
+            const defQtyStr = getCartonRackDefaultQtyString();
             container.innerHTML = visibleItems.map(b => {
                 const isChecked = cartonRackCheckedSkus.has(b.sku);
-                const qtyVal = Math.max(1, Math.round(Number(cartonRackQtyMap[b.sku]) || defQty));
+                const qtyDisplay = Object.prototype.hasOwnProperty.call(cartonRackQtyMap, b.sku)
+                    ? normalizeCartonRackQtyDisplay(cartonRackQtyMap[b.sku])
+                    : defQtyStr;
                 const expLabel = b.expiredDate ? formatDateIndo(b.expiredDate) : '-';
                 return `
                     <div class="px-3 py-2.5 flex items-center justify-between gap-2 hover:bg-teal-50/40 transition ${isChecked ? 'bg-teal-50/50' : ''}">
@@ -17327,18 +17360,22 @@ function doPost(e) {
                         </label>
                         <div class="flex flex-col items-end shrink-0" onclick="event.stopPropagation()">
                             <span class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Qty</span>
-                            <input type="text" inputmode="numeric" data-num-format="int" data-rack-qty-input data-sku="${escapeHtmlText(b.sku)}"
-                                value="${qtyVal.toLocaleString('id-ID')}"
+                            <input type="text" inputmode="text" data-rack-qty-input data-sku="${escapeHtmlText(b.sku)}"
+                                value="${escapeHtmlText(qtyDisplay)}" placeholder="-"
                                 oninput="onCartonRackItemQtyInput(this)"
-                                class="w-16 px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
+                                class="w-16 px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 text-center placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
                         </div>
                     </div>
                 `;
             }).join('');
 
-            container.querySelectorAll('[data-rack-qty-input]').forEach(el => {
-                if (typeof applyNumericFormattingToElement === 'function') applyNumericFormattingToElement(el, true);
-            });
+            const rackRowEls = Array.from(container.children);
+            if (rackRowEls.length > 3 && rackRowEls[2].offsetHeight > 0) {
+                const h3 = (rackRowEls[2].offsetTop + rackRowEls[2].offsetHeight) - rackRowEls[0].offsetTop;
+                if (h3 > 0) container.style.maxHeight = `${Math.ceil(h3 + 2)}px`;
+            } else {
+                container.style.maxHeight = '';
+            }
             updateCartonRackSelectAllState(allItemsInRack, visibleItems);
         }
 
@@ -17348,8 +17385,8 @@ function doPost(e) {
             if (!sku) return;
             if (inputEl.checked) {
                 cartonRackCheckedSkus.add(sku);
-                if (!cartonRackQtyMap[sku]) {
-                    cartonRackQtyMap[sku] = Math.max(1, Math.round(getNumericInputValue('carton-rack-default-qty', 1)) || 1);
+                if (!Object.prototype.hasOwnProperty.call(cartonRackQtyMap, sku)) {
+                    cartonRackQtyMap[sku] = getCartonRackDefaultQtyString();
                 }
             } else {
                 cartonRackCheckedSkus.delete(sku);
@@ -17368,12 +17405,14 @@ function doPost(e) {
             const allItemsInRack = getCartonRackItems(selectedCartonRack, '');
             const q = document.getElementById('carton-rack-item-filter')?.value || '';
             const visibleItems = getCartonRackItems(selectedCartonRack, q);
-            const defQty = Math.max(1, Math.round(getNumericInputValue('carton-rack-default-qty', 1)) || 1);
+            const defQtyStr = getCartonRackDefaultQtyString();
 
             visibleItems.forEach(b => {
                 if (checked) {
                     cartonRackCheckedSkus.add(b.sku);
-                    if (!cartonRackQtyMap[b.sku]) cartonRackQtyMap[b.sku] = defQty;
+                    if (!Object.prototype.hasOwnProperty.call(cartonRackQtyMap, b.sku)) {
+                        cartonRackQtyMap[b.sku] = defQtyStr;
+                    }
                 } else {
                     cartonRackCheckedSkus.delete(b.sku);
                 }
@@ -17396,8 +17435,9 @@ function doPost(e) {
             if (!inputEl) return;
             const sku = inputEl.dataset.sku;
             if (!sku) return;
-            const qty = Math.max(1, Math.round(getNumericInputValue(inputEl, 1)) || 1);
-            cartonRackQtyMap[sku] = qty;
+            const qtyStr = normalizeCartonRackQtyDisplay(inputEl.value);
+            if (inputEl.value !== qtyStr) inputEl.value = qtyStr;
+            cartonRackQtyMap[sku] = qtyStr;
             renderPrintLabelPreview();
         }
 
@@ -17406,20 +17446,22 @@ function doPost(e) {
                 showToast('Pilih No. Rack terlebih dahulu.', 'warning');
                 return;
             }
-            const defQty = Math.max(1, Math.round(getNumericInputValue('carton-rack-default-qty', 1)) || 1);
-            setNumericInputValue('carton-rack-default-qty', defQty);
+            const defEl = document.getElementById('carton-rack-default-qty');
+            const defQtyStr = getCartonRackDefaultQtyString();
+            if (defEl && defEl.value !== defQtyStr) defEl.value = defQtyStr;
             const allItemsInRack = getCartonRackItems(selectedCartonRack, '');
             allItemsInRack.forEach(b => {
-                cartonRackQtyMap[b.sku] = defQty;
+                cartonRackQtyMap[b.sku] = defQtyStr;
             });
             const container = document.getElementById('carton-rack-items-list');
             if (container) {
                 container.querySelectorAll('[data-rack-qty-input]').forEach(el => {
-                    setNumericInputValue(el, defQty);
+                    el.value = defQtyStr;
                 });
             }
             renderPrintLabelPreview();
-            showToast(`Qty seluruh item di rak diterapkan menjadi ${defQty.toLocaleString('id-ID')}.`, 'success');
+            const qtyLabel = defQtyStr === '' ? 'kosong (tanpa angka)' : defQtyStr;
+            showToast(`Qty seluruh item di rak diterapkan menjadi ${qtyLabel}.`, 'success');
         }
 
         function showLabelProductDropdown() {
@@ -17851,7 +17893,7 @@ function doPost(e) {
             const qrPayload = (p.barcode && p.barcode !== '-') ? p.barcode : p.sku;
             const skuStr = String(p.sku || '-');
             const nameStr = String(p.name || '-');
-            const qtyStr = String(qty || '1');
+            const qtyStr = (qty === null || qty === undefined) ? '1' : String(qty);
             const brandStr = String(p.brand || '-');
             const rackStr = String(p.noRack || '-');
 
@@ -17874,8 +17916,8 @@ function doPost(e) {
                                 <span style="font-size: ${pt(skuFont)}; font-weight: 900; line-height: 1; letter-spacing: 0.02em; white-space: nowrap;">${escapeHtmlText(skuStr)}</span>
                             </div>
                             <!-- Row 2: Nama Produk (tanpa tulisan NAMA PRODUK) -->
-                            <div class="carton-a6-name-box" style="height: 20%; border-bottom: 0.45mm solid #0f172a; display: flex; align-items: center; padding: ${mm(2)} ${mm(3.5)}; overflow: hidden;">
-                                <div class="carton-a6-name-fit" style="width: 100%; font-size: ${pt(nameFont)}; font-weight: 900; line-height: 1.15; text-transform: uppercase; word-break: normal; overflow-wrap: break-word;">${escapeHtmlText(nameStr)}</div>
+                            <div class="carton-a6-name-box" style="height: 20%; border-bottom: 0.45mm solid #0f172a; display: flex; align-items: center; justify-content: center; text-align: center; padding: ${mm(2)} ${mm(3.5)}; overflow: hidden;">
+                                <div class="carton-a6-name-fit" style="width: 100%; text-align: center; font-size: ${pt(nameFont)}; font-weight: 900; line-height: 1.15; text-transform: uppercase; word-break: normal; overflow-wrap: break-word;">${escapeHtmlText(nameStr)}</div>
                             </div>
                             <!-- Row 3: QTY + QR Code -->
                             <div style="height: 31%; border-bottom: 0.45mm solid #0f172a; display: grid; grid-template-columns: 0.95fr 1.15fr;">
@@ -17931,8 +17973,8 @@ function doPost(e) {
                             <span style="font-size: ${pt(skuFont)}; font-weight: 900; line-height: 1; letter-spacing: 0.02em; white-space: nowrap;">${escapeHtmlText(skuStr)}</span>
                         </div>
                         <!-- Row 2: Nama Produk (tanpa tulisan NAMA PRODUK) -->
-                        <div class="carton-a6-name-box" style="height: 19%; border-bottom: 0.45mm solid #0f172a; display: flex; align-items: center; padding: ${mm(1.5)} ${mm(3.5)}; overflow: hidden;">
-                            <span class="carton-a6-name-fit" style="width: 100%; font-size: ${pt(nameFont)}; font-weight: 900; line-height: 1.15; text-transform: uppercase; word-break: normal; overflow-wrap: break-word;">${escapeHtmlText(nameStr)}</span>
+                        <div class="carton-a6-name-box" style="height: 19%; border-bottom: 0.45mm solid #0f172a; display: flex; align-items: center; justify-content: center; text-align: center; padding: ${mm(1.5)} ${mm(3.5)}; overflow: hidden;">
+                            <span class="carton-a6-name-fit" style="width: 100%; text-align: center; font-size: ${pt(nameFont)}; font-weight: 900; line-height: 1.15; text-transform: uppercase; word-break: normal; overflow-wrap: break-word;">${escapeHtmlText(nameStr)}</span>
                         </div>
                         <!-- Row 3: QTY + QR Code -->
                         <div style="height: 32%; border-bottom: 0.45mm solid #0f172a; display: grid; grid-template-columns: 1.35fr 1fr;">
@@ -18426,6 +18468,32 @@ function doPost(e) {
             `;
         }
 
+        function syncPrintLabelPreviewScrollHeight() {
+            const wrap = document.getElementById('print-label-canvas-wrap');
+            const area = document.getElementById('print-label-sheet-area');
+            if (!wrap || !area) return;
+            const items = Array.from(area.children).filter(el => el.classList && (el.classList.contains('label-sticker-item') || el.classList.contains('tj105-sheet-page')));
+            if (items.length <= 3) {
+                wrap.style.maxHeight = '';
+                wrap.style.minHeight = '';
+                return;
+            }
+            const csWrap = typeof getComputedStyle === 'function' ? getComputedStyle(wrap) : null;
+            const padY = csWrap ? ((parseFloat(csWrap.paddingTop) || 0) + (parseFloat(csWrap.paddingBottom) || 0)) : 32;
+            const thirdEl = items[2];
+            const firstEl = items[0];
+            if (thirdEl.offsetHeight > 0) {
+                const threeHeight = Math.max(0, (thirdEl.offsetTop + thirdEl.offsetHeight) - firstEl.offsetTop);
+                if (threeHeight > 0) {
+                    wrap.style.maxHeight = `${Math.ceil(threeHeight + padY + 4)}px`;
+                    if (threeHeight + padY < 360) wrap.style.minHeight = '0px';
+                    else wrap.style.minHeight = '';
+                    return;
+                }
+            }
+            wrap.style.maxHeight = '1260px';
+        }
+
         function renderPrintLabelPreview() {
             const area = document.getElementById('print-label-sheet-area');
             const badge = document.getElementById('label-dimension-badge');
@@ -18496,7 +18564,7 @@ function doPost(e) {
 
                 if (cartonPrintSubMode === 'by_rack') {
                     const copiesPerItem = Math.min(Math.max(Math.round(getNumericInputValue('label-copies-input', 1)) || 1, 1), 20);
-                    const defQty = Math.max(1, Math.round(getNumericInputValue('carton-rack-default-qty', 1)) || 1);
+                    const defQtyStr = getCartonRackDefaultQtyString();
                     const rackItems = selectedCartonRack ? getCartonRackItems(selectedCartonRack, '') : [];
                     const selectedItems = rackItems.filter(p => cartonRackCheckedSkus.has(p.sku));
 
@@ -18515,6 +18583,7 @@ function doPost(e) {
                             </div>
                         `;
                         refreshLucideIcons(area);
+                        syncPrintLabelPreviewScrollHeight();
                         return;
                     }
 
@@ -18522,8 +18591,9 @@ function doPost(e) {
                     const maxTotalCards = 250;
                     for (let idx = 0; idx < selectedItems.length && cardEntries.length < maxTotalCards; idx++) {
                         const item = selectedItems[idx];
-                        const itemQty = Math.max(1, Math.round(Number(cartonRackQtyMap[item.sku]) || defQty));
-                        const itemQtyStr = itemQty.toLocaleString('id-ID');
+                        const itemQtyStr = Object.prototype.hasOwnProperty.call(cartonRackQtyMap, item.sku)
+                            ? normalizeCartonRackQtyDisplay(cartonRackQtyMap[item.sku])
+                            : defQtyStr;
                         const itemExp = item.expiredDate ? formatDateIndo(item.expiredDate) : '-';
                         const itemProd = {
                             ...item,
@@ -18548,6 +18618,7 @@ function doPost(e) {
                         `;
                     }).join('');
                     fitCartonA6LabelFields(w, h, orient);
+                    syncPrintLabelPreviewScrollHeight();
                     return;
                 }
 
@@ -18613,6 +18684,7 @@ function doPost(e) {
                 area.innerHTML = cards.join('');
                 fitCustomA6LabelText();
             }
+            syncPrintLabelPreviewScrollHeight();
         }
 
         function resetPrintLabelForm() {
@@ -18633,7 +18705,8 @@ function doPost(e) {
                 if (rackSel) rackSel.value = '';
                 const rackFilter = document.getElementById('carton-rack-item-filter');
                 if (rackFilter) rackFilter.value = '';
-                setNumericInputValue('carton-rack-default-qty', 1);
+                const defRackQtyEl = document.getElementById('carton-rack-default-qty');
+                if (defRackQtyEl) defRackQtyEl.value = '1';
                 renderCartonRackChecklist();
                 setNumericInputValue('label-qty-input', 1);
                 setNumericInputValue('label-copies-input', 1);
