@@ -1354,6 +1354,19 @@ function doPost(e) {
                                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition tabular-nums">
                             </div>
 
+                            <!-- Nama PT -->
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label for="dispatch-pt" class="text-xs font-bold text-slate-700">Nama PT <span class="text-rose-500">*</span></label>
+                                    <span class="text-[11px] text-slate-400">tap cepat atau pilih</span>
+                                </div>
+                                <div id="dispatch-quick-pt" class="flex flex-wrap gap-1.5 mb-2"></div>
+                                <select id="dispatch-pt" required onchange="renderDispatchQuickChips()"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition">
+                                    <option value="">— Pilih Nama PT —</option>
+                                </select>
+                            </div>
+
                             <!-- Packer -->
                             <div>
                                 <div class="flex items-center justify-between mb-1.5">
@@ -1562,6 +1575,7 @@ function doPost(e) {
                                 <tr>
                                     <th class="py-3 px-4 text-xs font-bold text-slate-600">Tanggal</th>
                                     <th class="py-3 px-4 text-xs font-bold text-slate-600">Jam</th>
+                                    <th class="py-3 px-4 text-xs font-bold text-slate-600">Nama PT</th>
                                     <th class="py-3 px-4 text-xs font-bold text-slate-600">Packer</th>
                                     <th class="py-3 px-4 text-xs font-bold text-slate-600">Expedisi</th>
                                     <th class="py-3 px-4 text-xs font-bold text-slate-600 text-right">Jumlah Resi</th>
@@ -2923,74 +2937,143 @@ function doPost(e) {
                                 </div>
                             </div>
 
-                            <!-- Search SKU Code / Nama Product / Scan Barcode -->
-                            <div class="relative">
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <label for="label-product-search" class="text-xs font-bold text-slate-700 uppercase">Cari SKU / Nama Produk / Barcode</label>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="relative flex-1">
-                                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                            <i data-lucide="search" class="w-4 h-4"></i>
-                                        </div>
-                                        <input type="text" id="label-product-search" autocomplete="off"
-                                            onfocus="showLabelProductDropdown()" oninput="filterLabelProductDropdown()"
-                                            onkeydown="handleLabelSearchEnter(event)"
-                                            placeholder="Ketik SKU, Nama Produk, atau scan barcode..."
-                                            class="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition">
-                                        <button type="button" id="clear-label-search-btn" onclick="clearLabelProductSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
-                                            <i data-lucide="x" class="w-4 h-4"></i>
-                                        </button>
-                                    </div>
-                                    <button type="button" onclick="focusLabelBarcodeSearch()" class="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition inline-flex items-center gap-1.5 shrink-0" title="Scan Barcode Kamera">
-                                        <i data-lucide="camera" class="w-4 h-4"></i>
-                                        <span>Scan</span>
-                                    </button>
-                                </div>
-
-                                <div id="label-product-dropdown" class="hidden absolute z-30 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl max-h-56 overflow-y-auto divide-y divide-slate-100"></div>
+                            <!-- Sub-Menu Mode: Per Item vs By Rack -->
+                            <div id="carton-submode-switcher" class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200/80">
+                                <button type="button" id="carton-submode-btn-single" onclick="switchCartonSubMode('single')"
+                                    class="px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-teal-700 shadow-xs">
+                                    <i data-lucide="package" class="w-3.5 h-3.5"></i>
+                                    <span>Per Item / Scan SKU</span>
+                                </button>
+                                <button type="button" id="carton-submode-btn-by_rack" onclick="switchCartonSubMode('by_rack')"
+                                    class="px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900">
+                                    <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                                    <span>Print Label by Rack</span>
+                                </button>
                             </div>
 
-                            <!-- Detail Barang Terpilih (Otomatis dari Master Barang) -->
-                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
-                                <div class="flex items-center justify-between">
-                                    <span class="font-bold text-slate-500 uppercase">Data Master Barang</span>
-                                    <span id="label-selected-sku-badge" class="px-2 py-0.5 rounded bg-teal-100 text-teal-800 font-mono font-bold">Belum dipilih</span>
+                            <!-- SUB-MODE A: PER ITEM / SCAN SKU -->
+                            <div id="carton-single-item-section" class="space-y-4">
+                                <!-- Search SKU Code / Nama Product / Scan Barcode -->
+                                <div class="relative">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label for="label-product-search" class="text-xs font-bold text-slate-700 uppercase">Cari SKU / Nama Produk / Barcode</label>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="relative flex-1">
+                                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                                <i data-lucide="search" class="w-4 h-4"></i>
+                                            </div>
+                                            <input type="text" id="label-product-search" autocomplete="off"
+                                                onfocus="showLabelProductDropdown()" oninput="filterLabelProductDropdown()"
+                                                onkeydown="handleLabelSearchEnter(event)"
+                                                placeholder="Ketik SKU, Nama Produk, atau scan barcode..."
+                                                class="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition">
+                                            <button type="button" id="clear-label-search-btn" onclick="clearLabelProductSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                                                <i data-lucide="x" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                        <button type="button" onclick="focusLabelBarcodeSearch()" class="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition inline-flex items-center gap-1.5 shrink-0" title="Scan Barcode Kamera">
+                                            <i data-lucide="camera" class="w-4 h-4"></i>
+                                            <span>Scan</span>
+                                        </button>
+                                    </div>
+
+                                    <div id="label-product-dropdown" class="hidden absolute z-30 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl max-h-56 overflow-y-auto divide-y divide-slate-100"></div>
                                 </div>
-                                <div class="grid grid-cols-2 gap-2 pt-1">
-                                    <div class="col-span-2">
-                                        <span class="text-slate-400 block">Nama Produk:</span>
-                                        <span id="label-info-name" class="font-bold text-slate-800">-</span>
+
+                                <!-- Detail Barang Terpilih (Otomatis dari Master Barang) -->
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-bold text-slate-500 uppercase">Data Master Barang</span>
+                                        <span id="label-selected-sku-badge" class="px-2 py-0.5 rounded bg-teal-100 text-teal-800 font-mono font-bold">Belum dipilih</span>
                                     </div>
-                                    <div>
-                                        <span class="text-slate-400 block">Barcode EAN-13:</span>
-                                        <span id="label-info-barcode" class="font-mono font-bold text-teal-700">-</span>
+                                    <div class="grid grid-cols-2 gap-2 pt-1">
+                                        <div class="col-span-2">
+                                            <span class="text-slate-400 block">Nama Produk:</span>
+                                            <span id="label-info-name" class="font-bold text-slate-800">-</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-400 block">Barcode EAN-13:</span>
+                                            <span id="label-info-barcode" class="font-mono font-bold text-teal-700">-</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-400 block">Brand:</span>
+                                            <span id="label-info-brand" class="font-bold text-slate-800">-</span>
+                                        </div>
+                                        <div>
+                                            <label for="label-rack-input" class="text-slate-400 block mb-0.5">No. Rak <span class="text-teal-700 font-semibold">(Bisa Diedit)</span>:</label>
+                                            <input type="text" id="label-rack-input" oninput="renderPrintLabelPreview()" placeholder="Contoh: L1-18"
+                                                class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-mono font-bold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                        </div>
+                                        <div>
+                                            <label for="label-exp-input" class="text-slate-400 block mb-0.5">Exp Date <span class="text-teal-700 font-semibold">(Bisa Diedit)</span>:</label>
+                                            <input type="date" id="label-exp-input" onchange="renderPrintLabelPreview()"
+                                                class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                        </div>
                                     </div>
-                                    <div>
-                                        <span class="text-slate-400 block">Brand:</span>
-                                        <span id="label-info-brand" class="font-bold text-slate-800">-</span>
+                                </div>
+                            </div>
+
+                            <!-- SUB-MODE B: PRINT LABEL BY RACK -->
+                            <div id="carton-by-rack-section" class="hidden space-y-3">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label for="carton-rack-select" class="text-xs font-bold text-slate-700 uppercase">Pilih No. Rack</label>
+                                        <span id="carton-rack-total-badge" class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md">0 Rak</span>
                                     </div>
-                                    <div>
-                                        <label for="label-rack-input" class="text-slate-400 block mb-0.5">No. Rak <span class="text-teal-700 font-semibold">(Bisa Diedit)</span>:</label>
-                                        <input type="text" id="label-rack-input" oninput="renderPrintLabelPreview()" placeholder="Contoh: L1-18"
-                                            class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-mono font-bold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <select id="carton-rack-select" onchange="onCartonRackChange()"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                        <option value="">-- Pilih No. Rack --</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                                        </div>
+                                        <input type="text" id="carton-rack-item-filter" autocomplete="off"
+                                            oninput="renderCartonRackChecklist()"
+                                            placeholder="Filter item di rak (SKU / Nama / Barcode)..."
+                                            class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
                                     </div>
-                                    <div>
-                                        <label for="label-exp-input" class="text-slate-400 block mb-0.5">Exp Date <span class="text-teal-700 font-semibold">(Bisa Diedit)</span>:</label>
-                                        <input type="date" id="label-exp-input" onchange="renderPrintLabelPreview()"
-                                            class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                </div>
+
+                                <!-- Bar Select All & Qty Massal -->
+                                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                                            <input type="checkbox" id="carton-rack-select-all" onchange="toggleCartonRackSelectAll(this.checked)"
+                                                class="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                                            <span class="text-xs font-bold text-slate-800">Select All</span>
+                                        </label>
+                                        <span id="carton-rack-selected-badge" class="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-teal-100 text-teal-800 tabular-nums">0 / 0 Dipilih</span>
                                     </div>
+                                    <div class="flex items-center gap-2 pt-1 border-t border-slate-200/70">
+                                        <label for="carton-rack-default-qty" class="text-[11px] font-bold text-slate-600 whitespace-nowrap">Qty Default:</label>
+                                        <input type="text" inputmode="numeric" data-num-format="int" id="carton-rack-default-qty" value="1"
+                                            class="w-20 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
+                                        <button type="button" onclick="applyCartonRackDefaultQty()"
+                                            class="px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-[11px] font-bold transition whitespace-nowrap">
+                                            Terapkan ke Rak
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Scrollable Checklist Item per Rak (max ~3 item tampil, sisanya scroll) -->
+                                <div id="carton-rack-items-list" class="max-h-[210px] overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl bg-white">
+                                    <div class="p-4 text-center text-xs text-slate-400">Pilih No. Rack untuk menampilkan daftar item.</div>
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-3">
-                                <div>
+                                <div id="label-qty-wrap">
                                     <label for="label-qty-input" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Qty pada Label</label>
                                     <input type="text" inputmode="numeric" data-num-format="int" id="label-qty-input" value="1" min="1" oninput="renderPrintLabelPreview()"
                                         class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
                                 </div>
-                                <div>
-                                    <label for="label-copies-input" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Jumlah Cetak (Copy)</label>
+                                <div id="label-copies-wrap">
+                                    <label id="label-copies-label" for="label-copies-input" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Jumlah Cetak (Copy)</label>
                                     <input type="text" inputmode="numeric" data-num-format="int" id="label-copies-input" value="1" min="1" max="100" oninput="renderPrintLabelPreview()"
                                         class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
                                 </div>
@@ -4187,6 +4270,18 @@ function doPost(e) {
                                     </div>
                                     <input type="date" id="admin-resi-date" onchange="renderAdminResiStatsAndList()" required
                                         class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition tabular-nums">
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label for="admin-resi-pt" class="text-xs font-bold text-slate-700">Nama PT <span class="text-rose-500">*</span></label>
+                                        <span class="text-[11px] text-slate-400">tap cepat atau pilih</span>
+                                    </div>
+                                    <div id="admin-resi-quick-pt" class="flex flex-wrap gap-1.5 mb-2"></div>
+                                    <select id="admin-resi-pt" required onchange="renderAdminResiQuickPtChips()"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                                        <option value="">— Pilih Nama PT —</option>
+                                    </select>
                                 </div>
 
                                 <div class="relative">
@@ -7522,6 +7617,19 @@ function doPost(e) {
         ];
         let overtimeQuickNotes = [...DEFAULT_OVERTIME_QUICK_NOTES];
 
+        const DEFAULT_PT_OPTIONS = ['MIL', 'KIL'];
+        function normalizePtOptions(list) {
+            const seen = new Map();
+            (Array.isArray(list) ? list : []).forEach(raw => {
+                const text = String(raw || '').trim().toUpperCase();
+                if (!text) return;
+                const key = text.toLowerCase();
+                if (!seen.has(key)) seen.set(key, text);
+            });
+            return Array.from(seen.values());
+        }
+        let ptOptions = [...DEFAULT_PT_OPTIONS];
+
         const DEFAULT_DISPATCH_QUICK_QTYS = ['5', '10', '25', '50', '100'];
         let dispatchQuickQtys = [...DEFAULT_DISPATCH_QUICK_QTYS];
 
@@ -7690,8 +7798,8 @@ function doPost(e) {
                 newestFirst: true
             },
             Dispatch: {
-                headers: ['ID', 'Tanggal', 'Jam', 'Packer', 'Expedisi', 'Jumlah Resi', 'Input Oleh'],
-                row: i => [i.id, i.date, i.timestamp, i.packer, i.expedisi, Number(i.qty || 0), i.createdBy],
+                headers: ['ID', 'Tanggal', 'Jam', 'Packer', 'Expedisi', 'Jumlah Resi', 'Input Oleh', 'Nama PT'],
+                row: i => [i.id, i.date, i.timestamp, i.packer, i.expedisi, Number(i.qty || 0), i.createdBy, i.ptName || '-'],
                 list: () => dispatchEntries,
                 newestFirst: true
             },
@@ -7746,8 +7854,8 @@ function doPost(e) {
                 newestFirst: true
             },
             AdminResi: {
-                headers: ['ID', 'Tanggal', 'Jam', 'Nama Picker', 'Nama Expedisi', 'Jumlah Resi', 'Admin Input'],
-                row: i => [i.id, i.date, i.timestamp, i.picker, i.expedisi, Number(i.qty || 0), i.createdBy],
+                headers: ['ID', 'Tanggal', 'Jam', 'Nama Picker', 'Nama Expedisi', 'Jumlah Resi', 'Admin Input', 'Nama PT'],
+                row: i => [i.id, i.date, i.timestamp, i.picker, i.expedisi, Number(i.qty || 0), i.createdBy, i.ptName || '-'],
                 list: () => adminResiEntries,
                 newestFirst: true
             },
@@ -8067,6 +8175,7 @@ function doPost(e) {
                 ['projectCategories', JSON.stringify(projectCategories)],
                 ['projectPriorities', JSON.stringify(projectPriorities)],
                 ['dispatchQuickQtys', JSON.stringify(dispatchQuickQtys)],
+                ['ptOptions', JSON.stringify(ptOptions)],
                 ['offlineShops', JSON.stringify(offlineShops)],
                 ['adminResiQuickQtys', JSON.stringify(adminResiQuickQtys)],
                 ['cycleCountQuickQtys', JSON.stringify(cycleCountQuickQtys)],
@@ -8128,6 +8237,7 @@ function doPost(e) {
                 projectCategories,
                 projectPriorities,
                 dispatchQuickQtys,
+                ptOptions,
                 adminResiQuickQtys,
                 cycleCountQuickQtys,
                 cycleCountDamageReasons,
@@ -8229,6 +8339,7 @@ function doPost(e) {
                     if (Array.isArray(saved.projectCategories)) projectCategories = saved.projectCategories;
                     if (Array.isArray(saved.projectPriorities)) projectPriorities = saved.projectPriorities;
                     if (Array.isArray(saved.dispatchQuickQtys)) dispatchQuickQtys = saved.dispatchQuickQtys;
+                    if (Array.isArray(saved.ptOptions)) ptOptions = normalizePtOptions(saved.ptOptions);
                     if (Array.isArray(saved.adminResiQuickQtys)) adminResiQuickQtys = saved.adminResiQuickQtys;
                     if (Array.isArray(saved.cycleCountQuickQtys)) cycleCountQuickQtys = saved.cycleCountQuickQtys;
                     if (Array.isArray(saved.cycleCountDamageReasons)) cycleCountDamageReasons = saved.cycleCountDamageReasons;
@@ -8848,6 +8959,7 @@ function doPost(e) {
                 dispatch: () => {
                     refreshDispatchOfflineShopOptions();
                     renderDispatchOfflineList();
+                    refreshDispatchPtOptions();
                     refreshDispatchExpedisiOptions();
                     renderDispatchQuickQtyButtons();
                     renderDispatchStatsAndList();
@@ -8860,13 +8972,14 @@ function doPost(e) {
                 overtime: () => { populateOvertimeReasonSelect(); renderOvertimeQuickHourButtons(); renderOvertimeQuickNotes(); renderOvertimeQuickChips(); renderOvertimeList(); },
                 'overtime-report': renderOvertimeReport,
                 master_barang: renderMasterBarangTable,
+                print_label: () => { populateCartonRackOptions(); renderCartonRackChecklist(); renderPrintLabelPreview(); },
                 project: () => { populateProjectCategoryOptions(); populateProjectPriorityOptions(); populateProjectPicFilterOptions(); renderProjectList(); },
                 opname: () => { populateCycleCountGudangOptions(); renderCycleCountQuickQtyButtons(); renderCycleCountQuickDamageReasons(); renderCycleCountTodayList(); },
                 'cycle-count-report': renderCycleCountReport,
                 qc: renderQcJobtaskLists,
                 'qc-report': renderQcReport,
                 admin: initAdminHubView,
-                'admin-input-resi': () => { refreshAdminResiExpedisiOptions(); renderAdminResiQuickPickerChips(); renderAdminResiQuickQtyButtons(); renderAdminResiStatsAndList(); },
+                'admin-input-resi': () => { refreshAdminResiPtOptions(); refreshAdminResiExpedisiOptions(); renderAdminResiQuickPickerChips(); renderAdminResiQuickQtyButtons(); renderAdminResiStatsAndList(); },
                 'admin-input-resi-report': renderAdminResiReport,
                 'admin-salah-barang': () => { populateSalahBarangReasonOptions(); renderSalahBarangQuickPickerChips(); renderSalahBarangDailyList(); },
                 'admin-salah-barang-report': renderSalahBarangReport,
@@ -9004,6 +9117,7 @@ function doPost(e) {
                         if (Array.isArray(map.projectCategories)) projectCategories = map.projectCategories;
                         if (Array.isArray(map.projectPriorities)) projectPriorities = map.projectPriorities;
                         if (Array.isArray(map.dispatchQuickQtys)) dispatchQuickQtys = map.dispatchQuickQtys;
+                        if (Array.isArray(map.ptOptions)) ptOptions = normalizePtOptions(map.ptOptions);
                         if (Array.isArray(map.offlineShops)) offlineShops = normalizeOfflineShops(map.offlineShops);
                         if (Array.isArray(map.adminResiQuickQtys)) adminResiQuickQtys = map.adminResiQuickQtys;
                         if (Array.isArray(map.cycleCountQuickQtys)) cycleCountQuickQtys = map.cycleCountQuickQtys;
@@ -9147,7 +9261,7 @@ function doPost(e) {
 
                 apply('Dispatch', r => ({
                     id: String(r[0]).trim(), date: D(r[1]), timestamp: str(T(r[2])), packer: str(r[3]),
-                    expedisi: str(r[4]), qty: Number(r[5] || 0), createdBy: str(r[6], 'User')
+                    expedisi: str(r[4]), qty: Number(r[5] || 0), createdBy: str(r[6], 'User'), ptName: dash(r[7])
                 }), () => dispatchEntries, v => { dispatchEntries = v; });
 
                 apply('DispatchOffline', r => {
@@ -9215,7 +9329,7 @@ function doPost(e) {
 
                 apply('AdminResi', r => ({
                     id: String(r[0]).trim(), date: D(r[1]), timestamp: str(T(r[2])), picker: str(r[3]),
-                    expedisi: str(r[4]), qty: Number(r[5] || 0), createdBy: str(r[6], 'Admin')
+                    expedisi: str(r[4]), qty: Number(r[5] || 0), createdBy: str(r[6], 'Admin'), ptName: dash(r[7])
                 }), () => adminResiEntries, v => { adminResiEntries = v; });
 
                 apply('SalahBarang', r => ({
@@ -12354,6 +12468,24 @@ function doPost(e) {
             qtyInput.focus();
         }
 
+        function selectDispatchPtChip(name) {
+            const select = document.getElementById('dispatch-pt');
+            if (!select) return;
+            select.value = select.value === name ? '' : name;
+            renderDispatchQuickChips();
+        }
+
+        function refreshDispatchPtOptions() {
+            const ptSelect = document.getElementById('dispatch-pt');
+            if (!ptSelect) return;
+            const prevPt = ptSelect.value;
+            const list = normalizePtOptions(ptOptions);
+            ptSelect.innerHTML = `<option value="">— Pilih Nama PT —</option>` +
+                list.map(pt => `<option value="${escapeHtmlText(pt)}">${escapeHtmlText(pt)}</option>`).join('');
+            if (list.includes(prevPt)) ptSelect.value = prevPt;
+            renderDispatchQuickChips();
+        }
+
         function selectDispatchPackerChip(name) {
             const select = document.getElementById('dispatch-packer');
             if (!select) return;
@@ -12369,6 +12501,23 @@ function doPost(e) {
         }
 
         function renderDispatchQuickChips() {
+            const ptSelect = document.getElementById('dispatch-pt');
+            const ptChipsEl = document.getElementById('dispatch-quick-pt');
+            if (ptChipsEl && ptSelect) {
+                const selectedPt = ptSelect.value;
+                const listPt = normalizePtOptions(ptOptions);
+                if (listPt.length === 0) {
+                    ptChipsEl.innerHTML = `<span class="text-[11px] text-slate-400">Belum ada daftar Nama PT. Tambahkan di Setting.</span>`;
+                } else {
+                    ptChipsEl.innerHTML = listPt.map(pt => {
+                        const active = selectedPt === pt;
+                        const safePt = pt.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                        return `<button type="button" onclick="selectDispatchPtChip('${safePt}')"
+                            class="px-3 py-1 rounded-lg text-xs font-extrabold border transition whitespace-nowrap ${active ? 'bg-violet-600 text-white border-violet-600 shadow-xs' : 'bg-violet-50/80 text-violet-800 border-violet-200 hover:bg-violet-100'}">${escapeHtmlText(pt)}</button>`;
+                    }).join('');
+                }
+            }
+
             const packerSelect = document.getElementById('dispatch-packer');
             const packerChipsEl = document.getElementById('dispatch-quick-packer');
             if (packerChipsEl && packerSelect) {
@@ -12742,6 +12891,7 @@ function doPost(e) {
                 if (listPackers.some(u => u.username === prevPacker)) packerSelect.value = prevPacker;
             }
 
+            refreshDispatchPtOptions();
             refreshDispatchExpedisiOptions();
             renderDispatchQuickQtyButtons();
             renderDispatchStatsAndList();
@@ -12796,7 +12946,7 @@ function doPost(e) {
             const filtered = dayList.filter(i => {
                 if (dispatchTodayExpFilter !== 'ALL' && i.expedisi !== dispatchTodayExpFilter) return false;
                 if (q) {
-                    const hay = `${i.packer} ${i.expedisi} ${i.createdBy}`.toLowerCase();
+                    const hay = `${i.ptName || ''} ${i.packer} ${i.expedisi} ${i.createdBy}`.toLowerCase();
                     if (!hay.includes(q)) return false;
                 }
                 return true;
@@ -12826,6 +12976,7 @@ function doPost(e) {
             container.innerHTML = filtered.map(i => {
                 const pal = getDispatchExpedisiPalette(i.expedisi);
                 const expShort = escapeHtmlText((i.expedisi || 'EX').slice(0, 3).toUpperCase());
+                const ptBadge = i.ptName ? `<span class="px-1.5 py-0.5 rounded bg-violet-100 text-violet-800 text-[10px] font-extrabold tracking-wide">${escapeHtmlText(i.ptName)}</span>` : '';
                 return `
                 <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-sky-300 transition flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3 min-w-0">
@@ -12834,6 +12985,7 @@ function doPost(e) {
                         </div>
                         <div class="min-w-0">
                             <div class="flex flex-wrap items-center gap-1.5">
+                                ${ptBadge}
                                 <span class="text-sm font-extrabold text-slate-900 truncate">${escapeHtmlText(i.packer)}</span>
                                 <span class="text-slate-300">·</span>
                                 <span class="text-xs font-bold ${pal.text}">${escapeHtmlText(i.expedisi)}</span>
@@ -12861,12 +13013,13 @@ function doPost(e) {
         document.getElementById('dispatch-entry-form')?.addEventListener('submit', function(e) {
             e.preventDefault();
             const date = document.getElementById('dispatch-date').value || getTodayISO();
+            const ptName = (document.getElementById('dispatch-pt')?.value || '').trim();
             const packer = document.getElementById('dispatch-packer').value;
             const expedisi = document.getElementById('dispatch-expedisi').value;
             const qty = getNumericInputValue('dispatch-qty', 0);
 
-            if (!packer || !expedisi || !qty || qty < 1) {
-                showToast('Lengkapi Packer, Expedisi, dan Jumlah Resi.', 'warning');
+            if (!ptName || !packer || !expedisi || !qty || qty < 1) {
+                showToast('Lengkapi Nama PT, Packer, Expedisi, dan Jumlah Resi.', 'warning');
                 return;
             }
 
@@ -12874,17 +13027,19 @@ function doPost(e) {
             const newId = 'DSP-' + Date.now().toString().slice(-5);
             const createdBy = currentUser ? currentUser.username : 'User';
 
-            dispatchEntries.unshift({ id: newId, date, packer, expedisi, qty, timestamp: nowTime, createdBy });
+            const newItem = { id: newId, date, ptName, packer, expedisi, qty, timestamp: nowTime, createdBy };
+            dispatchEntries.unshift(newItem);
             saveAppStateToLocal();
-            postToGoogleSheet('Dispatch', ['ID', 'Tanggal', 'Jam', 'Packer', 'Expedisi', 'Jumlah Resi', 'Input Oleh'], [[newId, date, nowTime, packer, expedisi, qty, createdBy]], 'insert');
+            postToGoogleSheet('Dispatch', SHEET_SCHEMA.Dispatch.headers, [SHEET_SCHEMA.Dispatch.row(newItem)], 'insert');
 
+            document.getElementById('dispatch-pt').value = '';
             document.getElementById('dispatch-packer').value = '';
             document.getElementById('dispatch-expedisi').value = '';
             setNumericInputValue('dispatch-qty', '');
             dispatchTodayExpFilter = 'ALL';
             renderDispatchQuickChips();
             renderDispatchStatsAndList();
-            showToast(`Entri resi ${packer} (${expedisi}: ${qty.toLocaleString('id-ID')}) berhasil disimpan!`, 'success');
+            showToast(`Entri resi [${ptName}] ${packer} (${expedisi}: ${qty.toLocaleString('id-ID')}) berhasil disimpan!`, 'success');
         });
 
         document.getElementById('dispatch-offline-form')?.addEventListener('submit', function(e) {
@@ -12998,7 +13153,7 @@ function doPost(e) {
             const filtered = dispatchEntries.filter(i => {
                 if (i.date < start || i.date > end) return false;
                 if (q) {
-                    const hay = `${i.packer} ${i.expedisi} ${i.createdBy}`.toLowerCase();
+                    const hay = `${i.ptName || ''} ${i.packer} ${i.expedisi} ${i.createdBy}`.toLowerCase();
                     if (!hay.includes(q)) return false;
                 }
                 return true;
@@ -13031,7 +13186,7 @@ function doPost(e) {
             const tbody = document.getElementById('report-dispatch-table-body');
             if (!tbody) return;
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-xs text-slate-400">Tidak ada data dispatch pada periode atau kata kunci ini.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-xs text-slate-400">Tidak ada data dispatch pada periode atau kata kunci ini.</td></tr>`;
                 return;
             }
             tbody.innerHTML = filtered.map(i => {
@@ -13040,6 +13195,7 @@ function doPost(e) {
                 <tr class="hover:bg-sky-50/40 transition">
                     <td class="py-2.5 px-4 font-medium text-slate-700 tabular-nums whitespace-nowrap">${formatDateIndo(i.date)}</td>
                     <td class="py-2.5 px-4 text-slate-500 tabular-nums whitespace-nowrap">${escapeHtmlText(i.timestamp || '-')}</td>
+                    <td class="py-2.5 px-4 font-bold text-violet-700 whitespace-nowrap">${escapeHtmlText(i.ptName || '-')}</td>
                     <td class="py-2.5 px-4 font-bold text-slate-900">${escapeHtmlText(i.packer)}</td>
                     <td class="py-2.5 px-4 font-bold ${pal.text}">${escapeHtmlText(i.expedisi)}</td>
                     <td class="py-2.5 px-4 text-right font-extrabold text-sky-700 tabular-nums">${Number(i.qty || 0).toLocaleString('id-ID')}</td>
@@ -13050,8 +13206,8 @@ function doPost(e) {
 
         function exportDispatchReportExcel() {
             const { start, end, filtered } = getFilteredDispatchReportRows();
-            const headers = ['Tanggal', 'Jam', 'Packer', 'Expedisi', 'Jumlah Resi', 'Input Oleh'];
-            const rows = filtered.map(i => [i.date, i.timestamp, i.packer, i.expedisi, i.qty, i.createdBy]);
+            const headers = ['Tanggal', 'Jam', 'Nama PT', 'Packer', 'Expedisi', 'Jumlah Resi', 'Input Oleh'];
+            const rows = filtered.map(i => [i.date, i.timestamp, i.ptName || '-', i.packer, i.expedisi, i.qty, i.createdBy]);
             downloadCsvFile(`Laporan_Dispatch_${start}_${end}.csv`, headers, rows);
             showToast('Laporan Dispatch berhasil diekspor!', 'success');
         }
@@ -16603,7 +16759,11 @@ function doPost(e) {
         // 10. MODUL PRINT LABEL CUSTOM
         // ==========================================
         let currentPrintLabelMode = 'so';
+        let cartonPrintSubMode = 'single'; // 'single' | 'by_rack'
         let selectedLabelCartonProduct = null;
+        let selectedCartonRack = '';
+        let cartonRackCheckedSkus = new Set();
+        let cartonRackQtyMap = {};
         let customLabelFontMode = 'auto'; // 'auto' | 'manual'
         let customLabelGlobalFontPt = 48;
         let customLabelPartialSelection = { start: 0, end: 0 };
@@ -16613,10 +16773,13 @@ function doPost(e) {
             if (soDate && !soDate.value) soDate.value = getTodayISO();
             const picInput = document.getElementById('label-pic-input');
             if (picInput && !picInput.value && currentUser) picInput.value = currentUser.username;
-            ['so-label-copies', 'label-qty-input', 'label-copies-input', 'label-width-mm', 'label-height-mm', 'custom-label-copies', 'custom-label-font-size', 'custom-label-partial-size'].forEach(id => {
+            ['so-label-copies', 'label-qty-input', 'label-copies-input', 'label-width-mm', 'label-height-mm', 'carton-rack-default-qty', 'custom-label-copies', 'custom-label-font-size', 'custom-label-partial-size'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el && typeof applyNumericFormattingToElement === 'function') applyNumericFormattingToElement(el, true);
             });
+            populateCartonRackOptions();
+            renderCartonRackChecklist();
+            switchCartonSubMode(cartonPrintSubMode, false);
             renderCustomLabelLinePills();
             switchPrintLabelMode(currentPrintLabelMode);
         }
@@ -16633,7 +16796,276 @@ function doPost(e) {
                 }
                 if (form) form.classList.toggle('hidden', m !== mode);
             });
+            if (mode === 'carton' && cartonPrintSubMode === 'by_rack') {
+                populateCartonRackOptions();
+                renderCartonRackChecklist();
+            }
             renderPrintLabelPreview();
+        }
+
+        function getNormalizedCartonRack(noRack) {
+            return isMasterBarangRackMissing(noRack) ? '__NO_RACK__' : String(noRack).trim().toUpperCase();
+        }
+
+        function formatCartonRackLabel(rackKey) {
+            if (!rackKey) return '-';
+            return rackKey === '__NO_RACK__' ? 'Tanpa No. Rak' : rackKey;
+        }
+
+        function getCartonRackItems(rackKey, searchQuery = '') {
+            if (!rackKey) return [];
+            const q = String(searchQuery || '').toLowerCase().trim();
+            return masterBarangData
+                .filter(b => getNormalizedCartonRack(b.noRack) === rackKey)
+                .filter(b => {
+                    if (!q) return true;
+                    const hay = `${b.sku || ''} ${b.name || ''} ${b.barcode || ''} ${b.brand || ''}`.toLowerCase();
+                    return hay.includes(q);
+                })
+                .slice()
+                .sort((a, b) => String(a.sku || '').localeCompare(String(b.sku || ''), 'id', { numeric: true, sensitivity: 'base' }));
+        }
+
+        function switchCartonSubMode(subMode, shouldRenderPreview = true) {
+            cartonPrintSubMode = subMode === 'by_rack' ? 'by_rack' : 'single';
+            const singleBtn = document.getElementById('carton-submode-btn-single');
+            const rackBtn = document.getElementById('carton-submode-btn-by_rack');
+            const singleSec = document.getElementById('carton-single-item-section');
+            const rackSec = document.getElementById('carton-by-rack-section');
+            const qtyWrap = document.getElementById('label-qty-wrap');
+            const copiesWrap = document.getElementById('label-copies-wrap');
+            const copiesLabel = document.getElementById('label-copies-label');
+
+            if (singleBtn) {
+                singleBtn.className = cartonPrintSubMode === 'single'
+                    ? 'px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-teal-700 shadow-xs'
+                    : 'px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
+            }
+            if (rackBtn) {
+                rackBtn.className = cartonPrintSubMode === 'by_rack'
+                    ? 'px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-teal-700 shadow-xs'
+                    : 'px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
+            }
+            if (singleSec) singleSec.classList.toggle('hidden', cartonPrintSubMode !== 'single');
+            if (rackSec) rackSec.classList.toggle('hidden', cartonPrintSubMode !== 'by_rack');
+            if (qtyWrap) qtyWrap.classList.toggle('hidden', cartonPrintSubMode === 'by_rack');
+            if (copiesWrap) copiesWrap.classList.toggle('col-span-2', cartonPrintSubMode === 'by_rack');
+            if (copiesLabel) copiesLabel.textContent = cartonPrintSubMode === 'by_rack' ? 'Copy per Item Terpilih' : 'Jumlah Cetak (Copy)';
+
+            if (cartonPrintSubMode === 'by_rack') {
+                populateCartonRackOptions();
+                renderCartonRackChecklist();
+            }
+            refreshLucideIcons(document.getElementById('label-form-carton'));
+            if (shouldRenderPreview) renderPrintLabelPreview();
+        }
+
+        function populateCartonRackOptions() {
+            const sel = document.getElementById('carton-rack-select');
+            const badge = document.getElementById('carton-rack-total-badge');
+            if (!sel) return;
+
+            const counts = {};
+            masterBarangData.forEach(b => {
+                const key = getNormalizedCartonRack(b.noRack);
+                counts[key] = (counts[key] || 0) + 1;
+            });
+
+            const keys = Object.keys(counts).sort((a, b) => {
+                if (a === '__NO_RACK__') return 1;
+                if (b === '__NO_RACK__') return -1;
+                return a.localeCompare(b, 'id', { numeric: true, sensitivity: 'base' });
+            });
+
+            if (badge) badge.textContent = `${keys.length} Rak`;
+
+            const prev = selectedCartonRack || sel.value || '';
+            sel.innerHTML = `<option value="">-- Pilih No. Rack --</option>` +
+                keys.map(k => `<option value="${escapeHtmlText(k)}">${escapeHtmlText(formatCartonRackLabel(k))} (${counts[k]} Item)</option>`).join('');
+
+            if (prev && keys.includes(prev)) {
+                selectedCartonRack = prev;
+                sel.value = prev;
+            } else {
+                selectedCartonRack = '';
+                sel.value = '';
+                cartonRackCheckedSkus.clear();
+            }
+        }
+
+        function onCartonRackChange() {
+            const sel = document.getElementById('carton-rack-select');
+            selectedCartonRack = sel ? sel.value : '';
+            cartonRackCheckedSkus.clear();
+            const filterEl = document.getElementById('carton-rack-item-filter');
+            if (filterEl) filterEl.value = '';
+            const defQty = Math.max(1, Math.round(getNumericInputValue('carton-rack-default-qty', 1)) || 1);
+            getCartonRackItems(selectedCartonRack, '').forEach(b => {
+                if (!cartonRackQtyMap[b.sku]) cartonRackQtyMap[b.sku] = defQty;
+            });
+            renderCartonRackChecklist();
+            renderPrintLabelPreview();
+        }
+
+        function updateCartonRackSelectAllState(allItemsInRack, visibleItems) {
+            const selectAllEl = document.getElementById('carton-rack-select-all');
+            const badgeEl = document.getElementById('carton-rack-selected-badge');
+            const totalInRack = allItemsInRack.length;
+            const totalSelectedInRack = allItemsInRack.filter(b => cartonRackCheckedSkus.has(b.sku)).length;
+            const visibleCount = visibleItems.length;
+            const visibleSelectedCount = visibleItems.filter(b => cartonRackCheckedSkus.has(b.sku)).length;
+
+            if (badgeEl) {
+                badgeEl.textContent = `${totalSelectedInRack} / ${totalInRack} Dipilih`;
+            }
+            if (selectAllEl) {
+                selectAllEl.disabled = visibleCount === 0;
+                selectAllEl.checked = visibleCount > 0 && visibleSelectedCount === visibleCount;
+                selectAllEl.indeterminate = visibleSelectedCount > 0 && visibleSelectedCount < visibleCount;
+            }
+        }
+
+        function renderCartonRackChecklist() {
+            const container = document.getElementById('carton-rack-items-list');
+            if (!container) return;
+
+            if (!selectedCartonRack) {
+                container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">Pilih No. Rack untuk menampilkan daftar item.</div>`;
+                updateCartonRackSelectAllState([], []);
+                return;
+            }
+
+            const allItemsInRack = getCartonRackItems(selectedCartonRack, '');
+            const q = document.getElementById('carton-rack-item-filter')?.value || '';
+            const visibleItems = getCartonRackItems(selectedCartonRack, q);
+
+            if (allItemsInRack.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">Tidak ada item pada rak ini.</div>`;
+                updateCartonRackSelectAllState([], []);
+                return;
+            }
+
+            if (visibleItems.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">Tidak ada item yang cocok dengan filter pencarian.</div>`;
+                updateCartonRackSelectAllState(allItemsInRack, []);
+                return;
+            }
+
+            const defQty = Math.max(1, Math.round(getNumericInputValue('carton-rack-default-qty', 1)) || 1);
+            container.innerHTML = visibleItems.map(b => {
+                const isChecked = cartonRackCheckedSkus.has(b.sku);
+                const qtyVal = Math.max(1, Math.round(Number(cartonRackQtyMap[b.sku]) || defQty));
+                const expLabel = b.expiredDate ? formatDateIndo(b.expiredDate) : '-';
+                return `
+                    <div class="px-3 py-2.5 flex items-center justify-between gap-2 hover:bg-teal-50/40 transition ${isChecked ? 'bg-teal-50/50' : ''}">
+                        <label class="flex items-start gap-2.5 min-w-0 flex-1 cursor-pointer">
+                            <input type="checkbox" data-rack-item-cb data-sku="${escapeHtmlText(b.sku)}" ${isChecked ? 'checked' : ''}
+                                onchange="toggleCartonRackItem(this)"
+                                class="mt-0.5 w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 shrink-0">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-mono text-[11px] font-extrabold text-teal-700 bg-teal-100/70 px-1.5 py-0.5 rounded">${escapeHtmlText(b.sku)}</span>
+                                    <span class="font-mono text-[10px] text-slate-400 truncate">${escapeHtmlText(b.barcode || '-')}</span>
+                                </div>
+                                <div class="text-xs font-bold text-slate-800 truncate mt-0.5">${escapeHtmlText(b.name)}</div>
+                                <div class="text-[11px] text-slate-500 truncate">${escapeHtmlText(b.brand || '-')} • Exp: ${escapeHtmlText(expLabel)}</div>
+                            </div>
+                        </label>
+                        <div class="flex flex-col items-end shrink-0" onclick="event.stopPropagation()">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Qty</span>
+                            <input type="text" inputmode="numeric" data-num-format="int" data-rack-qty-input data-sku="${escapeHtmlText(b.sku)}"
+                                value="${qtyVal.toLocaleString('id-ID')}"
+                                oninput="onCartonRackItemQtyInput(this)"
+                                class="w-16 px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums">
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.querySelectorAll('[data-rack-qty-input]').forEach(el => {
+                if (typeof applyNumericFormattingToElement === 'function') applyNumericFormattingToElement(el, true);
+            });
+            updateCartonRackSelectAllState(allItemsInRack, visibleItems);
+        }
+
+        function toggleCartonRackItem(inputEl) {
+            if (!inputEl) return;
+            const sku = inputEl.dataset.sku;
+            if (!sku) return;
+            if (inputEl.checked) {
+                cartonRackCheckedSkus.add(sku);
+                if (!cartonRackQtyMap[sku]) {
+                    cartonRackQtyMap[sku] = Math.max(1, Math.round(getNumericInputValue('carton-rack-default-qty', 1)) || 1);
+                }
+            } else {
+                cartonRackCheckedSkus.delete(sku);
+            }
+            const row = inputEl.closest('div.px-3');
+            if (row) row.classList.toggle('bg-teal-50/50', inputEl.checked);
+            const allItemsInRack = getCartonRackItems(selectedCartonRack, '');
+            const q = document.getElementById('carton-rack-item-filter')?.value || '';
+            const visibleItems = getCartonRackItems(selectedCartonRack, q);
+            updateCartonRackSelectAllState(allItemsInRack, visibleItems);
+            renderPrintLabelPreview();
+        }
+
+        function toggleCartonRackSelectAll(checked) {
+            if (!selectedCartonRack) return;
+            const allItemsInRack = getCartonRackItems(selectedCartonRack, '');
+            const q = document.getElementById('carton-rack-item-filter')?.value || '';
+            const visibleItems = getCartonRackItems(selectedCartonRack, q);
+            const defQty = Math.max(1, Math.round(getNumericInputValue('carton-rack-default-qty', 1)) || 1);
+
+            visibleItems.forEach(b => {
+                if (checked) {
+                    cartonRackCheckedSkus.add(b.sku);
+                    if (!cartonRackQtyMap[b.sku]) cartonRackQtyMap[b.sku] = defQty;
+                } else {
+                    cartonRackCheckedSkus.delete(b.sku);
+                }
+            });
+
+            const container = document.getElementById('carton-rack-items-list');
+            if (container) {
+                container.querySelectorAll('[data-rack-item-cb]').forEach(cb => {
+                    const isChk = cartonRackCheckedSkus.has(cb.dataset.sku);
+                    cb.checked = isChk;
+                    const row = cb.closest('div.px-3');
+                    if (row) row.classList.toggle('bg-teal-50/50', isChk);
+                });
+            }
+            updateCartonRackSelectAllState(allItemsInRack, visibleItems);
+            renderPrintLabelPreview();
+        }
+
+        function onCartonRackItemQtyInput(inputEl) {
+            if (!inputEl) return;
+            const sku = inputEl.dataset.sku;
+            if (!sku) return;
+            const qty = Math.max(1, Math.round(getNumericInputValue(inputEl, 1)) || 1);
+            cartonRackQtyMap[sku] = qty;
+            renderPrintLabelPreview();
+        }
+
+        function applyCartonRackDefaultQty() {
+            if (!selectedCartonRack) {
+                showToast('Pilih No. Rack terlebih dahulu.', 'warning');
+                return;
+            }
+            const defQty = Math.max(1, Math.round(getNumericInputValue('carton-rack-default-qty', 1)) || 1);
+            setNumericInputValue('carton-rack-default-qty', defQty);
+            const allItemsInRack = getCartonRackItems(selectedCartonRack, '');
+            allItemsInRack.forEach(b => {
+                cartonRackQtyMap[b.sku] = defQty;
+            });
+            const container = document.getElementById('carton-rack-items-list');
+            if (container) {
+                container.querySelectorAll('[data-rack-qty-input]').forEach(el => {
+                    setNumericInputValue(el, defQty);
+                });
+            }
+            renderPrintLabelPreview();
+            showToast(`Qty seluruh item di rak diterapkan menjadi ${defQty.toLocaleString('id-ID')}.`, 'success');
         }
 
         function showLabelProductDropdown() {
@@ -17239,36 +17671,42 @@ function doPost(e) {
             const baseH = isPortrait ? 148 : 105;
             const s = Math.max(0.42, Math.min(w / baseW, h / baseH));
 
-            // 1. Pertahankan ukuran font brand versi sebelumnya dan kecilkan hanya jika teks melebihi garis kotak
-            const firstBrandBox = sheetArea.querySelector('.carton-a6-brand-box');
-            const firstBrandText = sheetArea.querySelector('.carton-a6-brand-fit');
-            const firstBrandLabel = sheetArea.querySelector('.carton-a6-brand-label');
-            if (firstBrandBox && firstBrandText) {
-                const csBox = getComputedStyle(firstBrandBox);
-                const isColumn = csBox.flexDirection === 'column';
-                const gapPx = parseFloat(csBox.rowGap || csBox.gap || 0) || 0;
-                const reservedH = (isColumn && firstBrandLabel) ? ((firstBrandLabel.offsetHeight || firstBrandLabel.getBoundingClientRect().height) + gapPx) : 0;
-                const fitBrand = fitElementInsideBox(firstBrandBox, firstBrandText, 5.5 * s, 20 * s, reservedH);
-                if (fitBrand) {
-                    sheetArea.querySelectorAll('.carton-a6-brand-fit').forEach(el => {
-                        el.style.fontSize = fitBrand.fontSize;
-                        el.style.overflowWrap = fitBrand.overflowWrap;
-                    });
-                }
-            }
+            const brandCache = {};
+            const nameCache = {};
+            const pages = sheetArea.querySelectorAll('.carton-a6-sheet-page');
+            if (pages.length === 0) return;
 
-            // 2. Pertahankan ukuran font nama barang versi sebelumnya dan kecilkan hanya jika melebihi kotak
-            const firstNameBox = sheetArea.querySelector('.carton-a6-name-box');
-            const firstNameText = sheetArea.querySelector('.carton-a6-name-fit');
-            if (firstNameBox && firstNameText) {
-                const fitName = fitElementInsideBox(firstNameBox, firstNameText, 6.5 * s, 22 * s, 0);
-                if (fitName) {
-                    sheetArea.querySelectorAll('.carton-a6-name-fit').forEach(el => {
-                        el.style.fontSize = fitName.fontSize;
-                        el.style.overflowWrap = fitName.overflowWrap;
-                    });
+            pages.forEach(page => {
+                const key = page.dataset.cartonKey || '';
+                const brandBox = page.querySelector('.carton-a6-brand-box');
+                const brandText = page.querySelector('.carton-a6-brand-fit');
+                const brandLabel = page.querySelector('.carton-a6-brand-label');
+                if (brandBox && brandText) {
+                    if (key && brandCache[key]) {
+                        brandText.style.fontSize = brandCache[key].fontSize;
+                        brandText.style.overflowWrap = brandCache[key].overflowWrap;
+                    } else {
+                        const csBox = getComputedStyle(brandBox);
+                        const isColumn = csBox.flexDirection === 'column';
+                        const gapPx = parseFloat(csBox.rowGap || csBox.gap || 0) || 0;
+                        const reservedH = (isColumn && brandLabel) ? ((brandLabel.offsetHeight || brandLabel.getBoundingClientRect().height) + gapPx) : 0;
+                        const fitBrand = fitElementInsideBox(brandBox, brandText, 5.5 * s, 20 * s, reservedH);
+                        if (fitBrand && key) brandCache[key] = fitBrand;
+                    }
                 }
-            }
+
+                const nameBox = page.querySelector('.carton-a6-name-box');
+                const nameText = page.querySelector('.carton-a6-name-fit');
+                if (nameBox && nameText) {
+                    if (key && nameCache[key]) {
+                        nameText.style.fontSize = nameCache[key].fontSize;
+                        nameText.style.overflowWrap = nameCache[key].overflowWrap;
+                    } else {
+                        const fitName = fitElementInsideBox(nameBox, nameText, 6.5 * s, 22 * s, 0);
+                        if (fitName && key) nameCache[key] = fitName;
+                    }
+                }
+            });
         }
 
         function stripCustomLabelSizeTags(text) {
@@ -17699,16 +18137,74 @@ function doPost(e) {
                 const h = Math.round(getNumericInputValue('label-height-mm', orient === 'portrait' ? 148 : 105)) || (orient === 'portrait' ? 148 : 105);
                 updateDynamicPrintPageStyle(`${w}mm ${h}mm`);
 
+                const pic = (document.getElementById('label-pic-input')?.value || '-').trim() || '-';
+                area.className = 'flex flex-col gap-4 items-center';
+
+                if (cartonPrintSubMode === 'by_rack') {
+                    const copiesPerItem = Math.min(Math.max(Math.round(getNumericInputValue('label-copies-input', 1)) || 1, 1), 20);
+                    const defQty = Math.max(1, Math.round(getNumericInputValue('carton-rack-default-qty', 1)) || 1);
+                    const rackItems = selectedCartonRack ? getCartonRackItems(selectedCartonRack, '') : [];
+                    const selectedItems = rackItems.filter(p => cartonRackCheckedSkus.has(p.sku));
+
+                    if (!selectedCartonRack || selectedItems.length === 0) {
+                        if (badge) {
+                            const rackLbl = selectedCartonRack ? `Rak ${formatCartonRackLabel(selectedCartonRack)} • ` : '';
+                            badge.textContent = `Carton A6 ${orient === 'portrait' ? 'Portrait' : 'Landscape'} (${w} × ${h} mm) • ${rackLbl}0 Item Dipilih`;
+                        }
+                        area.innerHTML = `
+                            <div class="no-print py-12 px-6 text-center max-w-sm">
+                                <div class="w-12 h-12 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center mx-auto mb-3">
+                                    <i data-lucide="layers" class="w-6 h-6"></i>
+                                </div>
+                                <p class="text-sm font-bold text-slate-700">${!selectedCartonRack ? 'Pilih No. Rack terlebih dahulu' : 'Belum ada item yang diceklis'}</p>
+                                <p class="text-xs text-slate-500 mt-1">${!selectedCartonRack ? 'Pilih rak pada panel kiri untuk melihat dan menceklis item yang akan dicetak.' : 'Ceklis item yang ingin dicetak atau gunakan tombol Select All di panel kiri.'}</p>
+                            </div>
+                        `;
+                        refreshLucideIcons(area);
+                        return;
+                    }
+
+                    const cardEntries = [];
+                    const maxTotalCards = 250;
+                    for (let idx = 0; idx < selectedItems.length && cardEntries.length < maxTotalCards; idx++) {
+                        const item = selectedItems[idx];
+                        const itemQty = Math.max(1, Math.round(Number(cartonRackQtyMap[item.sku]) || defQty));
+                        const itemQtyStr = itemQty.toLocaleString('id-ID');
+                        const itemExp = item.expiredDate ? formatDateIndo(item.expiredDate) : '-';
+                        const itemProd = {
+                            ...item,
+                            noRack: isMasterBarangRackMissing(item.noRack) ? '-' : item.noRack
+                        };
+                        const innerCard = buildCartonA6CardHtml(itemProd, itemQtyStr, itemExp, pic, w, h, orient);
+                        for (let c = 0; c < copiesPerItem && cardEntries.length < maxTotalCards; c++) {
+                            cardEntries.push({ sku: item.sku, innerCard });
+                        }
+                    }
+
+                    if (badge) {
+                        badge.textContent = `Carton A6 ${orient === 'portrait' ? 'Portrait' : 'Landscape'} (${w} × ${h} mm) • Rak ${formatCartonRackLabel(selectedCartonRack)} • ${selectedItems.length} Item (${cardEntries.length} Label)`;
+                    }
+
+                    area.innerHTML = cardEntries.map((entry, idx) => {
+                        const breakClass = idx < cardEntries.length - 1 ? 'tj105-print-page-break' : '';
+                        return `
+                            <div class="label-sticker-item carton-a6-sheet-page border border-slate-300 shadow-sm ${breakClass}" data-carton-key="${escapeHtmlText(entry.sku)}" style="width: ${w}mm; height: ${h}mm; box-sizing: border-box;">
+                                ${entry.innerCard}
+                            </div>
+                        `;
+                    }).join('');
+                    fitCartonA6LabelFields(w, h, orient);
+                    return;
+                }
+
                 const qtyNum = Math.max(1, Math.round(getNumericInputValue('label-qty-input', 1)) || 1);
                 const qty = qtyNum.toLocaleString('id-ID');
-                const pic = (document.getElementById('label-pic-input')?.value || '-').trim() || '-';
                 const exp = document.getElementById('label-exp-input')?.value ? formatDateIndo(document.getElementById('label-exp-input').value) : '-';
                 const copies = Math.min(Math.max(Math.round(getNumericInputValue('label-copies-input', 1)) || 1, 1), 30);
 
                 if (badge) {
                     badge.textContent = `Carton A6 ${orient === 'portrait' ? 'Portrait' : 'Landscape'} (${w} × ${h} mm) • ${copies} Copy`;
                 }
-                area.className = 'flex flex-col gap-4 items-center';
 
                 const rackInputEl = document.getElementById('label-rack-input');
                 const editedRack = rackInputEl ? rackInputEl.value.trim() : '';
@@ -17728,7 +18224,7 @@ function doPost(e) {
                 for (let i = 0; i < copies; i++) {
                     const breakClass = i < copies - 1 ? 'tj105-print-page-break' : '';
                     cards.push(`
-                        <div class="label-sticker-item carton-a6-sheet-page border border-slate-300 shadow-sm ${breakClass}" style="width: ${w}mm; height: ${h}mm; box-sizing: border-box;">
+                        <div class="label-sticker-item carton-a6-sheet-page border border-slate-300 shadow-sm ${breakClass}" data-carton-key="${escapeHtmlText(p.sku)}" style="width: ${w}mm; height: ${h}mm; box-sizing: border-box;">
                             ${innerCard}
                         </div>
                     `);
@@ -17776,6 +18272,15 @@ function doPost(e) {
                 if (borderCb) borderCb.checked = true;
             } else if (currentPrintLabelMode === 'carton') {
                 clearLabelProductSearch();
+                selectedCartonRack = '';
+                cartonRackCheckedSkus.clear();
+                cartonRackQtyMap = {};
+                const rackSel = document.getElementById('carton-rack-select');
+                if (rackSel) rackSel.value = '';
+                const rackFilter = document.getElementById('carton-rack-item-filter');
+                if (rackFilter) rackFilter.value = '';
+                setNumericInputValue('carton-rack-default-qty', 1);
+                renderCartonRackChecklist();
                 setNumericInputValue('label-qty-input', 1);
                 setNumericInputValue('label-copies-input', 1);
                 const orientEl = document.getElementById('label-carton-orientation');
@@ -17806,6 +18311,17 @@ function doPost(e) {
         }
 
         function triggerPrintLabel() {
+            if (currentPrintLabelMode === 'carton' && cartonPrintSubMode === 'by_rack') {
+                if (!selectedCartonRack) {
+                    showToast('Pilih No. Rack terlebih dahulu sebelum mencetak.', 'warning');
+                    return;
+                }
+                const checkedCount = getCartonRackItems(selectedCartonRack, '').filter(b => cartonRackCheckedSkus.has(b.sku)).length;
+                if (checkedCount === 0) {
+                    showToast('Ceklis minimal 1 item untuk dicetak.', 'warning');
+                    return;
+                }
+            }
             renderPrintLabelPreview();
             window.print();
         }
@@ -17841,7 +18357,7 @@ function doPost(e) {
                 ...todayResi.map(i => ({
                     type: 'resi',
                     time: i.timestamp || '-',
-                    title: `${i.picker} · ${i.expedisi}`,
+                    title: `${i.ptName ? `[${i.ptName}] ` : ''}${i.picker} · ${i.expedisi}`,
                     sub: `${Number(i.qty || 0).toLocaleString('id-ID')} resi · Admin: ${i.createdBy || 'Admin'}`,
                     badge: `+${i.qty} Resi`,
                     route: 'admin-input-resi'
@@ -17910,6 +18426,46 @@ function doPost(e) {
             }).join('');
         }
 
+        function refreshAdminResiPtOptions() {
+            const ptSel = document.getElementById('admin-resi-pt');
+            if (!ptSel) return;
+            const prev = ptSel.value;
+            const list = normalizePtOptions(ptOptions);
+            ptSel.innerHTML = `<option value="">— Pilih Nama PT —</option>` +
+                list.map(pt => `<option value="${escapeHtmlText(pt)}">${escapeHtmlText(pt)}</option>`).join('');
+            if (list.includes(prev)) ptSel.value = prev;
+            renderAdminResiQuickPtChips();
+        }
+
+        function renderAdminResiQuickPtChips() {
+            const container = document.getElementById('admin-resi-quick-pt');
+            const sel = document.getElementById('admin-resi-pt');
+            if (!container) return;
+            const current = sel ? sel.value : '';
+            const list = normalizePtOptions(ptOptions);
+            if (list.length === 0) {
+                container.innerHTML = `<span class="text-[11px] text-slate-400">Belum ada daftar Nama PT. Tambahkan di Setting.</span>`;
+                return;
+            }
+            container.innerHTML = list.map(pt => {
+                const active = current === pt;
+                const safePt = pt.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                return `
+                    <button type="button" onclick="selectAdminResiPtChip('${safePt}')"
+                        class="px-3 py-1 rounded-lg border text-xs font-extrabold transition whitespace-nowrap shrink-0 ${active ? 'bg-violet-600 text-white border-violet-600 shadow-sm' : 'bg-violet-50/80 hover:bg-violet-100 text-violet-800 border-violet-200'}">
+                        ${escapeHtmlText(pt)}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectAdminResiPtChip(name) {
+            const sel = document.getElementById('admin-resi-pt');
+            if (!sel) return;
+            sel.value = sel.value === name ? '' : name;
+            renderAdminResiQuickPtChips();
+        }
+
         function refreshAdminResiExpedisiOptions() {
             const expSel = document.getElementById('admin-resi-expedisi');
             if (!expSel) return;
@@ -17925,6 +18481,7 @@ function doPost(e) {
             const d = document.getElementById('admin-resi-date');
             if (d && !d.value) d.value = getTodayISO();
             clearAdminResiPickerSelection();
+            refreshAdminResiPtOptions();
             refreshAdminResiExpedisiOptions();
             renderAdminResiQuickPickerChips();
             renderAdminResiQuickQtyButtons();
@@ -18058,6 +18615,7 @@ function doPost(e) {
         document.getElementById('admin-resi-form')?.addEventListener('submit', function(e) {
             e.preventDefault();
             const date = document.getElementById('admin-resi-date').value || getTodayISO();
+            const ptName = (document.getElementById('admin-resi-pt')?.value || '').trim();
             const selectedPicker = document.getElementById('admin-resi-picker').value.trim();
             const typedPicker = document.getElementById('admin-resi-picker-search').value.trim();
             const matchedUser = getAdminPickerUsers().find(u => u.username.toLowerCase() === (selectedPicker || typedPicker).toLowerCase());
@@ -18065,8 +18623,8 @@ function doPost(e) {
             const expedisi = document.getElementById('admin-resi-expedisi').value;
             const qty = Math.round(getNumericInputValue('admin-resi-qty', 0));
 
-            if (!picker || !expedisi || !qty || qty < 1) {
-                showToast('Lengkapi Nama Picker, Nama Expedisi, dan Jumlah Resi.', 'warning');
+            if (!ptName || !picker || !expedisi || !qty || qty < 1) {
+                showToast('Lengkapi Nama PT, Nama Picker, Nama Expedisi, dan Jumlah Resi.', 'warning');
                 return;
             }
 
@@ -18074,16 +18632,19 @@ function doPost(e) {
             const newId = 'AR-' + Date.now().toString().slice(-5);
             const createdBy = currentUser ? currentUser.username : 'Admin';
 
-            adminResiEntries.unshift({ id: newId, date, picker, expedisi, qty, timestamp: nowTime, createdBy });
+            const newItem = { id: newId, date, ptName, picker, expedisi, qty, timestamp: nowTime, createdBy };
+            adminResiEntries.unshift(newItem);
             saveAppStateToLocal();
-            postToGoogleSheet('AdminResi', ['ID', 'Tanggal', 'Jam', 'Nama Picker', 'Nama Expedisi', 'Jumlah Resi', 'Admin Input'], [[newId, date, nowTime, picker, expedisi, qty, createdBy]], 'insert');
+            postToGoogleSheet('AdminResi', SHEET_SCHEMA.AdminResi.headers, [SHEET_SCHEMA.AdminResi.row(newItem)], 'insert');
 
+            document.getElementById('admin-resi-pt').value = '';
+            renderAdminResiQuickPtChips();
             clearAdminResiPickerSelection();
             document.getElementById('admin-resi-expedisi').value = '';
             setNumericInputValue('admin-resi-qty', '');
             renderAdminResiQuickExpedisiChips();
             renderAdminResiStatsAndList();
-            showToast(`Input resi ${picker} (${expedisi}: ${qty.toLocaleString('id-ID')}) berhasil disimpan!`, 'success');
+            showToast(`Input resi [${ptName}] ${picker} (${expedisi}: ${qty.toLocaleString('id-ID')}) berhasil disimpan!`, 'success');
         });
 
         function renderAdminResiStatsAndList() {
@@ -18108,6 +18669,7 @@ function doPost(e) {
                 ? `<div class="py-12 px-4 text-center rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-xs text-slate-400">Belum ada input resi pada tanggal ${dateDisp}.</div>`
                 : list.map(i => {
                     const safeId = i.id.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                    const ptBadge = i.ptName ? `<span class="px-1.5 py-0.5 rounded bg-violet-100 text-violet-800 text-[10px] font-extrabold tracking-wide mr-1">${escapeHtmlText(i.ptName)}</span>` : '';
                     return `
                         <div class="p-3.5 rounded-xl border border-slate-200/80 hover:border-indigo-300 bg-white transition flex items-center justify-between gap-3">
                             <div class="flex items-center gap-3 min-w-0">
@@ -18115,7 +18677,7 @@ function doPost(e) {
                                     ${escapeHtmlText(String(i.picker || 'P').slice(0, 2).toUpperCase())}
                                 </div>
                                 <div class="min-w-0">
-                                    <div class="text-sm font-extrabold text-slate-900 truncate">${escapeHtmlText(i.picker)} · <span class="text-indigo-700">${escapeHtmlText(i.expedisi)}</span></div>
+                                    <div class="text-sm font-extrabold text-slate-900 truncate">${ptBadge}${escapeHtmlText(i.picker)} · <span class="text-indigo-700">${escapeHtmlText(i.expedisi)}</span></div>
                                     <div class="text-xs text-slate-500 tabular-nums mt-0.5">${formatDateIndo(i.date)} ${escapeHtmlText(i.timestamp || '-')} · Admin: ${escapeHtmlText(i.createdBy || 'Admin')}</div>
                                 </div>
                             </div>
@@ -18209,15 +18771,15 @@ function doPost(e) {
                 document.getElementById('admin-resi-rep-end')?.value
             );
             const filtered = adminResiEntries.filter(i => i.date >= start && i.date <= end);
-            const headers = ['Tanggal', 'Jam', 'Nama Picker', 'Nama Expedisi', 'Jumlah Resi', 'Admin Input'];
-            const rows = filtered.map(i => [i.date, i.timestamp, i.picker, i.expedisi, i.qty, i.createdBy]);
+            const headers = ['Tanggal', 'Jam', 'Nama PT', 'Nama Picker', 'Nama Expedisi', 'Jumlah Resi', 'Admin Input'];
+            const rows = filtered.map(i => [i.date, i.timestamp, i.ptName || '-', i.picker, i.expedisi, i.qty, i.createdBy]);
             downloadCsvFile(`Laporan_Admin_Input_Resi_${start}_${end}.csv`, headers, rows);
             showToast('Laporan Admin Input Resi berhasil diekspor!', 'success');
         }
 
         function exportAdminResiCsv() {
-            downloadCsvFile(`Report_Admin_Input_Resi_${getTodayISO()}.csv`, ['Tanggal', 'Jam', 'Nama Picker', 'Nama Expedisi', 'Jumlah Resi', 'Admin Input'],
-                adminResiEntries.map(i => [i.date, i.timestamp, i.picker, i.expedisi, i.qty, i.createdBy]));
+            downloadCsvFile(`Report_Admin_Input_Resi_${getTodayISO()}.csv`, ['Tanggal', 'Jam', 'Nama PT', 'Nama Picker', 'Nama Expedisi', 'Jumlah Resi', 'Admin Input'],
+                adminResiEntries.map(i => [i.date, i.timestamp, i.ptName || '-', i.picker, i.expedisi, i.qty, i.createdBy]));
             showToast('Report Admin Input Resi diekspor!', 'success');
         }
 
@@ -18833,6 +19395,24 @@ function doPost(e) {
 
         const SETTING_OPTION_GROUPS = [
             {
+                key: 'ptOptions',
+                menuLabel: 'Menu Admin & Dispatch (Online)',
+                title: 'Daftar Nama PT (Quick Tap & Pilihan)',
+                badgeType: 'Daftar & Quick Tap',
+                placeholder: 'Contoh: MIL, KIL, PT ABC...',
+                icon: 'building-2',
+                grad: 'from-violet-500 to-indigo-600',
+                chipCls: 'bg-violet-50 text-violet-800 border-violet-200',
+                normalizeInput: v => String(v || '').trim().toUpperCase(),
+                getItems: () => normalizePtOptions(ptOptions),
+                setItems: v => { ptOptions = normalizePtOptions(v); },
+                defaults: () => [...DEFAULT_PT_OPTIONS],
+                onChanged: () => {
+                    refreshDispatchPtOptions();
+                    refreshAdminResiPtOptions();
+                }
+            },
+            {
                 key: 'expedisiData',
                 menuLabel: 'Menu Dispatch & Admin Resi',
                 title: 'Daftar Nama Expedisi',
@@ -19163,23 +19743,23 @@ function doPost(e) {
                 id: 'admin',
                 number: '01',
                 title: 'Menu Admin (Input Resi & Salah Barang)',
-                subtitle: 'Filter Nama Picker, daftar expedisi, quick tap jumlah resi, dan alasan temuan salah barang.',
+                subtitle: 'Filter Nama Picker, daftar Nama PT, daftar expedisi, quick tap jumlah resi, dan alasan temuan salah barang.',
                 icon: 'shield-check',
                 grad: 'from-indigo-600 via-blue-600 to-sky-600',
                 picMenuKey: 'admin_picker',
                 picFieldLabel: 'Nama Picker (Admin Input Resi & Salah Barang)',
-                optionKeys: ['expedisiData', 'adminResiQuickQtys', 'salahBarangReasons']
+                optionKeys: ['ptOptions', 'expedisiData', 'adminResiQuickQtys', 'salahBarangReasons']
             },
             {
                 id: 'dispatch',
                 number: '02',
                 title: 'Menu Dispatch (Offline & Online)',
-                subtitle: 'Filter Nama Packer, daftar Shop Offline (A–Z), daftar expedisi, dan quick tap jumlah resi.',
+                subtitle: 'Filter Nama Packer, daftar Nama PT, daftar Shop Offline (A–Z), daftar expedisi, dan quick tap jumlah resi.',
                 icon: 'send',
                 grad: 'from-sky-500 via-blue-600 to-indigo-600',
                 picMenuKey: 'dispatch_packer',
                 picFieldLabel: 'Nama Packer (Quick Tap & Dropdown)',
-                optionKeys: ['offlineShops', 'expedisiData', 'dispatchQuickQtys']
+                optionKeys: ['ptOptions', 'offlineShops', 'expedisiData', 'dispatchQuickQtys']
             },
             {
                 id: 'absen',
