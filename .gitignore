@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Environment & local secrets
+.env
+.env.*
+!.env.example
+
+# Firebase / Google OAuth client config (supply via env vars or AI Studio runtime)
+firebase-applet-config.json
+
+# Runtime & server-persisted config/data
+.data/
+config/
+.aistudio/
+*.tmp.json
+
+# Logs & OS files
+*.log
+.DS_Store

@@ -1043,6 +1043,10 @@ function doPost(e) {
                     </button>
 
                     <div class="flex flex-wrap items-center gap-2.5">
+                        <button type="button" onclick="syncUsersModuleWithWhdm()" id="btn-sync-users-whdm" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-sm font-semibold shadow-sm transition">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            <span>Sinkron WHDM</span>
+                        </button>
                         <button onclick="openRoleManagerModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold shadow-sm transition">
                             <i data-lucide="shield" class="w-4 h-4 text-indigo-600"></i>
                             <span>Kelola Posisi & Akses</span>
@@ -7288,8 +7292,10 @@ function doPost(e) {
             }
         ].sort((a, b) => a.title.localeCompare(b.title, 'id', { sensitivity: 'base' }));
 
+        const CORE_MASTER_MENUS = MASTER_MENUS.map(m => ({ ...m }));
+
         // 2. ATURAN PEMETAAN POSISI -> MENU YANG TERBUKA OTOMATIS
-        const ALL_MENU_IDS = MASTER_MENUS.map(m => m.id);
+        const ALL_MENU_IDS = CORE_MASTER_MENUS.map(m => m.id);
         let seededMenuIds = [...ALL_MENU_IDS];
         let ROLE_PERMISSIONS = {
             'Manager': [...ALL_MENU_IDS],
@@ -7302,6 +7308,36 @@ function doPost(e) {
             'Qc': ['absen', 'overtime', 'print_label', 'qc', 'return'],
             'Driver': ['absen', 'driver', 'overtime']
         };
+
+        function getCustomMenus() {
+            return MASTER_MENUS.filter(m => m && m.id && !ALL_MENU_IDS.includes(m.id));
+        }
+
+        function applyCustomMenus(customList) {
+            const validCustom = (Array.isArray(customList) ? customList : [])
+                .filter(m => m && m.id && !ALL_MENU_IDS.includes(String(m.id)))
+                .map(m => ({
+                    id: String(m.id).trim(),
+                    title: String(m.title || 'Menu Custom').trim(),
+                    subtitle: String(m.subtitle || '').trim(),
+                    icon: String(m.icon || 'box').trim(),
+                    colorBg: String(m.colorBg || 'bg-gradient-to-br from-indigo-500 via-indigo-600 to-blue-700'),
+                    colorText: String(m.colorText || 'text-white'),
+                    hoverBorder: String(m.hoverBorder || 'hover:border-indigo-400'),
+                    shadowClass: String(m.shadowClass || 'shadow-indigo-500/30'),
+                    hoverText: String(m.hoverText || 'group-hover:text-indigo-600'),
+                    desc: String(m.desc || '').trim()
+                }));
+            const seen = new Set();
+            const merged = CORE_MASTER_MENUS.map(m => ({ ...m }));
+            validCustom.forEach(m => {
+                if (!seen.has(m.id)) {
+                    seen.add(m.id);
+                    merged.push(m);
+                }
+            });
+            MASTER_MENUS = merged.sort((a, b) => a.title.localeCompare(b.title, 'id', { sensitivity: 'base' }));
+        }
 
         // 3. STATE DATA IN-MEMORY + PERSISTENSI LOCALSTORAGE
         const STORAGE_KEY_STATE = 'wms_pro_state_v1';
@@ -7589,14 +7625,17 @@ function doPost(e) {
         // PENYIMPANAN LOKAL + SINKRONISASI GOOGLE SHEET (DUA ARAH)
         // ==========================================
         const STORAGE_KEY_QUEUE = 'wms_pro_sync_queue_v1';
+        const STORAGE_KEY_DIRTY = 'wms_pro_dirty_sync_v1';
         let currentRoute = 'home';
         let syncQueue = [];
+        let dirtySyncRecords = { upserts: {}, deletes: {}, replaceAll: {}, configDirty: false };
         let isFlushing = false;
         let isPulling = false;
         let localWriteSeq = 0;
         let syncState = { lastSync: '', error: '' };
         let flushRetryTimer = null;
         let configSyncTimer = null;
+        let hasPendingConfigTimer = false;
 
         // ID data contoh versi demo lama (otomatis dibersihkan dari perangkat & Google Sheet)
         const DEMO_RECORD_IDS = {
@@ -7633,8 +7672,20 @@ function doPost(e) {
                 list: () => masterBarangData
             },
             Project: {
-                headers: ['ID', 'Nama Project', 'PIC', 'DueDate', 'Status', 'Notes'],
-                row: p => [p.id, p.name, p.pic, p.dueDate, p.status, p.notes || '-'],
+                headers: ['ID', 'Nama Project', 'PIC', 'DueDate', 'Status', 'Notes', 'Prioritas', 'Kategori', 'Progress (%)', 'Checklist', 'Tgl Selesai'],
+                row: p => [
+                    p.id,
+                    p.name,
+                    p.pic,
+                    p.dueDate,
+                    p.status,
+                    p.notes || '-',
+                    p.priority || 'Normal',
+                    p.category || 'Operasional Gudang',
+                    Number(p.progress || 0),
+                    JSON.stringify(Array.isArray(p.checklist) ? p.checklist : []),
+                    p.doneAt || '-'
+                ],
                 list: () => projectsData,
                 newestFirst: true
             },
@@ -7953,12 +8004,26 @@ function doPost(e) {
             }, true);
         }
 
+        function resolveRoleKey(rawRole) {
+            const clean = String(rawRole || '').trim();
+            if (!clean) return 'Operator';
+            if (Object.prototype.hasOwnProperty.call(ROLE_PERMISSIONS, clean)) return clean;
+            const lower = clean.toLowerCase();
+            const existingKey = Object.keys(ROLE_PERMISSIONS).find(k => k.toLowerCase() === lower);
+            if (existingKey) return existingKey;
+            if (lower === 'return') return 'Return';
+            if (lower === 'picker') return 'Picker';
+            if (lower === 'spv') return 'SPV';
+            if (lower === 'qc') return 'Qc';
+            return clean.charAt(0).toUpperCase() + clean.slice(1);
+        }
+
         function ensureFullAccessRoles() {
             if (!Array.isArray(ROLE_PERMISSIONS['Manager'])) {
-                ROLE_PERMISSIONS['Manager'] = [...ALL_MENU_IDS];
+                ROLE_PERMISSIONS['Manager'] = MASTER_MENUS.map(m => m.id);
             }
             if (!Array.isArray(ROLE_PERMISSIONS['SPV'])) {
-                ROLE_PERMISSIONS['SPV'] = [...ALL_MENU_IDS];
+                ROLE_PERMISSIONS['SPV'] = MASTER_MENUS.map(m => m.id);
             }
             if (!Array.isArray(ROLE_PERMISSIONS['Driver'])) {
                 ROLE_PERMISSIONS['Driver'] = ['absen', 'driver', 'overtime'];
@@ -7968,10 +8033,20 @@ function doPost(e) {
             if (Array.isArray(ROLE_PERMISSIONS['Inventory']) && !ROLE_PERMISSIONS['Inventory'].includes('inventory')) {
                 ROLE_PERMISSIONS['Inventory'].push('inventory');
             }
+            // Pastikan posisi dari database WHDM (seperti Return atau Picker) tetap punya key valid
+            usersData.forEach(u => {
+                const resolved = resolveRoleKey(u.role);
+                u.role = resolved;
+                if (!Array.isArray(ROLE_PERMISSIONS[resolved])) {
+                    if (resolved === 'Return') ROLE_PERMISSIONS[resolved] = ['absen', 'overtime', 'return'];
+                    else if (resolved === 'Picker') ROLE_PERMISSIONS[resolved] = ['absen', 'overtime', 'print_label', 'qc'];
+                    else ROLE_PERMISSIONS[resolved] = ['absen', 'overtime'];
+                }
+            });
             // Migrasi sekali jalan untuk menu baru "return" agar muncul pada data Pengaturan lama
             if (!Array.isArray(seededMenuIds)) seededMenuIds = [];
             if (!seededMenuIds.includes('return')) {
-                ['Manager', 'SPV', 'Admin', 'Operator', 'Inventory', 'Qc'].forEach(r => {
+                ['Manager', 'SPV', 'Admin', 'Operator', 'Inventory', 'Qc', 'Return'].forEach(r => {
                     if (Array.isArray(ROLE_PERMISSIONS[r]) && !ROLE_PERMISSIONS[r].includes('return')) {
                         ROLE_PERMISSIONS[r].push('return');
                     }
@@ -8004,6 +8079,7 @@ function doPost(e) {
                 ['driverVehicles', JSON.stringify(driverVehicles)],
                 ['inventoryConfig', JSON.stringify(inventoryConfig)],
                 ['picRoleFilters', JSON.stringify(picRoleFilters)],
+                ['customMenus', JSON.stringify(getCustomMenus())],
                 ['seededMenuIds', JSON.stringify(seededMenuIds)],
                 ['rolePermissions', JSON.stringify(ROLE_PERMISSIONS)]
             ];
@@ -8064,6 +8140,7 @@ function doPost(e) {
                 inventoryStockMeta,
                 inventoryConfig,
                 picRoleFilters,
+                customMenus: getCustomMenus(),
                 masterBarangData,
                 projectsData: safeProjects,
                 cycleCountEntries,
@@ -8117,6 +8194,12 @@ function doPost(e) {
             } catch (e) {}
         }
 
+        function saveDirtySyncToLocal() {
+            try {
+                localStorage.setItem(STORAGE_KEY_DIRTY, JSON.stringify(dirtySyncRecords));
+            } catch (e) {}
+        }
+
         function loadAppStateFromLocal() {
             try {
                 const raw = localStorage.getItem(STORAGE_KEY_STATE);
@@ -8160,6 +8243,7 @@ function doPost(e) {
                     if (saved.picRoleFilters && typeof saved.picRoleFilters === 'object') {
                         picRoleFilters = { ...DEFAULT_PIC_ROLE_FILTERS, ...saved.picRoleFilters };
                     }
+                    if (Array.isArray(saved.customMenus)) applyCustomMenus(saved.customMenus);
                     if ((t = clean(saved.dispatchEntries, 'Dispatch'))) dispatchEntries = t;
                     if ((t = clean(saved.absenEntries, 'Absen'))) absenEntries = t;
                     if ((t = clean(saved.overtimeEntries, 'Overtime'))) overtimeEntries = t;
@@ -8195,6 +8279,15 @@ function doPost(e) {
                 }
                 const q = JSON.parse(localStorage.getItem(STORAGE_KEY_QUEUE) || '[]');
                 if (Array.isArray(q)) syncQueue = q;
+                const d = JSON.parse(localStorage.getItem(STORAGE_KEY_DIRTY) || 'null');
+                if (d && typeof d === 'object') {
+                    dirtySyncRecords = {
+                        upserts: (d.upserts && typeof d.upserts === 'object') ? d.upserts : {},
+                        deletes: (d.deletes && typeof d.deletes === 'object') ? d.deletes : {},
+                        replaceAll: (d.replaceAll && typeof d.replaceAll === 'object') ? d.replaceAll : {},
+                        configDirty: Boolean(d.configDirty)
+                    };
+                }
             } catch (e) {
                 // Abaikan jika JSON rusak
             }
@@ -8512,11 +8605,12 @@ function doPost(e) {
             let label = 'Mode Lokal';
             let tip = 'Google Sheet belum terhubung. Data hanya tersimpan di perangkat ini.';
             const oauthReady = hasActiveGoogleOAuthSheet();
+            const pendingCount = syncQueue.length + (hasPendingConfigTimer ? 1 : 0);
             if (oauthReady || getScriptUrl()) {
                 if (isPulling || isFlushing) {
                     cls = 'bg-sky-500 animate-pulse'; label = 'Menyinkronkan...'; tip = 'Sedang sinkron dengan Google Sheet';
-                } else if (syncQueue.length > 0 && getScriptUrl()) {
-                    cls = 'bg-amber-500'; label = `Menunggu kirim (${syncQueue.length})`; tip = 'Ada data yang belum terkirim ke Google Sheet, akan dicoba lagi otomatis.';
+                } else if (pendingCount > 0 && getScriptUrl()) {
+                    cls = 'bg-amber-500'; label = `Menunggu kirim (${pendingCount})`; tip = 'Ada data yang belum terkirim ke Google Sheet, akan dicoba lagi otomatis.';
                 } else if (syncState.error) {
                     cls = 'bg-rose-500'; label = 'Gagal sinkron'; tip = syncState.error;
                 } else {
@@ -8533,28 +8627,127 @@ function doPost(e) {
             if (chip) chip.title = tip;
         }
 
+        function normalizeSyncPrimaryId(sheetName, rawId) {
+            const id = String(rawId ?? '').trim();
+            if (!id) return '';
+            return (sheetName === 'MasterBarang' || sheetName === 'InventoryStock') ? id.toUpperCase() : id;
+        }
+
+        function rebuildDirtyFromPendingQueue() {
+            const next = { upserts: {}, deletes: {}, replaceAll: {}, configDirty: Boolean(hasPendingConfigTimer) };
+            (Array.isArray(syncQueue) ? syncQueue : []).forEach(item => {
+                if (!item || item._internalPurge) return;
+                const name = item.sheetName;
+                if (!name) return;
+                if (name === 'Pengaturan') {
+                    next.configDirty = true;
+                    return;
+                }
+                if (!next.upserts[name]) next.upserts[name] = {};
+                if (!next.deletes[name]) next.deletes[name] = {};
+                if (item.action === 'replace_all') {
+                    next.replaceAll[name] = true;
+                    next.upserts[name] = {};
+                    next.deletes[name] = {};
+                } else if (item.action === 'delete') {
+                    const id = normalizeSyncPrimaryId(name, item.id);
+                    if (id) {
+                        next.deletes[name][id] = true;
+                        delete next.upserts[name][id];
+                    }
+                } else if (Array.isArray(item.rows)) {
+                    item.rows.forEach(r => {
+                        const id = normalizeSyncPrimaryId(name, Array.isArray(r) ? r[0] : '');
+                        if (id) {
+                            next.upserts[name][id] = true;
+                            delete next.deletes[name][id];
+                        }
+                    });
+                }
+            });
+            dirtySyncRecords = next;
+            saveDirtySyncToLocal();
+        }
+
+        const RESET_KEY_TO_SHEETS = {
+            dispatchOnline: ['Dispatch'],
+            dispatchOffline: ['DispatchOffline'],
+            driverExpense: ['DriverExpense'],
+            driverVehicle: ['DriverVehicle'],
+            absen: ['Absen'],
+            overtime: ['Overtime'],
+            adminResi: ['AdminResi'],
+            salahBarang: ['SalahBarang'],
+            cycleCount: ['CycleCount'],
+            qcJobtasks: ['QC_Jobtasks'],
+            returnOffline: ['ReturOffline'],
+            returnOnline: ['ReturOnline'],
+            projects: ['Project'],
+            inventoryMeta: ['InventoryStock'],
+            masterBarang: ['MasterBarang']
+        };
+
+        function clearLocalDirtyStateForModule(targetKey) {
+            let sheetsToClear = [];
+            if (targetKey === 'ALL') {
+                sheetsToClear = [...Object.values(RESET_KEY_TO_SHEETS).flat(), 'DriverCheckin'];
+            } else {
+                sheetsToClear = RESET_KEY_TO_SHEETS[targetKey] || [];
+            }
+            if (sheetsToClear.length === 0) return;
+            const sheetSet = new Set(sheetsToClear);
+            syncQueue = syncQueue.filter(item => !item || !sheetSet.has(item.sheetName));
+            saveQueueToLocal();
+            rebuildDirtyFromPendingQueue();
+            renderSyncChip();
+        }
+
+        async function flushPendingMutations() {
+            if (hasPendingConfigTimer) {
+                clearTimeout(configSyncTimer);
+                hasPendingConfigTimer = false;
+                await postToGoogleSheet('Pengaturan', SHEET_SCHEMA.Pengaturan.headers, configRows(), 'upsert');
+                return syncQueue.length === 0;
+            }
+            if (syncQueue.length > 0) {
+                return flushSyncQueue();
+            }
+            return true;
+        }
+
         async function flushSyncQueue() {
             const url = getScriptUrl();
             if (!url || isFlushing) return false;
-            if (syncQueue.length === 0) return true;
+            if (syncQueue.length === 0) {
+                rebuildDirtyFromPendingQueue();
+                return true;
+            }
             isFlushing = true;
             renderSyncChip();
             let ok = true;
             try {
                 while (syncQueue.length > 0) {
-                    await fetch(url, {
+                    const currentUrl = getScriptUrl();
+                    if (!currentUrl) { ok = false; break; }
+                    const payload = syncQueue[0];
+                    const cleanPayload = { ...payload };
+                    delete cleanPayload._internalPurge;
+                    await fetch(currentUrl, {
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify(syncQueue[0])
+                        body: JSON.stringify(cleanPayload)
                     });
                     syncQueue.shift();
                     saveQueueToLocal();
+                    rebuildDirtyFromPendingQueue();
                 }
-                syncState.error = '';
-                syncState.lastSync = nowHHmm();
-                setupConfig.isConnected = true;
-                setupConfig.lastUpdated = new Date().toLocaleString('id-ID');
+                if (ok) {
+                    syncState.error = '';
+                    syncState.lastSync = nowHHmm();
+                    setupConfig.isConnected = true;
+                    setupConfig.lastUpdated = new Date().toLocaleString('id-ID');
+                }
             } catch (err) {
                 ok = false;
                 syncState.error = 'Gagal mengirim ke Google Sheet (koneksi terputus). Akan dicoba lagi otomatis.';
@@ -8562,6 +8755,7 @@ function doPost(e) {
                 flushRetryTimer = setTimeout(flushSyncQueue, 15000);
             } finally {
                 isFlushing = false;
+                rebuildDirtyFromPendingQueue();
                 saveAppStateToLocal();
                 updateSetupConnectionUI();
                 renderSyncChip();
@@ -8570,12 +8764,24 @@ function doPost(e) {
         }
 
         // Semua penulisan ke Sheet lewat fungsi ini. Aksi 'insert' otomatis menjadi 'upsert' (aman diulang).
+        // SELALU masuk antrean persisten dulu agar input lokal offline tetap terkirim ke WHDM saat terhubung.
         async function postToGoogleSheet(sheetName, headers = [], rows = [], action = 'insert', extra = {}) {
             localWriteSeq++;
-            saveAppStateToLocal();
-            if (!getScriptUrl()) return false;
-            syncQueue.push({ sheetName, headers, rows, action: action === 'insert' ? 'upsert' : action, ...extra });
+            const normalizedAction = action === 'insert' ? 'upsert' : action;
+            const entry = { sheetName, headers, rows, action: normalizedAction, ...extra };
+
+            if (sheetName === 'Pengaturan' && normalizedAction === 'upsert') {
+                syncQueue = syncQueue.filter(q => !(q && q.sheetName === 'Pengaturan' && q.action === 'upsert'));
+            } else if (normalizedAction === 'replace_all') {
+                syncQueue = syncQueue.filter(q => !(q && q.sheetName === sheetName));
+            }
+            syncQueue.push(entry);
             saveQueueToLocal();
+            rebuildDirtyFromPendingQueue();
+            saveAppStateToLocal();
+            renderSyncChip();
+
+            if (!getScriptUrl()) return false;
             return flushSyncQueue();
         }
 
@@ -8591,16 +8797,20 @@ function doPost(e) {
             if (item) sheetUpsertMany(name, [item]);
         }
 
-        function sheetDelete(name, id) {
+        function sheetDelete(name, id, extra = {}) {
             const schema = SHEET_SCHEMA[name];
             if (!schema) return;
-            postToGoogleSheet(name, schema.headers, [], 'delete', { id: String(id) });
+            postToGoogleSheet(name, schema.headers, [], 'delete', { id: String(id), ...extra });
         }
 
         function syncConfigToSheet() {
+            hasPendingConfigTimer = true;
+            rebuildDirtyFromPendingQueue();
             saveAppStateToLocal();
+            renderSyncChip();
             clearTimeout(configSyncTimer);
             configSyncTimer = setTimeout(() => {
+                hasPendingConfigTimer = false;
                 postToGoogleSheet('Pengaturan', SHEET_SCHEMA.Pengaturan.headers, configRows(), 'upsert');
             }, 600);
         }
@@ -8624,7 +8834,7 @@ function doPost(e) {
             rows.forEach(r => {
                 const barcode = name === 'MasterBarang' ? r[2] : '';
                 if (isDemoRecord(name, r[0], barcode)) {
-                    sheetDelete(name, String(r[0]).trim());
+                    sheetDelete(name, String(r[0]).trim(), { _internalPurge: true });
                 } else {
                     keep.push(r);
                 }
@@ -8695,12 +8905,10 @@ function doPost(e) {
                 return false;
             }
             if (isPulling) return false;
-            if (syncQueue.length > 0) {
-                await flushSyncQueue();
-                if (syncQueue.length > 0) {
-                    if (!silent) showToast('Masih ada data yang belum terkirim ke Google Sheet. Coba lagi sebentar.', 'warning');
-                    return false;
-                }
+            await flushPendingMutations();
+            if (syncQueue.length > 0 || hasPendingConfigTimer) {
+                if (!silent) showToast('Masih ada data yang belum terkirim ke Google Sheet. Coba lagi sebentar.', 'warning');
+                return false;
             }
 
             isPulling = true;
@@ -8714,8 +8922,11 @@ function doPost(e) {
                 const sheets = payload.data;
                 if (!sheets || typeof sheets !== 'object') throw new Error('Kode Apps Script belum versi terbaru');
 
-                // Jika ada penyimpanan baru saat menunggu respons, jangan timpa data lokal
-                if (localWriteSeq !== seqAtStart || syncQueue.length > 0) return false;
+                // Jika ada penyimpanan baru saat menunggu respons, tetap merge aman lewat hydrateAppFromSheetsObject
+                if (localWriteSeq !== seqAtStart || syncQueue.length > 0 || hasPendingConfigTimer) {
+                    hydrateAppFromSheetsObject(sheets, { seedMissingToAppsScript: false, silent });
+                    return true;
+                }
                 hydrateAppFromSheetsObject(sheets, { seedMissingToAppsScript: true, silent });
                 return true;
             } catch (err) {
@@ -8737,21 +8948,132 @@ function doPost(e) {
                 const D = formatSheetDateISO;
                 const T = formatSheetTime;
 
-                // 1. Users (jika Sheet kosong, kirim daftar user awal hanya untuk mode Apps Script)
+                const dirtyUpserts = dirtySyncRecords?.upserts || {};
+                const dirtyDeletes = dirtySyncRecords?.deletes || {};
+                const dirtyReplaceAll = dirtySyncRecords?.replaceAll || {};
+
+                const mergeListWithDirty = (sheetName, remoteList, currentList, newestFirst = true, keyFn = x => String(x && x.id !== undefined ? x.id : '').trim()) => {
+                    if (dirtyReplaceAll[sheetName]) return Array.isArray(currentList) ? currentList : remoteList;
+                    const upMap = dirtyUpserts[sheetName] || {};
+                    const delMap = dirtyDeletes[sheetName] || {};
+                    const hasUpserts = Object.keys(upMap).length > 0;
+                    const hasDeletes = Object.keys(delMap).length > 0;
+                    if (!hasUpserts && !hasDeletes) return remoteList;
+
+                    const localByKey = new Map();
+                    if (Array.isArray(currentList)) {
+                        currentList.forEach(item => {
+                            const k = normalizeSyncPrimaryId(sheetName, keyFn(item));
+                            if (k && upMap[k]) localByKey.set(k, item);
+                        });
+                    }
+                    const merged = [];
+                    const seen = new Set();
+                    remoteList.forEach(item => {
+                        const k = normalizeSyncPrimaryId(sheetName, keyFn(item));
+                        if (!k) return;
+                        if (delMap[k]) return;
+                        if (seen.has(k)) return;
+                        seen.add(k);
+                        merged.push(localByKey.has(k) ? localByKey.get(k) : item);
+                    });
+                    const extraLocals = [];
+                    localByKey.forEach((item, k) => {
+                        if (!seen.has(k) && !delMap[k]) {
+                            seen.add(k);
+                            extraLocals.push(item);
+                        }
+                    });
+                    return newestFirst ? [...extraLocals, ...merged] : [...merged, ...extraLocals];
+                };
+
+                // 1. Pengaturan (reason absen/overtime, master isian, menu custom, filter PIC & hak akses posisi)
+                const isConfigDirty = Boolean(dirtySyncRecords?.configDirty || hasPendingConfigTimer);
+                const cfg = sheetRows(sheets, 'Pengaturan');
+                if (!isConfigDirty) {
+                    if (cfg && cfg.length > 0) {
+                        const map = {};
+                        cfg.forEach(r => { try { map[String(r[0]).trim()] = JSON.parse(String(r[1])); } catch (e) {} });
+                        if (Array.isArray(map.absenReasons)) absenReasons = map.absenReasons;
+                        if (Array.isArray(map.absenQuickNotes)) absenQuickNotes = map.absenQuickNotes;
+                        if (Array.isArray(map.overtimeReasons)) overtimeReasons = map.overtimeReasons;
+                        if (Array.isArray(map.overtimeQuickHours)) overtimeQuickHours = map.overtimeQuickHours;
+                        if (Array.isArray(map.overtimeQuickNotes)) overtimeQuickNotes = map.overtimeQuickNotes;
+                        if (Array.isArray(map.salahBarangReasons)) salahBarangReasons = map.salahBarangReasons;
+                        if (Array.isArray(map.gudangSumberOptions)) gudangSumberOptions = map.gudangSumberOptions;
+                        if (Array.isArray(map.projectCategories)) projectCategories = map.projectCategories;
+                        if (Array.isArray(map.projectPriorities)) projectPriorities = map.projectPriorities;
+                        if (Array.isArray(map.dispatchQuickQtys)) dispatchQuickQtys = map.dispatchQuickQtys;
+                        if (Array.isArray(map.offlineShops)) offlineShops = normalizeOfflineShops(map.offlineShops);
+                        if (Array.isArray(map.adminResiQuickQtys)) adminResiQuickQtys = map.adminResiQuickQtys;
+                        if (Array.isArray(map.cycleCountQuickQtys)) cycleCountQuickQtys = map.cycleCountQuickQtys;
+                        if (Array.isArray(map.cycleCountDamageReasons)) cycleCountDamageReasons = map.cycleCountDamageReasons;
+                        if (Array.isArray(map.qcQuickNotes)) qcQuickNotes = map.qcQuickNotes;
+                        if (Array.isArray(map.returnOfflineQuickQtys)) returnOfflineQuickQtys = map.returnOfflineQuickQtys;
+                        if (Array.isArray(map.returnOnlineQuickQtys)) returnOnlineQuickQtys = map.returnOnlineQuickQtys;
+                        if (Array.isArray(map.returnOnlineReasons)) returnOnlineReasons = normalizeReturnOnlineReasons(map.returnOnlineReasons);
+                        if (Array.isArray(map.driverLocations)) driverLocations = map.driverLocations;
+                        if (Array.isArray(map.driverVehicles)) driverVehicles = map.driverVehicles;
+                        if (map.inventoryConfig && typeof map.inventoryConfig === 'object') inventoryConfig = { ...inventoryConfig, ...map.inventoryConfig };
+                        if (map.picRoleFilters && typeof map.picRoleFilters === 'object') {
+                            picRoleFilters = { ...DEFAULT_PIC_ROLE_FILTERS, ...map.picRoleFilters };
+                        }
+                        if (Array.isArray(map.customMenus)) applyCustomMenus(map.customMenus);
+                        if (Array.isArray(map.seededMenuIds)) {
+                            seededMenuIds = map.seededMenuIds;
+                        } else if (map.rolePermissions && typeof map.rolePermissions === 'object') {
+                            seededMenuIds = ALL_MENU_IDS.filter(id => id !== 'return');
+                        }
+                        if (map.rolePermissions && typeof map.rolePermissions === 'object') ROLE_PERMISSIONS = map.rolePermissions;
+                    } else if (seedMissing) {
+                        syncConfigToSheet();
+                    }
+                }
+
+                // 2. Users (deduplikasi ID sesuai baris terakhir di Sheet + normalisasi posisi + gabung perubahan lokal tertunda)
                 let rows = sheetRows(sheets, 'Users');
                 if (rows && rows.length > 0) {
-                    const parsed = rows.filter(r => r[1]).map(r => ({
-                        id: String(r[0]).trim(),
-                        username: String(r[1]).trim(),
-                        password: String(r[2] ?? '12345').trim(),
-                        role: String(r[3] || 'Operator').trim()
-                    }));
-                    if (parsed.length > 0) usersData = parsed;
+                    const userById = new Map();
+                    rows.filter(r => r[1]).forEach(r => {
+                        const uid = String(r[0]).trim();
+                        if (!uid) return;
+                        userById.set(uid, {
+                            id: uid,
+                            username: String(r[1]).trim(),
+                            password: String(r[2] ?? '12345').trim(),
+                            role: resolveRoleKey(r[3] || 'Operator')
+                        });
+                    });
+                    const parsed = Array.from(userById.values());
+                    if (parsed.length > 0) {
+                        usersData = mergeListWithDirty('Users', parsed, usersData, false, u => u.id);
+                    }
                 } else if (seedMissing) {
                     sheetUpsertMany('Users', usersData);
                 }
 
-                // 2. Expedisi
+                const hadReturnBeforeMigrate = Array.isArray(seededMenuIds) && seededMenuIds.includes('return');
+                ensureFullAccessRoles();
+                if (!hadReturnBeforeMigrate && seededMenuIds.includes('return') && seedMissing) {
+                    syncConfigToSheet();
+                }
+
+                // Sinkronkan profil user yang sedang login bila ada pembaruan username/posisi dari WHDM
+                if (currentUser) {
+                    const updatedMe = usersData.find(u => u.id === currentUser.id)
+                        || usersData.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
+                    if (updatedMe) {
+                        currentUser = updatedMe;
+                        const nameEl = document.getElementById('nav-user-name');
+                        const roleEl = document.getElementById('nav-user-role');
+                        const avatarEl = document.getElementById('nav-user-avatar');
+                        if (nameEl) nameEl.textContent = updatedMe.username;
+                        if (roleEl) roleEl.textContent = resolveRoleKey(updatedMe.role);
+                        if (avatarEl) avatarEl.textContent = updatedMe.username.charAt(0).toUpperCase();
+                    }
+                }
+
+                // 3. Expedisi
                 rows = sheetRows(sheets, 'Expedisi');
                 if (rows && rows.length > 0) {
                     const parsed = rows.filter(r => r[1] || r[0]).map((r, idx) => ({
@@ -8759,16 +9081,18 @@ function doPost(e) {
                         name: String(r[1] || r[0]).trim(),
                         service: dash(r[2])
                     }));
-                    if (parsed.length > 0) expedisiData = parsed;
+                    if (parsed.length > 0) {
+                        expedisiData = mergeListWithDirty('Expedisi', parsed, expedisiData, false, e => e.id);
+                    }
                 } else if (seedMissing) {
                     sheetUpsertMany('Expedisi', expedisiData);
                 }
 
-                // 3. Master Barang
+                // 4. Master Barang
                 rows = sheetRows(sheets, 'MasterBarang');
                 if (rows && rows.length > 0) {
                     rows = seedMissing ? purgeDemoRows('MasterBarang', rows) : rows;
-                    masterBarangData = rows.filter(r => String(r[0] ?? '').trim() !== '' && String(r[1] ?? '').trim() !== '').map(r => ({
+                    const parsedBarang = rows.filter(r => String(r[0] ?? '').trim() !== '' && String(r[1] ?? '').trim() !== '').map(r => ({
                         sku: String(r[0]).trim().toUpperCase(),
                         name: String(r[1]).trim(),
                         barcode: str(r[2]),
@@ -8776,67 +9100,34 @@ function doPost(e) {
                         noRack: str(r[4]).toUpperCase(),
                         expiredDate: D(r[5])
                     }));
+                    masterBarangData = mergeListWithDirty('MasterBarang', parsedBarang, masterBarangData, false, b => b.sku);
                 } else if (seedMissing) {
                     sheetUpsertMany('MasterBarang', masterBarangData);
                 }
 
-                // 4. Pengaturan (reason absen/overtime, master isian, filter PIC & hak akses posisi)
-                const cfg = sheetRows(sheets, 'Pengaturan');
-                if (cfg && cfg.length > 0) {
-                    const map = {};
-                    cfg.forEach(r => { try { map[String(r[0]).trim()] = JSON.parse(String(r[1])); } catch (e) {} });
-                    if (Array.isArray(map.absenReasons)) absenReasons = map.absenReasons;
-                    if (Array.isArray(map.absenQuickNotes)) absenQuickNotes = map.absenQuickNotes;
-                    if (Array.isArray(map.overtimeReasons)) overtimeReasons = map.overtimeReasons;
-                    if (Array.isArray(map.overtimeQuickHours)) overtimeQuickHours = map.overtimeQuickHours;
-                    if (Array.isArray(map.overtimeQuickNotes)) overtimeQuickNotes = map.overtimeQuickNotes;
-                    if (Array.isArray(map.salahBarangReasons)) salahBarangReasons = map.salahBarangReasons;
-                    if (Array.isArray(map.gudangSumberOptions)) gudangSumberOptions = map.gudangSumberOptions;
-                    if (Array.isArray(map.projectCategories)) projectCategories = map.projectCategories;
-                    if (Array.isArray(map.projectPriorities)) projectPriorities = map.projectPriorities;
-                    if (Array.isArray(map.dispatchQuickQtys)) dispatchQuickQtys = map.dispatchQuickQtys;
-                    if (Array.isArray(map.offlineShops)) offlineShops = normalizeOfflineShops(map.offlineShops);
-                    if (Array.isArray(map.adminResiQuickQtys)) adminResiQuickQtys = map.adminResiQuickQtys;
-                    if (Array.isArray(map.cycleCountQuickQtys)) cycleCountQuickQtys = map.cycleCountQuickQtys;
-                    if (Array.isArray(map.cycleCountDamageReasons)) cycleCountDamageReasons = map.cycleCountDamageReasons;
-                    if (Array.isArray(map.qcQuickNotes)) qcQuickNotes = map.qcQuickNotes;
-                    if (Array.isArray(map.returnOfflineQuickQtys)) returnOfflineQuickQtys = map.returnOfflineQuickQtys;
-                    if (Array.isArray(map.returnOnlineQuickQtys)) returnOnlineQuickQtys = map.returnOnlineQuickQtys;
-                    if (Array.isArray(map.returnOnlineReasons)) returnOnlineReasons = normalizeReturnOnlineReasons(map.returnOnlineReasons);
-                    if (Array.isArray(map.driverLocations)) driverLocations = map.driverLocations;
-                    if (Array.isArray(map.driverVehicles)) driverVehicles = map.driverVehicles;
-                    if (map.inventoryConfig && typeof map.inventoryConfig === 'object') inventoryConfig = { ...inventoryConfig, ...map.inventoryConfig };
-                    if (map.picRoleFilters && typeof map.picRoleFilters === 'object') {
-                        picRoleFilters = { ...DEFAULT_PIC_ROLE_FILTERS, ...map.picRoleFilters };
-                    }
-                    if (Array.isArray(map.seededMenuIds)) {
-                        seededMenuIds = map.seededMenuIds;
-                    } else if (map.rolePermissions && typeof map.rolePermissions === 'object') {
-                        seededMenuIds = ALL_MENU_IDS.filter(id => id !== 'return');
-                    }
-                    if (map.rolePermissions && typeof map.rolePermissions === 'object') ROLE_PERMISSIONS = map.rolePermissions;
-                } else if (seedMissing) {
-                    syncConfigToSheet();
-                }
-                const hadReturnBeforeMigrate = Array.isArray(seededMenuIds) && seededMenuIds.includes('return');
-                ensureFullAccessRoles();
-                if (!hadReturnBeforeMigrate && seededMenuIds.includes('return') && seedMissing) {
-                    syncConfigToSheet();
-                }
-
-                // 5. Data transaksi (tab yang belum ada di Sheet dibiarkan, tab kosong = data kosong)
-                const apply = (name, mapper, setter, newestFirst = true) => {
+                // 5. Data transaksi (tab yang belum ada di Sheet dibiarkan, tab kosong = data kosong kecuali ada antrean lokal)
+                const apply = (name, mapper, getCurrent, setter, newestFirst = true) => {
                     let r = sheetRows(sheets, name);
                     if (r === null) return;
                     if (seedMissing) r = purgeDemoRows(name, r);
                     const list = r.map(mapper);
-                    setter(newestFirst ? list.reverse() : list);
+                    const ordered = newestFirst ? list.reverse() : list;
+                    setter(mergeListWithDirty(name, ordered, getCurrent(), newestFirst));
                 };
 
                 apply('Project', r => {
                     const id = String(r[0]).trim();
                     const prev = projectsData.find(x => x.id === id);
                     const status = str(r[4], 'Open');
+                    let checklistParsed = Array.isArray(prev?.checklist) ? prev.checklist : [];
+                    if (r[9] !== undefined && String(r[9]).trim() !== '' && String(r[9]).trim() !== '-') {
+                        try {
+                            const c = JSON.parse(String(r[9]));
+                            if (Array.isArray(c)) checklistParsed = c;
+                        } catch (e) {}
+                    }
+                    const progRaw = r[8];
+                    const hasProg = progRaw !== undefined && progRaw !== null && String(progRaw).trim() !== '' && !isNaN(Number(progRaw));
                     return {
                         id,
                         name: str(r[1]),
@@ -8844,20 +9135,20 @@ function doPost(e) {
                         dueDate: D(r[3]),
                         status,
                         notes: dash(r[5]),
-                        priority: prev?.priority || 'Normal',
-                        category: prev?.category || 'Operasional Gudang',
-                        progress: prev?.progress !== undefined ? prev.progress : (status === 'Done' ? 100 : status === 'On Progress' ? 50 : status === 'Hold' ? 25 : 0),
-                        checklist: Array.isArray(prev?.checklist) ? prev.checklist : [],
+                        priority: dash(r[6]) || prev?.priority || 'Normal',
+                        category: dash(r[7]) || prev?.category || 'Operasional Gudang',
+                        progress: hasProg ? Number(progRaw) : (prev?.progress !== undefined ? prev.progress : (status === 'Done' ? 100 : status === 'On Progress' ? 50 : status === 'Hold' ? 25 : 0)),
+                        checklist: checklistParsed,
                         startPhoto: prev?.startPhoto || '',
                         donePhoto: prev?.donePhoto || '',
-                        doneAt: prev?.doneAt || ''
+                        doneAt: D(r[10]) || prev?.doneAt || ''
                     };
-                }, v => { projectsData = v; });
+                }, () => projectsData, v => { projectsData = v; });
 
                 apply('Dispatch', r => ({
                     id: String(r[0]).trim(), date: D(r[1]), timestamp: str(T(r[2])), packer: str(r[3]),
                     expedisi: str(r[4]), qty: Number(r[5] || 0), createdBy: str(r[6], 'User')
-                }), v => { dispatchEntries = v; });
+                }), () => dispatchEntries, v => { dispatchEntries = v; });
 
                 apply('DispatchOffline', r => {
                     const id = String(r[0]).trim();
@@ -8892,24 +9183,24 @@ function doPost(e) {
                         unloadingGoodsPhoto: pickPhoto(24, prev?.unloadingGoodsPhoto),
                         unloadingSignedDocPhoto: pickPhoto(25, prev?.unloadingSignedDocPhoto)
                     };
-                }, v => { dispatchOfflineEntries = v; });
+                }, () => dispatchOfflineEntries, v => { dispatchOfflineEntries = v; });
 
                 apply('Absen', r => ({
                     id: String(r[0]).trim(), date: D(r[1]), timestamp: str(T(r[2])), staffName: str(r[3]),
                     staffRole: str(r[4], 'Staff'), reason: str(r[5]), note: dash(r[6]), createdBy: str(r[7], 'Admin')
-                }), v => { absenEntries = v; });
+                }), () => absenEntries, v => { absenEntries = v; });
 
                 apply('Overtime', r => ({
                     id: String(r[0]).trim(), date: D(r[1]), timestamp: str(T(r[2])), staffName: str(r[3]),
                     staffRole: str(r[4], 'Staff'), reason: str(r[5]), hours: Number(r[6] || 0),
                     note: dash(r[7]), createdBy: str(r[8], 'Admin')
-                }), v => { overtimeEntries = v; });
+                }), () => overtimeEntries, v => { overtimeEntries = v; });
 
                 apply('CycleCount', r => ({
                     id: String(r[0]).trim(), date: D(r[1]), time: str(T(r[2])), gudangSumber: str(r[3]),
                     sku: str(r[4]), barcode: str(r[5]), name: str(r[6]), brand: str(r[7]), noRack: str(r[8]),
                     expiryDate: D(r[9]), condition: str(r[10], 'Bagus'), note: dash(r[11]), qty: Number(r[12] || 0)
-                }), v => { cycleCountEntries = v; });
+                }), () => cycleCountEntries, v => { cycleCountEntries = v; });
 
                 apply('QC_Jobtasks', r => ({
                     id: String(r[0]).trim(), createDate: D(r[1]), createTime: str(T(r[2])), requestFrom: str(r[3]),
@@ -8920,18 +9211,18 @@ function doPost(e) {
                     transactionNo: dash(r[14]), transferDate: D(r[15]),
                     prosesTime: dash(T(r[16])), transferTime: dash(T(r[17])),
                     barcode: dash(r[18]), brand: dash(r[19]), packagingNo: ''
-                }), v => { qcJobtasks = v; });
+                }), () => qcJobtasks, v => { qcJobtasks = v; });
 
                 apply('AdminResi', r => ({
                     id: String(r[0]).trim(), date: D(r[1]), timestamp: str(T(r[2])), picker: str(r[3]),
                     expedisi: str(r[4]), qty: Number(r[5] || 0), createdBy: str(r[6], 'Admin')
-                }), v => { adminResiEntries = v; });
+                }), () => adminResiEntries, v => { adminResiEntries = v; });
 
                 apply('SalahBarang', r => ({
                     id: String(r[0]).trim(), date: D(r[1]), timestamp: str(T(r[2])), sku: str(r[3]),
                     barcode: dash(r[4]), name: str(r[5]), picker: str(r[6]), qty: Number(r[7] || 0),
                     reason: str(r[8], 'Salah barang'), createdBy: str(r[9], 'Admin')
-                }), v => { salahBarangEntries = v; });
+                }), () => salahBarangEntries, v => { salahBarangEntries = v; });
 
                 apply('DriverCheckin', r => {
                     const id = String(r[0]).trim();
@@ -8943,7 +9234,7 @@ function doPost(e) {
                         photo: rawPhoto.startsWith('data:image') ? rawPhoto : (prev?.photo || ''),
                         note: dash(r[10]), createdBy: str(r[11], str(r[3]))
                     };
-                }, v => { driverCheckins = v; });
+                }, () => driverCheckins, v => { driverCheckins = v; });
 
                 apply('DriverExpense', r => {
                     const id = String(r[0]).trim();
@@ -8960,7 +9251,7 @@ function doPost(e) {
                         totalCost: Number(r[10] || (tol + bensin + parkir)),
                         note: dash(r[11]), createdBy: str(r[12], str(r[3]))
                     };
-                }, v => { driverExpenses = v; });
+                }, () => driverExpenses, v => { driverExpenses = v; });
 
                 apply('DriverVehicle', r => {
                     const id = String(r[0]).trim();
@@ -8976,14 +9267,16 @@ function doPost(e) {
                         photo: rawPhoto.startsWith('data:image') ? rawPhoto : (prev?.photo || ''),
                         createdBy: str(r[13], str(r[3]))
                     };
-                }, v => { driverVehicleLogs = v; });
+                }, () => driverVehicleLogs, v => { driverVehicleLogs = v; });
 
                 const invRows = sheetRows(sheets, 'InventoryStock');
-                if (invRows && invRows.length > 0) {
-                    const nextMeta = { ...inventoryStockMeta };
+                if (invRows !== null && !dirtyReplaceAll['InventoryStock']) {
+                    const nextMeta = invRows.length > 0 ? {} : { ...inventoryStockMeta };
+                    const invDel = dirtyDeletes['InventoryStock'] || {};
+                    const invUp = dirtyUpserts['InventoryStock'] || {};
                     invRows.forEach(r => {
                         const skuKey = String(r[0] || '').trim().toUpperCase();
-                        if (!skuKey) return;
+                        if (!skuKey || invDel[skuKey]) return;
                         nextMeta[skuKey] = {
                             stock: Number(r[1] || 0),
                             minStock: Number(r[2] || 0),
@@ -8991,6 +9284,11 @@ function doPost(e) {
                             avgDailyOut: Number(r[4] || 0),
                             lastMovementDate: D(r[5])
                         };
+                    });
+                    Object.keys(invUp).forEach(skuKey => {
+                        if (inventoryStockMeta[skuKey] && !invDel[skuKey]) {
+                            nextMeta[skuKey] = inventoryStockMeta[skuKey];
+                        }
                     });
                     inventoryStockMeta = nextMeta;
                 }
@@ -9006,7 +9304,7 @@ function doPost(e) {
                     reason: str(r[7], '-'),
                     note: dash(r[8]),
                     createdBy: str(r[9], 'User')
-                }), v => { returnOfflineEntries = v; });
+                }), () => returnOfflineEntries, v => { returnOfflineEntries = v; });
 
                 apply('ReturOnline', r => ({
                     id: String(r[0]).trim(),
@@ -9019,7 +9317,7 @@ function doPost(e) {
                     reason: str(r[7], '-'),
                     note: dash(r[8]),
                     createdBy: str(r[9], 'User')
-                }), v => { returnOnlineEntries = v; });
+                }), () => returnOnlineEntries, v => { returnOnlineEntries = v; });
 
                 syncState.error = '';
                 syncState.lastSync = nowHHmm();
@@ -9044,6 +9342,8 @@ function doPost(e) {
                 confirmLabel: 'Ya, Kirim Semua Data'
             });
             if (!ok) return;
+            clearTimeout(configSyncTimer);
+            hasPendingConfigTimer = false;
             showToast('Mengirim seluruh data ke tab-tab Google Sheet...', 'info');
             for (const [name, schema] of Object.entries(SHEET_SCHEMA)) {
                 const list = [...schema.list()];
@@ -9416,6 +9716,9 @@ function doPost(e) {
                 return false;
             }
             if (isPulling) return false;
+            if (getScriptUrl()) {
+                await flushPendingMutations().catch(() => {});
+            }
             isPulling = true;
             renderSyncChip();
             try {
@@ -10708,18 +11011,18 @@ function doPost(e) {
             showToast('Data Cycle Count dihapus.', 'info');
         }
 
-        function syncCycleCountToGoogleSheet() {
-            if (!setupConfig.appsScriptUrl) {
+        async function syncCycleCountToGoogleSheet() {
+            if (!getScriptUrl()) {
+                await syncSheetConfigWithServer();
+            }
+            if (!getScriptUrl()) {
                 showToast('URL Google Apps Script belum diatur di menu Setting.', 'warning');
                 return;
             }
-            postToGoogleSheet(
-                'CycleCount',
-                ['ID', 'Tanggal', 'Jam', 'Gudang Sumber', 'SKU Code', 'Barcode', 'Product Name', 'Brand', 'No Rack', 'Expiry Date', 'Kondisi', 'Keterangan', 'Qty Fisik'],
-                cycleCountEntries.map(i => [i.id, i.date, i.time, i.gudangSumber || '-', i.sku, i.barcode, i.name, i.brand, i.noRack, i.expiryDate || '-', i.condition || 'Bagus', i.note || '-', i.qty]),
-                'replace_all'
-            );
-            showToast('Data Cycle Count berhasil disinkronkan ke Google Sheet!', 'success');
+            const schema = SHEET_SCHEMA.CycleCount;
+            const rows = [...cycleCountEntries].reverse().map(schema.row);
+            await postToGoogleSheet('CycleCount', schema.headers, rows, 'replace_all');
+            showToast(`${cycleCountEntries.length} data Cycle Count berhasil disinkronkan ke Google Sheet!`, 'success');
         }
 
         function exportCycleCountCsv() {
@@ -11098,10 +11401,11 @@ function doPost(e) {
         // ==========================================
         function getAllowedMenusForUser(user) {
             if (!user) return [];
-            if (Array.isArray(ROLE_PERMISSIONS[user.role])) {
-                return ROLE_PERMISSIONS[user.role];
+            const roleKey = resolveRoleKey(user.role);
+            if (Array.isArray(ROLE_PERMISSIONS[roleKey])) {
+                return ROLE_PERMISSIONS[roleKey];
             }
-            if (user.role === 'Manager' || user.role === 'SPV') {
+            if (roleKey === 'Manager' || roleKey === 'SPV') {
                 return MASTER_MENUS.map(m => m.id);
             }
             return [];
@@ -11355,6 +11659,9 @@ function doPost(e) {
                 activeViewEl = document.getElementById('view-user');
                 activeViewEl?.classList.remove('hidden');
                 renderUserTable();
+                if ((getScriptUrl() || hasActiveGoogleOAuthSheet()) && !isPulling && !isFlushing) {
+                    pullAllDataFromGoogleSheet(true).catch(() => {});
+                }
             } else if (route === 'dispatch') {
                 activeViewEl = document.getElementById('view-dispatch');
                 activeViewEl?.classList.remove('hidden');
@@ -11652,6 +11959,8 @@ function doPost(e) {
             }
             document.getElementById('new-menu-title').value = '';
             document.getElementById('new-menu-subtitle').value = '';
+            saveAppStateToLocal();
+            syncConfigToSheet();
             renderExistingMenusList();
             renderHomeMenuGrid();
             showToast(`Menu "${title}" berhasil ditambahkan!`, 'success');
@@ -11662,6 +11971,8 @@ function doPost(e) {
             Object.keys(ROLE_PERMISSIONS).forEach(r => {
                 ROLE_PERMISSIONS[r] = ROLE_PERMISSIONS[r].filter(mid => mid !== id);
             });
+            saveAppStateToLocal();
+            syncConfigToSheet();
             renderExistingMenusList();
             renderHomeMenuGrid();
             showToast('Menu berhasil dihapus.', 'info');
@@ -11670,6 +11981,61 @@ function doPost(e) {
         // ==========================================
         // 4. MANAJEMEN USER & POSISI (ROLE)
         // ==========================================
+        function getNextUserId() {
+            let maxNum = 0;
+            usersData.forEach(u => {
+                const m = String(u.id || '').trim().match(/^USR-(\d+)$/i);
+                if (m) {
+                    const n = parseInt(m[1], 10);
+                    if (Number.isFinite(n) && n > maxNum) maxNum = n;
+                }
+            });
+            let nextNum = Math.max(maxNum, usersData.length) + 1;
+            let candidate = 'USR-' + String(nextNum).padStart(3, '0');
+            while (usersData.some(u => String(u.id || '').toLowerCase() === candidate.toLowerCase())) {
+                nextNum++;
+                candidate = 'USR-' + String(nextNum).padStart(3, '0');
+            }
+            return candidate;
+        }
+
+        async function syncUsersModuleWithWhdm() {
+            const btn = document.getElementById('btn-sync-users-whdm');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Menyinkronkan...</span>`;
+                refreshLucideIcons(btn);
+            }
+            try {
+                if (!getScriptUrl() && !hasActiveGoogleOAuthSheet()) {
+                    await syncSheetConfigWithServer();
+                }
+                if (!getScriptUrl() && !hasActiveGoogleOAuthSheet()) {
+                    showToast('Koneksi database WHDM belum aktif di menu Setting.', 'warning');
+                    return;
+                }
+                await flushPendingMutations();
+                const pulled = await pullAllDataFromGoogleSheet(true);
+                renderUserTable();
+                if (!document.getElementById('role-manager-modal')?.classList.contains('hidden')) {
+                    renderExistingRolesList();
+                }
+                if (currentUser) renderHomeMenuGrid();
+                if (pulled) {
+                    showToast(`Sinkron data User & Hak Akses berhasil (${usersData.length} user di WHDM)!`, 'success');
+                } else {
+                    showToast('Sebagian antrean lokal masih menunggu koneksi, coba beberapa saat lagi.', 'warning');
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                    refreshLucideIcons(btn);
+                }
+            }
+        }
+
         function renderUserTable() {
             const tbody = document.getElementById('user-table-body');
             if (!tbody) return;
@@ -11677,11 +12043,12 @@ function doPost(e) {
             const filtered = usersData.filter(u =>
                 u.id.toLowerCase().includes(q) ||
                 u.username.toLowerCase().includes(q) ||
-                u.role.toLowerCase().includes(q)
+                resolveRoleKey(u.role).toLowerCase().includes(q)
             );
 
             tbody.innerHTML = filtered.map(u => {
-                const permIds = Array.isArray(ROLE_PERMISSIONS[u.role]) ? ROLE_PERMISSIONS[u.role] : [];
+                const roleKey = resolveRoleKey(u.role);
+                const permIds = Array.isArray(ROLE_PERMISSIONS[roleKey]) ? ROLE_PERMISSIONS[roleKey] : [];
                 const isAll = MASTER_MENUS.length > 0 && MASTER_MENUS.every(m => permIds.includes(m.id));
                 const menus = permIds.map(id => {
                     const found = MASTER_MENUS.find(m => m.id === id);
@@ -11691,24 +12058,25 @@ function doPost(e) {
                     ? `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">SEMUA MENU (${MASTER_MENUS.length})</span>`
                     : (menus.length === 0
                         ? `<span class="text-xs text-slate-400 italic">Belum ada menu</span>`
-                        : menus.map(t => `<span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-medium">${t}</span>`).join(' '));
+                        : menus.map(t => `<span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-medium">${escapeHtmlText(t)}</span>`).join(' '));
+                const safeIdAttr = String(u.id || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
                 return `
                     <tr class="hover:bg-slate-50/80 transition">
-                        <td class="py-3.5 px-5 font-mono text-xs font-bold text-slate-600">${u.id}</td>
-                        <td class="py-3.5 px-5 font-bold text-slate-900">${u.username}</td>
-                        <td class="py-3.5 px-5 font-mono text-xs text-slate-500">${u.password}</td>
+                        <td class="py-3.5 px-5 font-mono text-xs font-bold text-slate-600">${escapeHtmlText(u.id)}</td>
+                        <td class="py-3.5 px-5 font-bold text-slate-900">${escapeHtmlText(u.username)}</td>
+                        <td class="py-3.5 px-5 font-mono text-xs text-slate-500">${escapeHtmlText(u.password)}</td>
                         <td class="py-3.5 px-5">
-                            <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700">${u.role}</span>
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700">${escapeHtmlText(roleKey)}</span>
                         </td>
                         <td class="py-3.5 px-5">
                             <div class="flex flex-wrap gap-1">${badgesHtml}</div>
                         </td>
                         <td class="py-3.5 px-5 text-right whitespace-nowrap">
-                            <button type="button" onclick="openUserModal('${u.id}')" class="p-1.5 text-slate-500 hover:text-indigo-600 rounded-lg" title="Edit">
+                            <button type="button" onclick="openUserModal('${safeIdAttr}')" class="p-1.5 text-slate-500 hover:text-indigo-600 rounded-lg" title="Edit">
                                 <i data-lucide="pencil" class="w-4 h-4"></i>
                             </button>
-                            <button type="button" onclick="deleteUser('${u.id}')" class="p-1.5 text-slate-500 hover:text-rose-600 rounded-lg" title="Hapus">
+                            <button type="button" onclick="deleteUser('${safeIdAttr}')" class="p-1.5 text-slate-500 hover:text-rose-600 rounded-lg" title="Hapus">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </td>
@@ -11721,21 +12089,23 @@ function doPost(e) {
         function openUserModal(editId = null) {
             const modal = document.getElementById('user-modal');
             const roleSelect = document.getElementById('form-user-role');
-            roleSelect.innerHTML = Object.keys(ROLE_PERMISSIONS).map(r => `<option value="${r}">${r}</option>`).join('');
+            ensureFullAccessRoles();
+            roleSelect.innerHTML = Object.keys(ROLE_PERMISSIONS).map(r => `<option value="${escapeHtmlText(r)}">${escapeHtmlText(r)}</option>`).join('');
 
             if (editId) {
                 const u = usersData.find(x => x.id === editId);
                 if (!u) return;
+                const resolvedRole = resolveRoleKey(u.role);
                 document.getElementById('user-modal-title').textContent = 'Edit Data User';
                 document.getElementById('edit-user-original-id').value = u.id;
                 document.getElementById('form-user-id').value = u.id;
                 document.getElementById('form-user-username').value = u.username;
                 document.getElementById('form-user-password').value = u.password;
-                roleSelect.value = u.role;
+                roleSelect.value = resolvedRole;
             } else {
                 document.getElementById('user-modal-title').textContent = 'Tambah User Baru';
                 document.getElementById('edit-user-original-id').value = '';
-                document.getElementById('form-user-id').value = 'USR-' + String(usersData.length + 1).padStart(3, '0');
+                document.getElementById('form-user-id').value = getNextUserId();
                 document.getElementById('form-user-username').value = '';
                 document.getElementById('form-user-password').value = '12345';
             }
@@ -11752,35 +12122,63 @@ function doPost(e) {
         }
 
         function updateModalRolePreview() {
-            const role = document.getElementById('form-user-role')?.value;
+            const role = resolveRoleKey(document.getElementById('form-user-role')?.value);
             const previewBox = document.getElementById('modal-role-menus-preview');
             if (!previewBox || !role) return;
             const permIds = Array.isArray(ROLE_PERMISSIONS[role]) ? ROLE_PERMISSIONS[role] : [];
             const menus = MASTER_MENUS.filter(m => permIds.includes(m.id));
             previewBox.innerHTML = menus.length === 0
                 ? `<span class="text-xs text-slate-400">Belum ada menu aktif untuk posisi ini.</span>`
-                : menus.map(m => `<span class="px-2 py-0.5 rounded-md bg-white border border-indigo-200 text-indigo-800 text-[11px] font-semibold">${m.title}</span>`).join('');
+                : menus.map(m => `<span class="px-2 py-0.5 rounded-md bg-white border border-indigo-200 text-indigo-800 text-[11px] font-semibold">${escapeHtmlText(m.title)}</span>`).join('');
         }
 
         document.getElementById('user-form')?.addEventListener('submit', function(e) {
             e.preventDefault();
-            const origId = document.getElementById('edit-user-original-id').value;
+            const origId = document.getElementById('edit-user-original-id').value.trim();
             const id = document.getElementById('form-user-id').value.trim();
             const username = document.getElementById('form-user-username').value.trim();
             const password = document.getElementById('form-user-password').value.trim();
-            const role = document.getElementById('form-user-role').value;
+            const role = resolveRoleKey(document.getElementById('form-user-role').value);
 
+            if (!id || !username || !password) {
+                showToast('ID User, Username, dan Password wajib diisi.', 'warning');
+                return;
+            }
+            const idConflict = usersData.some(u => u.id !== origId && String(u.id || '').toLowerCase() === id.toLowerCase());
+            if (idConflict) {
+                showToast(`ID User "${id}" sudah digunakan oleh akun lain! Gunakan ID unik.`, 'warning');
+                return;
+            }
+            const nameConflict = usersData.some(u => u.id !== origId && String(u.username || '').trim().toLowerCase() === username.toLowerCase());
+            if (nameConflict) {
+                showToast(`Username "${username}" sudah terdaftar. Gunakan username lain.`, 'warning');
+                return;
+            }
+
+            const newUserObj = { id, username, password, role };
             if (origId) {
                 const idx = usersData.findIndex(u => u.id === origId);
-                if (idx !== -1) usersData[idx] = { id, username, password, role };
-                showToast(`Data user "${username}" diperbarui!`, 'success');
+                if (idx !== -1) usersData[idx] = newUserObj;
+                else usersData.push(newUserObj);
+                usersData = usersData.filter((u, i) => !(u.id === origId && i !== idx) && !(u.id === id && i !== (idx !== -1 ? idx : usersData.length - 1)));
+                if (currentUser && currentUser.id === origId) {
+                    currentUser = newUserObj;
+                    const nameEl = document.getElementById('nav-user-name');
+                    const roleEl = document.getElementById('nav-user-role');
+                    const avatarEl = document.getElementById('nav-user-avatar');
+                    if (nameEl) nameEl.textContent = newUserObj.username;
+                    if (roleEl) roleEl.textContent = newUserObj.role;
+                    if (avatarEl) avatarEl.textContent = newUserObj.username.charAt(0).toUpperCase();
+                    renderHomeMenuGrid();
+                }
+                showToast(`Data user "${username}" diperbarui & disinkronkan!`, 'success');
             } else {
-                usersData.push({ id, username, password, role });
-                showToast(`User baru "${username}" ditambahkan!`, 'success');
+                usersData.push(newUserObj);
+                showToast(`User baru "${username}" ditambahkan & disinkronkan!`, 'success');
             }
             saveAppStateToLocal();
             if (origId && origId !== id) sheetDelete('Users', origId);
-            sheetUpsertItem('Users', { id, username, password, role });
+            sheetUpsertItem('Users', newUserObj);
             closeUserModal();
             renderUserTable();
         });
@@ -11794,10 +12192,11 @@ function doPost(e) {
             saveAppStateToLocal();
             sheetDelete('Users', id);
             renderUserTable();
-            showToast('User berhasil dihapus.', 'info');
+            showToast('User berhasil dihapus & disinkronkan.', 'info');
         }
 
         function openRoleManagerModal() {
+            ensureFullAccessRoles();
             const cbBox = document.getElementById('new-role-menus-checkboxes');
             cbBox.innerHTML = MASTER_MENUS.map(m => `
                 <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 text-xs font-medium text-slate-700 cursor-pointer">
@@ -11816,6 +12215,9 @@ function doPost(e) {
             const modal = document.getElementById('role-manager-modal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            if (hasPendingConfigTimer || dirtySyncRecords?.configDirty) {
+                flushPendingMutations();
+            }
             renderUserTable();
             renderHomeMenuGrid();
         }
@@ -15984,6 +16386,7 @@ function doPost(e) {
             projectsData[pIdx] = item;
             input.value = '';
             saveAppStateToLocal();
+            sheetUpsertItem('Project', item);
             renderProjectList();
             renderProjectDetailModalContent(activeDetailProjectId);
         }
@@ -15999,6 +16402,7 @@ function doPost(e) {
             }
             projectsData[pIdx] = item;
             saveAppStateToLocal();
+            sheetUpsertItem('Project', item);
             renderProjectList();
             renderProjectDetailModalContent(id);
         }
@@ -18112,7 +18516,8 @@ function doPost(e) {
 
         function deleteSalahBarangEntry(id) {
             salahBarangEntries = salahBarangEntries.filter(i => i.id !== id);
-            postToGoogleSheet('SalahBarang', [], [], 'delete', { id });
+            saveAppStateToLocal();
+            sheetDelete('SalahBarang', id);
             renderSalahBarangReport();
             renderSalahBarangDailyList();
             showToast('Data salah barang dihapus.', 'info');
@@ -19411,11 +19816,13 @@ function doPost(e) {
             if (targetKey === 'ALL') {
                 LOCAL_RESET_MODULES.forEach(m => m.clear());
                 driverCheckins = [];
+                clearLocalDirtyStateForModule('ALL');
                 showToast('Semua data transaksi lokal (kecuali User) berhasil dihapus. Database Google Sheet tetap utuh.', 'success');
             } else {
                 const mod = LOCAL_RESET_MODULES.find(m => m.key === targetKey);
                 if (!mod) return;
                 mod.clear();
+                clearLocalDirtyStateForModule(mod.key);
                 if (mod.key === 'dispatchOffline' && typeof renderDispatchOfflineList === 'function') renderDispatchOfflineList();
                 showToast(`Data lokal "${mod.label}" dihapus tanpa menghapus database Google Sheet.`, 'success');
             }
@@ -22604,7 +23011,7 @@ function doPost(e) {
                 await saveSheetConfigToServer(setupConfig, false);
             }
             // Kirim dulu antrean yang tertunda, lalu tarik data terbaru dari Google Sheet
-            await flushSyncQueue();
+            await flushPendingMutations();
             await pullAllDataFromGoogleSheet(true);
 
             // Perangkat lain ikut terbarui: tarik data otomatis tiap 60 detik & saat tab kembali dibuka
@@ -22615,7 +23022,7 @@ function doPost(e) {
                 if (!document.hidden && currentUser) pullAllDataFromGoogleSheet(true);
             });
             window.addEventListener('online', async () => {
-                await flushSyncQueue();
+                await flushPendingMutations();
                 pullAllDataFromGoogleSheet(true);
             });
         });

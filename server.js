@@ -103,40 +103,60 @@ function writeSharedSheetConfig(cfg) {
   }
 }
 
-app.use('/.data', (_req, res) => {
-  res.status(403).json({ ok: false, error: 'Forbidden' });
-});
-app.use('/config', (_req, res) => {
-  res.status(403).json({ ok: false, error: 'Forbidden' });
-});
-
 app.use(express.json({ limit: '64kb' }));
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/favicon.ico', (_req, res) => {
+  const pubIcon = path.resolve(__dirname, 'public', 'favicon.ico');
+  const rootIcon = path.resolve(__dirname, 'favicon.ico');
+  if (fs.existsSync(pubIcon)) return res.sendFile(pubIcon);
+  if (fs.existsSync(rootIcon)) return res.sendFile(rootIcon);
+  return res.status(204).end();
+});
 
 app.get('/vendor/xlsx.full.min.js', (_req, res) => {
   res.sendFile(path.join(__dirname, 'node_modules/xlsx/dist/xlsx.full.min.js'));
 });
 
-app.get('/api/firebase-config', (_req, res) => {
-  res.setHeader('Cache-Control', 'no-store');
+function readFirebaseConfig() {
+  const envApiKey = sanitizeText(process.env.FIREBASE_API_KEY || '', 160);
+  const envProjectId = sanitizeText(process.env.FIREBASE_PROJECT_ID || '', 120);
+  if (envApiKey && envProjectId) {
+    return {
+      projectId: envProjectId,
+      appId: sanitizeText(process.env.FIREBASE_APP_ID || '', 160),
+      apiKey: envApiKey,
+      authDomain: sanitizeText(process.env.FIREBASE_AUTH_DOMAIN || `${envProjectId}.firebaseapp.com`, 160),
+      storageBucket: sanitizeText(process.env.FIREBASE_STORAGE_BUCKET || '', 160),
+      messagingSenderId: sanitizeText(process.env.FIREBASE_MESSAGING_SENDER_ID || '', 80),
+      oAuthClientId: sanitizeText(process.env.FIREBASE_OAUTH_CLIENT_ID || '', 180)
+    };
+  }
+
   const fbPath = path.resolve(__dirname, 'firebase-applet-config.json');
   if (!fbPath.startsWith(__dirname + path.sep) || !fs.existsSync(fbPath)) {
-    return res.status(404).json({ ok: false, error: 'Firebase config not found' });
+    return null;
   }
+  const raw = JSON.parse(fs.readFileSync(fbPath, 'utf8'));
+  return {
+    projectId: sanitizeText(raw.projectId, 120),
+    appId: sanitizeText(raw.appId, 160),
+    apiKey: sanitizeText(raw.apiKey, 160),
+    authDomain: sanitizeText(raw.authDomain, 160),
+    storageBucket: sanitizeText(raw.storageBucket, 160),
+    messagingSenderId: sanitizeText(raw.messagingSenderId, 80),
+    oAuthClientId: sanitizeText(raw.oAuthClientId, 180)
+  };
+}
+
+app.get('/api/firebase-config', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
   try {
-    const raw = JSON.parse(fs.readFileSync(fbPath, 'utf8'));
-    return res.json({
-      ok: true,
-      config: {
-        projectId: sanitizeText(raw.projectId, 120),
-        appId: sanitizeText(raw.appId, 160),
-        apiKey: sanitizeText(raw.apiKey, 160),
-        authDomain: sanitizeText(raw.authDomain, 160),
-        storageBucket: sanitizeText(raw.storageBucket, 160),
-        messagingSenderId: sanitizeText(raw.messagingSenderId, 80),
-        oAuthClientId: sanitizeText(raw.oAuthClientId, 180)
-      }
-    });
+    const config = readFirebaseConfig();
+    if (!config || !config.apiKey) {
+      return res.status(404).json({ ok: false, error: 'Firebase config not found' });
+    }
+    return res.json({ ok: true, config });
   } catch {
     return res.status(500).json({ ok: false, error: 'Invalid Firebase config' });
   }
