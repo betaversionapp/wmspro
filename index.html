@@ -4,17 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WMS Pro - Warehouse Management Dashboard</title>
+    <script>
+        (function() {
+            var isExtSource = function(src, stack) {
+                var s = String(src || '');
+                var st = String(stack || '');
+                return /^(chrome|moz|safari)-extension:\/\//i.test(s) ||
+                    /(chrome|moz|safari)-extension:\/\//i.test(st);
+            };
+            window.addEventListener('error', function(event) {
+                var errMsg = String(event && event.message || '');
+                var filename = String(event && event.filename || '');
+                var stack = event && event.error && event.error.stack;
+                if (isExtSource(filename, stack) || /Cannot set property fetch of #<Window>/i.test(errMsg)) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+            }, true);
+            window.addEventListener('unhandledrejection', function(event) {
+                var reason = event && event.reason;
+                var msg = String(reason && (reason.message || reason) || '');
+                var stack = reason && reason.stack;
+                if (isExtSource('', stack) || /Cannot set property fetch of #<Window>/i.test(msg)) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+            }, true);
+            try {
+                var desc = Object.getOwnPropertyDescriptor(window, 'fetch');
+                if (desc && desc.get && !desc.set && desc.configurable) {
+                    var origGet = desc.get;
+                    var customFetch = null;
+                    Object.defineProperty(window, 'fetch', {
+                        configurable: true,
+                        enumerable: Boolean(desc.enumerable),
+                        get: function() { return customFetch || origGet.call(window); },
+                        set: function(fn) {
+                            if (typeof fn === 'function') customFetch = fn;
+                        }
+                    });
+                }
+            } catch (e) {}
+        })();
+    </script>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        if (typeof lucide === 'undefined') {
+            window.lucide = { createIcons: function() {} };
+            var lScript = document.createElement('script');
+            lScript.src = 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js';
+            lScript.onload = function() { try { window.lucide && window.lucide.createIcons && window.lucide.createIcons(); } catch (e) {} };
+            document.head.appendChild(lScript);
+        }
+    </script>
     <!-- HTML5-QRCode / Barcode Camera Scanner Fallback -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <!-- SheetJS Excel (.xlsx/.xls) Parser & Generator -->
-    <script src="/vendor/xlsx.full.min.js"></script>
-    <script>if (typeof XLSX === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\\/script>'); }</script>
+    <script>
+        (function() {
+            var isStaticHost = /\.github\.io$/i.test(window.location.hostname || '');
+            var xScript = document.createElement('script');
+            xScript.src = isStaticHost
+                ? 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
+                : '/vendor/xlsx.full.min.js';
+            xScript.onerror = function() {
+                if (!isStaticHost) {
+                    var fb = document.createElement('script');
+                    fb.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+                    document.head.appendChild(fb);
+                }
+            };
+            document.head.appendChild(xScript);
+        })();
+    </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -23915,8 +23982,12 @@ function doPost(e) {
 
         async function initFirebaseWorkspaceAuth() {
             const res = await fetch('/api/firebase-config', { cache: 'no-store' });
+            const ctype = String(res.headers.get('content-type') || '');
+            if (!res.ok || !ctype.includes('application/json')) {
+                return;
+            }
             const payload = await res.json();
-            if (!res.ok || !payload?.ok || !payload?.config?.apiKey) {
+            if (!payload?.ok || !payload?.config?.apiKey) {
                 throw new Error('Konfigurasi Firebase belum tersedia.');
             }
             const app = initializeApp(payload.config);
