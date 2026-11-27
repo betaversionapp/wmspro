@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Laporan Scan Paket - Mekari Desty Extractor</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PDF.js untuk membaca file PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <!-- SheetJS (XLSX) untuk membaca Excel/CSV & Export ke Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .drop-zone-active {
+            border-color: #2563eb !important;
+            background-color: #eff6ff !important;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-200">
+                    <i class="fa-solid fa-boxes-packing text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-900 leading-tight">Rekap Scan Paket</h1>
+                    <p class="text-xs text-slate-500">Ekstraktor Massal Laporan Mekari Desty (PDF / HTML / Excel)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="loadDemoData()" class="text-xs sm:text-sm px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition flex items-center gap-1.5" title="Uji coba dengan contoh data dari gambar">
+                    <i class="fa-solid fa-vial text-blue-600"></i>
+                    <span class="hidden sm:inline">Muat Data Contoh</span>
+                </button>
+                <button onclick="clearAllData()" id="btnClear" class="hidden text-xs sm:text-sm px-3 py-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 font-medium transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span class="hidden sm:inline">Reset</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Notifikasi / Toast Message Box -->
+        <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+        <!-- Area Upload Folder / Banyak File -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center transition-all duration-200 hover:border-blue-400 hover:bg-slate-50/50">
+                <div class="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-folder-open text-2xl"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-slate-800 mb-1">Pilih Folder atau Banyak File Laporan</h2>
+                <p class="text-sm text-slate-500 max-w-xl mx-auto mb-6">
+                    Mendukung file hasil export/print Mekari Desty dalam format <strong>.PDF, .HTML, .XLSX, .XLS, atau .CSV</strong>. Semua file diproses langsung di browser Anda (100% aman & offline).
+                </p>
+
+                <div class="flex flex-wrap items-center justify-center gap-3">
+                    <!-- Tombol Pilih Folder -->
+                    <label class="cursor-pointer px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-sm shadow-blue-200 transition flex items-center gap-2">
+                        <i class="fa-solid fa-folder-plus"></i>
+                        <span>Pilih Satu Folder</span>
+                        <input type="file" id="folderInput" webkitdirectory directory multiple class="hidden">
+                    </label>
+
+                    <!-- Tombol Pilih Banyak File -->
+                    <label class="cursor-pointer px-5 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-sm shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-import text-blue-600"></i>
+                        <span>Pilih Banyak File</span>
+                        <input type="file" id="filesInput" multiple accept=".pdf,.html,.htm,.xlsx,.xls,.csv,.txt" class="hidden">
+                    </label>
+                </div>
+
+                <!-- Progress Bar -->
+                <div id="progressWrapper" class="hidden max-w-md mx-auto mt-6">
+                    <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                        <span id="progressText">Memproses file...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                        <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-200" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ringkasan Statistik -->
+        <section id="statsSection" class="hidden grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-file-lines text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total File Diproses</p>
+                    <p id="statTotalFiles" class="text-2xl font-bold text-slate-900">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-barcode text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Resi Terekap</p>
+                    <p id="statTotalResi" class="text-2xl font-bold text-slate-900">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-truck-fast text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Jenis Kurir</p>
+                    <p id="statTotalKurir" class="text-2xl font-bold text-slate-900">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-user-check text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Admin Scan</p>
+                    <p id="statTotalAdmin" class="text-2xl font-bold text-slate-900">0</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab & Tabel Rekapitulasi -->
+        <section id="resultSection" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <!-- Header Kontrol -->
+            <div class="p-4 sm:p-6 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <!-- Tabs -->
+                <div class="flex bg-slate-100 p-1 rounded-xl w-fit">
+                    <button id="tabDetailBtn" onclick="switchTab('detail')" class="px-4 py-2 rounded-lg text-sm font-semibold bg-white text-blue-600 shadow-sm transition">
+                        <i class="fa-solid fa-list-check mr-1.5"></i>Rekap Detail Resi
+                    </button>
+                    <button id="tabFileBtn" onclick="switchTab('file')" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 transition">
+                        <i class="fa-solid fa-folder-tree mr-1.5"></i>Ringkasan Per File
+                    </button>
+                </div>
+
+                <!-- Pencarian & Tombol Export -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="relative flex-grow sm:flex-grow-0">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="searchInput" oninput="filterTable()" placeholder="Cari resi, pesanan, kurir, file..." class="w-full sm:w-64 pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <select id="kurirFilter" onchange="filterTable()" class="px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Semua Kurir</option>
+                    </select>
+
+                    <button onclick="exportToExcel()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Export Excel</span>
+                    </button>
+
+                    <button onclick="exportToCSV()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-medium text-sm shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-csv"></i>
+                        <span>CSV</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab 1: Tabel Detail Semua Resi -->
+            <div id="viewDetail" class="overflow-x-auto max-h-[600px]">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        <tr>
+                            <th class="py-3.5 px-4 w-12 text-center">No</th>
+                            <th class="py-3.5 px-4">Nomor Resi</th>
+                            <th class="py-3.5 px-4">Nomor Pesanan</th>
+                            <th class="py-3.5 px-4">Kurir</th>
+                            <th class="py-3.5 px-4">Scan Oleh</th>
+                            <th class="py-3.5 px-4 text-center">Total Paket (File)</th>
+                            <th class="py-3.5 px-4">Nama File (Sumber)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailTableBody" class="divide-y divide-slate-100 text-sm">
+                        <!-- Baris diisi lewat JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tab 2: Tabel Ringkasan Per File -->
+            <div id="viewFile" class="hidden overflow-x-auto max-h-[600px]">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        <tr>
+                            <th class="py-3.5 px-4 w-12 text-center">No</th>
+                            <th class="py-3.5 px-4">Nama File (Sumber)</th>
+                            <th class="py-3.5 px-4">ID Laporan</th>
+                            <th class="py-3.5 px-4">Kurir</th>
+                            <th class="py-3.5 px-4">Scan Oleh</th>
+                            <th class="py-3.5 px-4 text-center">Total Paket (Header)</th>
+                            <th class="py-3.5 px-4 text-center">Resi Terbaca</th>
+                            <th class="py-3.5 px-4 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fileTableBody" class="divide-y divide-slate-100 text-sm">
+                        <!-- Baris diisi lewat JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer Info -->
+            <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 gap-2">
+                <span id="tableFooterInfo">Menampilkan 0 data</span>
+                <span>Tips: Gunakan kolom pencarian di atas untuk memfilter Nomor Resi atau Nama File tertentu sebelum Export.</span>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400">
+            Aplikasi Rekap Scan Paket &bull; Pemrosesan Lokal di Browser (Tanpa Upload Server)
+        </div>
+    </footer>
+
+    <script>
+        // Konfigurasi Worker PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // State Global Aplikasi
+        let allRecords = [];      // Menyimpan seluruh baris resi
+        let fileSummaries = [];   // Menyimpan ringkasan per file
+        let filteredRecords = []; // Data hasil filter pencarian
+        let currentTab = 'detail';
+
+        // Inisialisasi Event Listener Drag & Drop dan Input File
+        const dropZone = document.getElementById('dropZone');
+        const folderInput = document.getElementById('folderInput');
+        const filesInput = document.getElementById('filesInput');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('drop-zone-active'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('drop-zone-active'), false);
+        });
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        folderInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        filesInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        // Fungsi menampilkan notifikasi Toast
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-emerald-600 text-white',
+                error: 'bg-rose-600 text-white',
+                warning: 'bg-amber-500 text-white',
+                info: 'bg-slate-800 text-white'
+            };
+            const icons = {
+                success: 'fa-circle-check',
+                error: 'fa-circle-exclamation',
+                warning: 'fa-triangle-exclamation',
+                info: 'fa-circle-info'
+            };
+
+            toast.className = `${colors[type]} px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm font-medium transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type]}"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Menangani Drop Folder maupun Banyak File
+        async function handleDrop(e) {
+            const items = e.dataTransfer.items;
+            if (!items) {
+                handleFiles(e.dataTransfer.files);
+                return;
+            }
+
+            const files = [];
+            const queue = [];
+
+            for (let i = 0; i < items.length; i++) {
+                const entry = items[i].webkitGetAsEntry();
+                if (entry) {
+                    queue.push(traverseFileTree(entry, files));
+                }
+            }
+
+            await Promise.all(queue);
+            if (files.length > 0) {
+                handleFiles(files);
+            }
+        }
+
+        // Rekursif membaca isi folder saat Drag & Drop
+        function traverseFileTree(item, fileList) {
+            return new Promise((resolve) => {
+                if (item.isFile) {
+                    item.file((file) => {
+                        fileList.push(file);
+                        resolve();
+                    });
+                } else if (item.isDirectory) {
+                    const dirReader = item.createReader();
+                    dirReader.readEntries(async (entries) => {
+                        const promises = entries.map(entry => traverseFileTree(entry, fileList));
+                        await Promise.all(promises);
+                        resolve();
+                    });
+                } else {
+                    resolve();
+                }
+            });
+        }
+
+        // Memproses kumpulan file yang dipilih
+        async function handleFiles(fileList) {
+            const validExtensions = ['pdf', 'html', 'htm', 'xlsx', 'xls', 'csv', 'txt'];
+            const files = Array.from(fileList).filter(file => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                return validExtensions.includes(ext) && !file.name.startsWith('~$');
+            });
+
+            if (files.length === 0) {
+                showToast('Tidak ditemukan file yang didukung (.pdf, .html, .xlsx, .csv) di folder tersebut.', 'warning');
+                return;
+            }
+
+            const progressWrapper = document.getElementById('progressWrapper');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const progressPercent = document.getElementById('progressPercent');
+
+            progressWrapper.classList.remove('hidden');
+            let processedCount = 0;
+            let newRecordsCount = 0;
+
+            for (const file of files) {
+                try {
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    let parsedData = null;
+
+                    if (ext === 'pdf') {
+                        parsedData = await parsePDFFile(file);
+                    } else if (ext === 'html' || ext === 'htm' || ext === 'txt') {
+                        parsedData = await parseHTMLOrTextFile(file);
+                    } else if (ext === 'xlsx' || ext === 'xls' || ext === 'csv') {
+                        parsedData = await parseSpreadsheetFile(file);
+                    }
+
+                    if (parsedData) {
+                        // Tambahkan ke ringkasan file
+                        fileSummaries.push({
+                            fileName: file.name,
+                            reportId: parsedData.reportId || '-',
+                            kurir: parsedData.kurir || '-',
+                            scanOleh: parsedData.scanOleh || '-',
+                            totalPaketHeader: parsedData.totalPaket || parsedData.items.length,
+                            extractedCount: parsedData.items.length
+                        });
+
+                        // Tambahkan tiap item resi ke master array
+                        parsedData.items.forEach(item => {
+                            allRecords.push({
+                                nomorResi: item.nomorResi,
+                                nomorPesanan: item.nomorPesanan,
+                                namaToko: item.namaToko || '-',
+                                kurir: parsedData.kurir || '-',
+                                scanOleh: parsedData.scanOleh || '-',
+                                totalPaket: parsedData.totalPaket || parsedData.items.length,
+                                namaFile: file.name
+                            });
+                            newRecordsCount++;
+                        });
+                    }
+                } catch (err) {
+                    console.error(`Gagal memproses file ${file.name}:`, err);
+                    fileSummaries.push({
+                        fileName: file.name,
+                        reportId: 'Error',
+                        kurir: '-',
+                        scanOleh: '-',
+                        totalPaketHeader: 0,
+                        extractedCount: 0,
+                        error: true
+                    });
+                }
+
+                processedCount++;
+                const pct = Math.round((processedCount / files.length) * 100);
+                progressBar.style.width = `${pct}%`;
+                progressText.textContent = `Memproses ${processedCount} dari ${files.length} file...`;
+                progressPercent.textContent = `${pct}%`;
+            }
+
+            setTimeout(() => {
+                progressWrapper.classList.add('hidden');
+                progressBar.style.width = '0%';
+            }, 800);
+
+            updateUI();
+            showToast(`Berhasil memproses ${files.length} file (${newRecordsCount} resi ditemukan)!`, 'success');
+            
+            // Reset nilai input agar bisa memilih folder yang sama lagi jika diperlukan
+            folderInput.value = '';
+            filesInput.value = '';
+        }
+
+        // ==========================================
+        // PARSER 1: FILE PDF (Mekari Desty Format)
+        // ==========================================
+        async function parsePDFFile(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                
+                // Urutkan item teks berdasarkan posisi Y (atas ke bawah) lalu X (kiri ke kanan)
+                const items = textContent.items.sort((a, b) => {
+                    const yDiff = Math.abs(b.transform[5] - a.transform[5]);
+                    if (yDiff > 5) return b.transform[5] - a.transform[5];
+                    return a.transform[4] - b.transform[4];
+                });
+
+                let lastY = null;
+                let pageText = '';
+                for (const item of items) {
+                    if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
+                        pageText += '\n';
+                    } else if (lastY !== null) {
+                        pageText += '  ';
+                    }
+                    pageText += item.str;
+                    lastY = item.transform[5];
+                }
+                fullText += pageText + '\n';
+            }
+
+            return extractDestyPatternFromText(fullText);
+        }
+
+        // ==========================================
+        // PARSER 2: FILE HTML / TEXT
+        // ==========================================
+        async function parseHTMLOrTextFile(file) {
+            const rawText = await file.text();
+            // Jika berupa HTML, ambil textContent-nya agar bersih dari tag
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(rawText, 'text/html');
+            const cleanText = doc.body ? doc.body.innerText : rawText;
+            return extractDestyPatternFromText(cleanText);
+        }
+
+        // ==========================================
+        // PARSER 3: FILE EXCEL / CSV
+        // ==========================================
+        async function parseSpreadsheetFile(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false });
+
+            // Gabungkan semua sel menjadi teks baris per baris untuk menangkap metadata header Desty
+            const combinedText = rows.map(r => r.filter(Boolean).join('  ')).join('\n');
+            return extractDestyPatternFromText(combinedText);
+        }
+
+        // ==========================================
+        // INTI LOGIKA EKSTRAKSI POLA MEKARI DESTY
+        // ==========================================
+        function extractDestyPatternFromText(text) {
+            // 1. Ekstrak ID Laporan (Contoh: Laporan Scan Paket - SP-005561)
+            const reportMatch = text.match(/Laporan\s+Scan\s+Paket\s*[-–:]\s*([A-Z0-9-]+)/i);
+            const reportId = reportMatch ? reportMatch[1].trim() : '-';
+
+            // 2. Ekstrak Kurir (Contoh: Kurir: JNT Economy)
+            // Berhenti sebelum kata "Total Paket" atau baris baru
+            const kurirMatch = text.match(/Kurir\s*:\s*([^\n|]+?)(?=\s{2,}|\s*Total\s+Paket|\n|$)/i);
+            const kurir = kurirMatch ? kurirMatch[1].trim() : '-';
+
+            // 3. Ekstrak Total Paket (Contoh: Total Paket: 13)
+            const totalMatch = text.match(/Total\s+Paket\s*:\s*(\d+)/i);
+            const totalPaket = totalMatch ? parseInt(totalMatch[1], 10) : null;
+
+            // 4. Ekstrak Scan Oleh (Contoh: Scan Oleh: fadly020499@gmail.com)
+            const scanOlehMatch = text.match(/Scan\s+Oleh\s*:\s*([^\s\n|]+@[^\s\n|]+|[^\n|]+?)(?=\s{2,}|\n|$)/i);
+            const scanOleh = scanOlehMatch ? scanOlehMatch[1].trim() : '-';
+
+            // 5. Ekstrak Daftar Pasangan Nomor Pesanan & Nomor Resi
+            // Berdasarkan gambar:
+            // Nomor Pesanan: deretan angka panjang (14 - 22 digit, misal: 586886350067828502) atau kode pesanan alfanumerik panjang (Shopee/Lazada/Tokopedia)
+            // Nomor Resi: kode ekspedisi (misal: JY2110499943, JP1234567890, SPXID..., 004..., dll)
+            const items = [];
+            const lines = text.split(/\r?\n/);
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+
+                // Abaikan baris header tabel
+                if (/Nama\s+Toko|Nomor\s+Pesanan|Nomor\s+Resi|Laporan\s+Scan/i.test(trimmed)) {
+                    continue;
+                }
+
+                // Pola A: Nomor Pesanan berupa angka panjang (12-25 digit) diikuti spasi dan Nomor Resi
+                const matchNumericOrder = trimmed.match(/\b(\d{12,25})\b\s+([A-Z0-9-]{8,30})\b/i);
+                if (matchNumericOrder) {
+                    items.push({
+                        nomorPesanan: matchNumericOrder[1].trim(),
+                        nomorResi: matchNumericOrder[2].trim()
+                    });
+                    continue;
+                }
+
+                // Pola B: Nomor Pesanan alfanumerik (misal Shopee: 261102ABCD1234) diikuti spasi dan Nomor Resi
+                const matchAlphaOrder = trimmed.match(/\b([A-Z0-9]{12,25})\b\s+([A-Z0-9-]{8,30})\b/i);
+                if (matchAlphaOrder) {
+                    // Pastikan bukan tanggal atau jam
+                    if (!/^\d{2}-\d{2}-\d{4}$/.test(matchAlphaOrder[1])) {
+                        items.push({
+                            nomorPesanan: matchAlphaOrder[1].trim(),
+                            nomorResi: matchAlphaOrder[2].trim()
+                        });
+                    }
+                }
+            }
+
+            return {
+                reportId,
+                kurir,
+                totalPaket: totalPaket !== null ? totalPaket : items.length,
+                scanOleh,
+                items
+            };
+        }
+
+        // ==========================================
+        // MEMUAT DATA CONTOH SESUAI GAMBAR LAMPIRAN
+        // ==========================================
+        function loadDemoData() {
+            const sampleFile = "Laporan_Scan_Paket_SP-005561.pdf";
+            const sampleRows = [
+                { nomorPesanan: "586886350067828502", nomorResi: "JY2110499943" },
+                { nomorPesanan: "586886915668674522", nomorResi: "JY2117159933" },
+                { nomorPesanan: "586893166860535376", nomorResi: "JY2153939943" },
+                { nomorPesanan: "586893281938540217", nomorResi: "JY2177139933" },
+                { nomorPesanan: "586894964020053203", nomorResi: "JY2115719933" }
+            ];
+
+            fileSummaries.push({
+                fileName: sampleFile,
+                reportId: "SP-005561",
+                kurir: "JNT Economy",
+                scanOleh: "fadly020499@gmail.com",
+                totalPaketHeader: 13,
+                extractedCount: sampleRows.length
+            });
+
+            sampleRows.forEach(r => {
+                allRecords.push({
+                    nomorResi: r.nomorResi,
+                    nomorPesanan: r.nomorPesanan,
+                    kurir: "JNT Economy",
+                    scanOleh: "fadly020499@gmail.com",
+                    totalPaket: 13,
+                    namaFile: sampleFile
+                });
+            });
+
+            updateUI();
+            showToast('Data contoh dari gambar SP-005561 berhasil dimuat!', 'success');
+        }
+
+        // Reset seluruh data
+        function clearAllData() {
+            allRecords = [];
+            fileSummaries = [];
+            filteredRecords = [];
+            document.getElementById('searchInput').value = '';
+            document.getElementById('kurirFilter').innerHTML = '<option value="">Semua Kurir</option>';
+            updateUI();
+            showToast('Semua data rekap telah dibersihkan.', 'info');
+        }
+
+        // Update tampilan statistik, dropdown filter, dan tabel
+        function updateUI() {
+            const hasData = fileSummaries.length > 0;
+            
+            document.getElementById('statsSection').classList.toggle('hidden', !hasData);
+            document.getElementById('resultSection').classList.toggle('hidden', !hasData);
+            document.getElementById('btnClear').classList.toggle('hidden', !hasData);
+
+            if (!hasData) return;
+
+            // Update Kartu Statistik
+            const uniqueKurir = [...new Set(allRecords.map(r => r.kurir).filter(k => k && k !== '-'))];
+            const uniqueAdmin = [...new Set(allRecords.map(r => r.scanOleh).filter(a => a && a !== '-'))];
+
+            document.getElementById('statTotalFiles').textContent = fileSummaries.length.toLocaleString('id-ID');
+            document.getElementById('statTotalResi').textContent = allRecords.length.toLocaleString('id-ID');
+            document.getElementById('statTotalKurir').textContent = uniqueKurir.length.toLocaleString('id-ID');
+            document.getElementById('statTotalAdmin').textContent = uniqueAdmin.length.toLocaleString('id-ID');
+
+            // Update Dropdown Filter Kurir
+            const kurirSelect = document.getElementById('kurirFilter');
+            const currentVal = kurirSelect.value;
+            kurirSelect.innerHTML = '<option value="">Semua Kurir</option>';
+            uniqueKurir.forEach(k => {
+                const opt = document.createElement('option');
+                opt.value = k;
+                opt.textContent = k;
+                kurirSelect.appendChild(opt);
+            });
+            kurirSelect.value = currentVal;
+
+            filterTable();
+            renderFileSummaryTable();
+        }
+
+        // Filter Tabel Detail
+        function filterTable() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const kurirVal = document.getElementById('kurirFilter').value;
+
+            filteredRecords = allRecords.filter(item => {
+                const matchKurir = !kurirVal || item.kurir === kurirVal;
+                const matchQuery = !query || 
+                    item.nomorResi.toLowerCase().includes(query) ||
+                    item.nomorPesanan.toLowerCase().includes(query) ||
+                    item.kurir.toLowerCase().includes(query) ||
+                    item.scanOleh.toLowerCase().includes(query) ||
+                    item.namaFile.toLowerCase().includes(query);
+                return matchKurir && matchQuery;
+            });
+
+            renderDetailTable();
+        }
+
+        // Render Tabel Detail Resi
+        function renderDetailTable() {
+            const tbody = document.getElementById('detailTableBody');
+            tbody.innerHTML = '';
+
+            if (filteredRecords.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-10 text-center text-slate-400">
+                            <i class="fa-solid fa-inbox text-3xl mb-2 block"></i>
+                            Tidak ada data resi yang cocok dengan filter pencarian.
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('tableFooterInfo').textContent = 'Menampilkan 0 data';
+                return;
+            }
+
+            // Render maksimal 1000 baris pertama di DOM agar tetap sangat ringan jika data puluhan ribu
+            const displayLimit = Math.min(filteredRecords.length, 1000);
+            const fragment = document.createDocumentFragment();
+
+            for (let i = 0; i < displayLimit; i++) {
+                const row = filteredRecords[i];
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-blue-50/40 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center text-slate-400 font-mono text-xs">${i + 1}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-900 font-mono">${escapeHTML(row.nomorResi)}</td>
+                    <td class="py-3 px-4 text-slate-700 font-mono">${escapeHTML(row.nomorPesanan)}</td>
+                    <td class="py-3 px-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                            ${escapeHTML(row.kurir)}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-slate-600 text-xs">${escapeHTML(row.scanOleh)}</td>
+                    <td class="py-3 px-4 text-center font-medium text-slate-700">${row.totalPaket}</td>
+                    <td class="py-3 px-4 text-slate-500 text-xs max-w-xs truncate" title="${escapeHTML(row.namaFile)}">
+                        <i class="fa-regular fa-file mr-1 text-slate-400"></i>${escapeHTML(row.namaFile)}
+                    </td>
+                `;
+                fragment.appendChild(tr);
+            }
+
+            tbody.appendChild(fragment);
+            
+            const infoText = filteredRecords.length > 1000 
+                ? `Menampilkan 1.000 dari ${filteredRecords.length.toLocaleString('id-ID')} data (Seluruh data tetap ikut saat di-Export)`
+                : `Menampilkan ${filteredRecords.length.toLocaleString('id-ID')} dari ${allRecords.length.toLocaleString('id-ID')} total resi`;
+            document.getElementById('tableFooterInfo').textContent = infoText;
+        }
+
+        // Render Tabel Ringkasan Per File
+        function renderFileSummaryTable() {
+            const tbody = document.getElementById('fileTableBody');
+            tbody.innerHTML = '';
+
+            fileSummaries.forEach((f, idx) => {
+                const isComplete = !f.error && f.extractedCount > 0 && f.extractedCount === f.totalPaketHeader;
+                const statusBadge = f.error 
+                    ? `<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-600">Gagal Baca</span>`
+                    : isComplete 
+                        ? `<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">Lengkap</span>`
+                        : `<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">Sebagian (${f.extractedCount}/${f.totalPaketHeader})</span>`;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center text-slate-400 font-mono text-xs">${idx + 1}</td>
+                    <td class="py-3 px-4 font-medium text-slate-800 text-xs">${escapeHTML(f.fileName)}</td>
+                    <td class="py-3 px-4 font-mono text-xs text-slate-600">${escapeHTML(f.reportId)}</td>
+                    <td class="py-3 px-4 text-xs text-slate-700">${escapeHTML(f.kurir)}</td>
+                    <td class="py-3 px-4 text-xs text-slate-600">${escapeHTML(f.scanOleh)}</td>
+                    <td class="py-3 px-4 text-center font-semibold text-slate-800">${f.totalPaketHeader}</td>
+                    <td class="py-3 px-4 text-center font-semibold text-blue-600">${f.extractedCount}</td>
+                    <td class="py-3 px-4 text-center">${statusBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Ganti Tab Tampilan
+        function switchTab(tab) {
+            currentTab = tab;
+            const detailBtn = document.getElementById('tabDetailBtn');
+            const fileBtn = document.getElementById('tabFileBtn');
+            const viewDetail = document.getElementById('viewDetail');
+            const viewFile = document.getElementById('viewFile');
+
+            if (tab === 'detail') {
+                detailBtn.className = 'px-4 py-2 rounded-lg text-sm font-semibold bg-white text-blue-600 shadow-sm transition';
+                fileBtn.className = 'px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 transition';
+                viewDetail.classList.remove('hidden');
+                viewFile.classList.add('hidden');
+            } else {
+                fileBtn.className = 'px-4 py-2 rounded-lg text-sm font-semibold bg-white text-blue-600 shadow-sm transition';
+                detailBtn.className = 'px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 transition';
+                viewFile.classList.remove('hidden');
+                viewDetail.classList.add('hidden');
+            }
+        }
+
+        // ==========================================
+        // EXPORT KE EXCEL (.XLSX) - 2 SHEET SEKALIGUS
+        // ==========================================
+        function exportToExcel() {
+            if (filteredRecords.length === 0) {
+                showToast('Tidak ada data untuk di-export.', 'warning');
+                return;
+            }
+
+            // Sheet 1: Rekap Detail Resi (Sesuai urutan kolom yang diminta)
+            const detailSheetData = filteredRecords.map((item, index) => ({
+                'No': index + 1,
+                'Nomor Resi': item.nomorResi,
+                'Nomor Pesanan': item.nomorPesanan,
+                'Kurir': item.kurir,
+                'Scan Oleh': item.scanOleh,
+                'Total Paket': item.totalPaket,
+                'Nama File (Sumber)': item.namaFile
+            }));
+
+            // Sheet 2: Ringkasan Per File
+            const fileSheetData = fileSummaries.map((f, index) => ({
+                'No': index + 1,
+                'Nama File (Sumber)': f.fileName,
+                'ID Laporan': f.reportId,
+                'Kurir': f.kurir,
+                'Scan Oleh': f.scanOleh,
+                'Total Paket (Header)': f.totalPaketHeader,
+                'Jumlah Resi Terbaca': f.extractedCount
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const wsDetail = XLSX.utils.json_to_sheet(detailSheetData);
+            const wsFiles = XLSX.utils.json_to_sheet(fileSheetData);
+
+            // Atur lebar kolom otomatis agar rapi saat dibuka di Excel
+            wsDetail['!cols'] = [
+                { wch: 6 },  // No
+                { wch: 22 }, // Nomor Resi
+                { wch: 25 }, // Nomor Pesanan
+                { wch: 18 }, // Kurir
+                { wch: 28 }, // Scan Oleh
+                { wch: 14 }, // Total Paket
+                { wch: 35 }  // Nama File
+            ];
+
+            wsFiles['!cols'] = [
+                { wch: 6 },
+                { wch: 35 },
+                { wch: 15 },
+                { wch: 18 },
+                { wch: 28 },
+                { wch: 20 },
+                { wch: 20 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, wsDetail, "Rekap Detail Resi");
+            XLSX.utils.book_append_sheet(wb, wsFiles, "Ringkasan Per File");
+
+            const timestamp = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `Rekap_Scan_Paket_${timestamp}.xlsx`);
+            showToast('File Excel berhasil diunduh!', 'success');
+        }
+
+        // Export ke CSV
+        function exportToCSV() {
+            if (filteredRecords.length === 0) {
+                showToast('Tidak ada data untuk di-export.', 'warning');
+                return;
+            }
+
+            const detailSheetData = filteredRecords.map((item, index) => ({
+                'No': index + 1,
+                'Nomor Resi': item.nomorResi,
+                'Nomor Pesanan': `'${item.nomorPesanan}`, // Tambahkan apostrof agar angka panjang tidak berubah jadi scientific notation di Excel
+                'Kurir': item.kurir,
+                'Scan Oleh': item.scanOleh,
+                'Total Paket': item.totalPaket,
+                'Nama File (Sumber)': item.namaFile
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(detailSheetData);
+            const csv = XLSX.utils.sheet_to_csv(ws);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            const timestamp = new Date().toISOString().slice(0, 10);
+            link.setAttribute('download', `Rekap_Scan_Paket_${timestamp}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('File CSV berhasil diunduh!', 'success');
+        }
+
+        // Utility keamanan XSS
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>
